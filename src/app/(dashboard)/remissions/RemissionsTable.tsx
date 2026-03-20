@@ -1,4 +1,4 @@
-﻿import { normalizeModalityCode } from '@/lib/modality-labels';
+import { normalizeModalityCode } from '@/lib/modality-labels';
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/auth-context";
@@ -212,7 +212,7 @@ function StatusButton({ currentStatus, remissionId }: { currentStatus: string, r
         statusDate: formattedDate
       });
       console.log("[Remissions] Estado y fecha guardados en Firestore", remissionId, status, formattedDate);
-      // Obtener datos actualizados de la remisiÃ³n
+      // Obtener datos actualizados de la remisión
       const remissionSnap = await getDoc(doc(db, "remissions", remissionId));
       const remissionData = remissionSnap.data();
       // Convertir Timestamps a valores simples
@@ -426,7 +426,7 @@ function RemissionServiceDialog({ remission, children }: { remission: Remission;
         <AlertDialogHeader>
           <AlertDialogTitle>Editar servicio del paciente</AlertDialogTitle>
           <AlertDialogDescription>
-            Actualiza el servicio y sub-servicio de esta remisiÃ³n para mantener la trazabilidad.
+            Actualiza el servicio y sub-servicio de esta remisión para mantener la trazabilidad.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="space-y-4 py-2">
@@ -503,32 +503,32 @@ function RemissionAuthorizationActions({ remission, enabled, onEdit }: { remissi
     const separator = '-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------';
 
     let body = `Estimados ${entity},\n\n`;
-    body += `Cordial saludo. Solicitamos amablemente la realizaciÃ³n del siguiente estudio:\n`;
+    body += `Cordial saludo. Solicitamos amablemente la realización del siguiente estudio:\n`;
     body += `${separator}\n`;
     body += `DATOS DEL PACIENTE\n`;
     body += `${separator}\n`;
     body += `PACIENTE: ${patient.fullName}\n`;
-    body += `IDENTIFICACIÃ“N: ${patient.idType || 'ID'} ${patient.id || '--'}\n`;
-    body += `EDAD: ${patientAge || '--'} AÃ‘OS\n`;
+    body += `IDENTIFICACIÁ“N: ${patient.idType || 'ID'} ${patient.id || '--'}\n`;
+    body += `EDAD: ${patientAge || '--'} AÁ‘OS\n`;
     body += `ENTIDAD: ${entity}\n`;
     body += `${separator}\n`;
     body += `DATOS DEL ESTUDIO\n`;
     body += `${separator}\n`;
     body += `ESTUDIO: ${studyName}\n`;
-    body += `CÃ“DIGO CUPS: ${cups}\n`;
-    body += `DIAGNÃ“STICO: ${diagnosisCode} - ${diagnosisDesc}\n`;
+    body += `CÁ“DIGO CUPS: ${cups}\n`;
+    body += `DIAGNÁ“STICO: ${diagnosisCode} - ${diagnosisDesc}\n`;
     body += `OBSERVACIONES: ${observationText}\n`;
     body += `${separator}\n`;
-    body += `INFORMACIÃ“N DEL MÃ‰DICO TRATANTE\n`;
+    body += `INFORMACIÁ“N DEL MÉDICO TRATANTE\n`;
     body += `${separator}\n`;
-    body += `MÃ‰DICO: ${physician}\n`;
-    body += `REGISTRO MÃ‰DICO: ${physicianReg}\n`;
+    body += `MÉDICO: ${physician}\n`;
+    body += `REGISTRO MÉDICO: ${physicianReg}\n`;
     body += `${separator}\n`;
-    body += `Quedamos atentos a la confirmaciÃ³n de la gestiÃ³n y al envÃ­o del nÃºmero de autorizaciÃ³n. Adjuntamos los soportes clÃ­nicos pertinentes.\n\n`;
+    body += `Quedamos atentos a la confirmación de la gestión y al envío del número de autorización. Adjuntamos los soportes clínicos pertinentes.\n\n`;
     body += `Atentamente,\n`;
     body += `IMAGENES DIAGNOSTICAS\n`;
     body += `CLINICA SAN SEBASTIAN\n`;
-    body += `Equipo de CoordinaciÃ³n MÃ©dica\n`;
+    body += `Equipo de Coordinación Médica\n`;
     return body;
   };
 
@@ -553,10 +553,10 @@ function RemissionAuthorizationActions({ remission, enabled, onEdit }: { remissi
     try {
       const { doc, deleteDoc } = await import("firebase/firestore");
       await deleteDoc(doc(db, "remissions", remission.id));
-      toast({ title: "RemisiÃ³n eliminada", description: `${patient.fullName} fue removido del listado.` });
+      toast({ title: "Remisión eliminada", description: `${patient.fullName} fue removido del listado.` });
     } catch (error) {
       console.error("[Remissions] Error deleting remission", error);
-      toast({ variant: "destructive", title: "Error", description: "No se pudo eliminar la remisiÃ³n." });
+      toast({ variant: "destructive", title: "Error", description: "No se pudo eliminar la remisión." });
     } finally {
       setDeleteLoading(false);
       setDeleteDialogOpen(false);
@@ -575,7 +575,7 @@ function RemissionAuthorizationActions({ remission, enabled, onEdit }: { remissi
       </DropdownMenuItem>
       <DropdownMenuItem onClick={() => onEdit?.(remission)} disabled={!enabled} className="flex items-center gap-2 cursor-pointer">
         <Edit className="h-4 w-4 shrink-0" />
-        <span>Editar RemisiÃ³n</span>
+        <span>Editar Remisión</span>
       </DropdownMenuItem>
       <DropdownMenuItem onClick={() => setDeleteDialogOpen(true)} disabled={!enabled} className="flex items-center gap-2 cursor-pointer text-red-600 focus:text-red-700 bg-red-50/50 focus:bg-red-50">
         <Trash2 className="h-4 w-4 shrink-0" />
@@ -585,9 +585,9 @@ function RemissionAuthorizationActions({ remission, enabled, onEdit }: { remissi
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Eliminar remisiÃ³n</AlertDialogTitle>
+            <AlertDialogTitle>Eliminar remisión</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acciÃ³n quitarÃ¡ el registro de {patient.fullName}. Â¿Deseas continuar?
+              Esta acción quitará el registro de {patient.fullName}. Â¿Deseas continuar?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -630,7 +630,7 @@ export function RemissionsTable({ statusFilter, onStatusSummaryChange, onCountsC
     const q = query(collection(db, "remissions"), orderBy('createdAt', 'desc'), firestoreLimit(PAGE_SIZE));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Remission));
-      // Ordenar por fecha de creaciÃ³n descendente
+      // Ordenar por fecha de creación descendente
       const sorted = data.sort((a, b) => {
         const aDate = typeof a.createdAt === 'number' ? a.createdAt : (a.createdAt?.seconds ? a.createdAt.seconds * 1000 : 0);
         const bDate = typeof b.createdAt === 'number' ? b.createdAt : (b.createdAt?.seconds ? b.createdAt.seconds * 1000 : 0);
@@ -820,7 +820,7 @@ export function RemissionsTable({ statusFilter, onStatusSummaryChange, onCountsC
                       {rem.patient.birthDate || '--'}
                     </span>
                     {rem.patient.birthDate && (
-                        <span className="font-medium">{getAge(rem.patient.birthDate)} AÃ±os</span>
+                        <span className="font-medium">{getAge(rem.patient.birthDate)} Años</span>
                     )}
                   </div>
                   <div className="text-xs text-muted-foreground flex items-center gap-1 pt-0.5">
@@ -837,7 +837,7 @@ export function RemissionsTable({ statusFilter, onStatusSummaryChange, onCountsC
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start gap-2 mb-1">
                         <p className="font-bold text-foreground text-sm leading-tight truncate" title={primaryStudy?.nombre}>
-                          {primaryStudy?.nombre || 'RemisiÃ³n MÃ©dica'}
+                          {primaryStudy?.nombre || 'Remisión Médica'}
                         </p>
                       </div>
                       <div className="text-xs font-semibold text-slate-600 mb-1 flex items-center gap-2 max-w-full">
@@ -891,7 +891,7 @@ export function RemissionsTable({ statusFilter, onStatusSummaryChange, onCountsC
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="h-7 w-7 p-0">
-                      <span className="sr-only">Abrir menÃº</span>
+                      <span className="sr-only">Abrir menú</span>
                       <MoreHorizontal className="h-3.5 w-3.5" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -917,7 +917,7 @@ export function RemissionsTable({ statusFilter, onStatusSummaryChange, onCountsC
                   <Search className="h-8 w-8 text-muted-foreground" />
                 </div>
                 <p className="text-sm font-semibold text-foreground">No se encontraron remisiones</p>
-                <p className="text-xs text-muted-foreground mt-1">Intenta ajustar los filtros de bÃºsqueda.</p>
+                <p className="text-xs text-muted-foreground mt-1">Intenta ajustar los filtros de búsqueda.</p>
               </div>
             </TableCell>
           </TableRow>
@@ -933,7 +933,7 @@ export function RemissionsTable({ statusFilter, onStatusSummaryChange, onCountsC
               Cargando...
             </>
           ) : (
-            "Ver mÃ¡s remisiones..."
+            "Ver más remisiones..."
           )}
         </Button>
       </div>

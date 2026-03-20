@@ -128,9 +128,9 @@ function SelectOperatorDialog({ onConfirm, children }: { onConfirm: (operator: s
             <AlertDialogTrigger asChild onClick={(e) => e.stopPropagation()}>{children}</AlertDialogTrigger>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Seleccionar RadiÃ³logo</AlertDialogTitle>
+                    <AlertDialogTitle>Seleccionar Radiólogo</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Por favor, seleccione el radiÃ³logo que realizÃ³ este estudio para continuar.
+                        Por favor, seleccione el radiólogo que realizó este estudio para continuar.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <div className="py-4">
@@ -190,7 +190,7 @@ function SelectSpecialistDialog({ study, specialists, onConfirm, children }: { s
                 <AlertDialogHeader>
                     <AlertDialogTitle>Asignar Especialista</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Seleccione el especialista que realizÃ³ la interconsulta para completarla.
+                        Seleccione el especialista que realizó la interconsulta para completarla.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <div className="py-4">
@@ -207,7 +207,7 @@ function SelectSpecialistDialog({ study, specialists, onConfirm, children }: { s
                                 </Label>
                             </div>
                         )) : (
-                            <p className="text-sm text-muted-foreground text-center">No hay especialistas registrados para esta Ã¡rea.</p>
+                            <p className="text-sm text-muted-foreground text-center">No hay especialistas registrados para esta área.</p>
                         )}
                     </RadioGroup>
                 </div>
@@ -246,7 +246,7 @@ function EditServiceDialog({ study, children }: { study: Study; children: React.
           toast({ variant: 'destructive', title: 'Error', description: result.error });
         }
       } catch (error) {
-        if (!handleServerActionError({ error, toast, actionLabel: 'la actualizaciÃ³n del servicio' })) {
+        if (!handleServerActionError({ error, toast, actionLabel: 'la actualización del servicio' })) {
           toast({ variant: 'destructive', title: 'Error', description: 'No se pudo actualizar el servicio.' });
         }
       } finally {
@@ -259,7 +259,7 @@ function EditServiceDialog({ study, children }: { study: Study; children: React.
             <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Editar UbicaciÃ³n del Paciente</AlertDialogTitle>
+                    <AlertDialogTitle>Editar Ubicación del Paciente</AlertDialogTitle>
                     <AlertDialogDescription>
                         Seleccione el nuevo servicio y sub-servicio para esta solicitud.
                     </AlertDialogDescription>
@@ -303,7 +303,7 @@ function EditServiceDialog({ study, children }: { study: Study; children: React.
 const studyDoseSuggestions: Record<string, { kV: number; mA: number; timeMs: number }> = {
     'RADIOGRAFIA DE MANO': { kV: 48, mA: 1.5, timeMs: 10 },
     'RADIOGRAFIA PARA DETECTAR EDAD OSEA [CARPOGRAMA]': { kV: 48, mA: 1.5, timeMs: 10 },
-    'RADIOGRAFIA DE PUÃ‘O O MUÃ‘ECA': { kV: 48, mA: 1.5, timeMs: 10 },
+    'RADIOGRAFIA DE PUÁ‘O O MUÁ‘ECA': { kV: 48, mA: 1.5, timeMs: 10 },
     'RADIOGRAFIA DE ANTEBRAZO': { kV: 52, mA: 2, timeMs: 10 },
     'RADIOGRAFIA DE CODO': { kV: 52, mA: 2, timeMs: 10 },
     'RADIOGRAFIA DE HUMERO': { kV: 70, mA: 7, timeMs: 10 },
@@ -499,7 +499,7 @@ function CompletionDialog({ study, onConfirm, children }: { study: Study; onConf
                     <AlertDialogHeader>
                         <AlertDialogTitle>Finalizar Estudio y Registrar Insumos</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Ingrese los valores de adquisiciÃ³n y los insumos utilizados para completar el estudio.
+                            Ingrese los valores de adquisición y los insumos utilizados para completar el estudio.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <div className="max-h-[60vh] overflow-y-auto">
@@ -653,7 +653,7 @@ function AttachReportDialog({ study, open, onOpenChange }: { study: Study | null
         let template = (cups && reportTemplates[cups as keyof typeof reportTemplates]) || '';
 
         if (!template) {
-            return `No se encontrÃ³ una plantilla de informe para el estudio "${study.studies[0]?.nombre}" (CUPS: ${cups}).\nPuede redactar el informe manualmente aquÃ­.`;
+            return `No se encontró una plantilla de informe para el estudio "${study.studies[0]?.nombre}" (CUPS: ${cups}).\nPuede redactar el informe manualmente aquí.`;
         }
 
         template = template.replace(/{{paciente\.nombre}}/g, study.patient.fullName || 'N/A');
@@ -736,13 +736,13 @@ function AttachReportDialog({ study, open, onOpenChange }: { study: Study | null
                       const result = await transcribeAudioAction({ audioDataUri: base64Audio });
                       if (result.success && result.text) {
                         setReportText(prev => `${prev}\n${result.text}`);
-                        toast({ title: "TranscripciÃ³n Completa" });
+                        toast({ title: "Transcripción Completa" });
                       } else {
-                        throw new Error(result.error || "La transcripciÃ³n fallÃ³.");
+                        throw new Error(result.error || "La transcripción falló.");
                       }
                     } catch (e: any) {
-                      if (!handleServerActionError({ error: e, toast, actionLabel: 'la transcripciÃ³n de audio' })) {
-                        toast({ variant: "destructive", title: "Error de TranscripciÃ³n", description: e.message });
+                      if (!handleServerActionError({ error: e, toast, actionLabel: 'la transcripción de audio' })) {
+                        toast({ variant: "destructive", title: "Error de Transcripción", description: e.message });
                       }
                     } finally {
                         setTranscribing(false);
@@ -752,7 +752,7 @@ function AttachReportDialog({ study, open, onOpenChange }: { study: Study | null
             mediaRecorderRef.current.start();
             setIsRecording(true);
         } catch (error) {
-            toast({ variant: 'destructive', title: 'Error de MicrÃ³fono', description: 'No se pudo acceder al micrÃ³fono.' });
+            toast({ variant: 'destructive', title: 'Error de Micrófono', description: 'No se pudo acceder al micrófono.' });
         }
     };
     
@@ -788,7 +788,7 @@ function AttachReportDialog({ study, open, onOpenChange }: { study: Study | null
                 if (textExtractionResult.success) {
                     finalReportText = textExtractionResult.text || '';
                 } else {
-                    toast({ variant: 'destructive', title: 'Advertencia', description: 'No se pudo extraer el texto del PDF, pero el archivo se adjuntÃ³.' });
+                    toast({ variant: 'destructive', title: 'Advertencia', description: 'No se pudo extraer el texto del PDF, pero el archivo se adjuntó.' });
                 }
 
             } else if (type === 'template' && reportText) {
@@ -803,7 +803,7 @@ function AttachReportDialog({ study, open, onOpenChange }: { study: Study | null
 
             const saveResult = await saveReportDataAction(study.id, finalReportUrl, finalReportText);
             if (!saveResult.success) {
-                throw new Error(saveResult.error || "No se pudo guardar la informaciÃ³n del informe.");
+                throw new Error(saveResult.error || "No se pudo guardar la información del informe.");
             }
             
             toast({ title: "Informe Adjuntado", description: "El informe ha sido procesado y el estudio marcado como 'Leído'." });
@@ -838,7 +838,7 @@ function AttachReportDialog({ study, open, onOpenChange }: { study: Study | null
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                     <div className="flex flex-col space-y-4">
-                        <h4 className="font-semibold">OpciÃ³n 1: Redactar o Dictar Informe</h4>
+                        <h4 className="font-semibold">Opción 1: Redactar o Dictar Informe</h4>
                         <div className="relative flex-grow">
                              <Textarea
                                 value={reportText}
@@ -872,7 +872,7 @@ function AttachReportDialog({ study, open, onOpenChange }: { study: Study | null
                         </Button>
                     </div>
                     <div className="flex flex-col space-y-4">
-                         <h4 className="font-semibold">OpciÃ³n 2: Cargar PDF</h4>
+                         <h4 className="font-semibold">Opción 2: Cargar PDF</h4>
                          <div className="flex items-center justify-center w-full flex-grow">
                             <label htmlFor="file-upload-dialog" className="flex flex-col items-center justify-center w-full h-full border-2 border-border border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted">
                                 <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center">
@@ -924,7 +924,7 @@ function ViewReportDialog({ study, open, onOpenChange }: { study: StudyWithCompl
             if (!canceled) setReportText(text);
           } else if (contentType && contentType.includes('application/pdf')) {
             if (!canceled)
-              setReportText(`Este es un informe en PDF. <a href="${study.reportUrl}" target="_blank" rel="noopener noreferrer" class="text-primary underline">Abrir PDF en nueva pestaÃ±a.</a>`);
+              setReportText(`Este es un informe en PDF. <a href="${study.reportUrl}" target="_blank" rel="noopener noreferrer" class="text-primary underline">Abrir PDF en nueva pestaña.</a>`);
           } else {
             if (!canceled)
               setReportText(`No se pudo determinar el tipo de archivo del informe. <a href="${study.reportUrl}" target="_blank" rel="noopener noreferrer" class="text-primary underline">Abrir directamente.</a>`);
@@ -981,7 +981,7 @@ function ViewReportDialog({ study, open, onOpenChange }: { study: StudyWithCompl
               <Loader2 className="h-6 w-6 animate-spin" />
             </div>
           ) : (
-            <p className="text-sm" dangerouslySetInnerHTML={{ __html: reportText || "No se encontrÃ³ texto en este informe."}}></p>
+            <p className="text-sm" dangerouslySetInnerHTML={{ __html: reportText || "No se encontró texto en este informe."}}></p>
           )}
         </ScrollArea>
         <DialogFooter>
@@ -1009,33 +1009,33 @@ function NursingNoteDialog({ study, open, onOpenChange }: { study: Study | null;
             
             const catheterInfo = study.consumedSupplies?.find(item => item.name.includes("ABBOCATH"));
             const patientDescription = study.patient.fullName.toUpperCase().includes("DISCAPACIDAD")
-                ? 'en compaÃ±Ã­a de familiar, quien asiste en la orientaciÃ³n debido a diagnÃ³stico de base de discapacidad intelectual'
+                ? 'en compañía de familiar, quien asiste en la orientación debido a diagnóstico de base de discapacidad intelectual'
                 : 'consciente, orientado(a) y colaborador(a)';
 
             const template = `
-${time} HORAS - INGRESO Y EVALUACIÃ“N INICIAL
-Se recibe paciente ${study.patient.sex === 'F' ? 'femenina' : 'masculino'} de ${age || 'N/A'} aÃ±os de edad, ${patientDescription}, procedente del servicio de ${study.service}, para la realizaciÃ³n de ${study.studies.map(s => s.nombre).join(', ')}.
-Estado General: Afebril, tolerando oxÃ­geno ambiente, con buen patrÃ³n respiratorio.
-Examen FÃ­sico: Cuello mÃ³vil, tÃ³rax simÃ©trico, abdomen blando no doloroso a la palpaciÃ³n. Miembros simÃ©tricos sin limitaciÃ³n para la movilidad. Piel sin lesiones evidentes.
-DiagnÃ³stico: ${study.diagnosis.description}.
+${time} HORAS - INGRESO Y EVALUACIÁ“N INICIAL
+Se recibe paciente ${study.patient.sex === 'F' ? 'femenina' : 'masculino'} de ${age || 'N/A'} años de edad, ${patientDescription}, procedente del servicio de ${study.service}, para la realización de ${study.studies.map(s => s.nombre).join(', ')}.
+Estado General: Afebril, tolerando oxígeno ambiente, con buen patrón respiratorio.
+Examen Físico: Cuello móvil, tórax simétrico, abdomen blando no doloroso a la palpación. Miembros simétricos sin limitación para la movilidad. Piel sin lesiones evidentes.
+Diagnóstico: ${study.diagnosis.description}.
 
 SIGNOS VITALES (PRE-PROCEDIMIENTO)
 T/A: 120/80 mmHg  |  FC: 75 lpm  |  FR: 18 rpm  |  Temp: 36.5 Â°C  |  SatO2: 98 %
 
-${format(new Date(now.getTime() + 1 * 60000), 'HH:mm')} HORAS - PREPARACIÃ“N Y ACCESO VENOSO
-Se explican riesgos y se verifica consentimiento informado. Con tÃ©cnica asÃ©ptica, se canaliza vena en miembro superior derecho con ${catheterInfo ? `${catheterInfo.name}` : 'Abocath #22'}, se instala extensiÃ³n de anestesia y se confirma permeabilidad de la vÃ­a.
+${format(new Date(now.getTime() + 1 * 60000), 'HH:mm')} HORAS - PREPARACIÁ“N Y ACCESO VENOSO
+Se explican riesgos y se verifica consentimiento informado. Con técnica aséptica, se canaliza vena en miembro superior derecho con ${catheterInfo ? `${catheterInfo.name}` : 'Abocath #22'}, se instala extensión de anestesia y se confirma permeabilidad de la vía.
 
-${format(new Date(now.getTime() + 3 * 60000), 'HH:mm')} HORAS - ADMINISTRACIÃ“N DE CONTRASTE Y MONITOREO
-Se administran ${study.contrastAdministeredMl || '___'} ml de medio de contraste IV. Paciente tolera adecuadamente, refiriendo solo sensaciÃ³n de calor. Se mantiene bajo vigilancia clÃ­nica sin evidencia de reacciones adversas.
+${format(new Date(now.getTime() + 3 * 60000), 'HH:mm')} HORAS - ADMINISTRACIÁ“N DE CONTRASTE Y MONITOREO
+Se administran ${study.contrastAdministeredMl || '___'} ml de medio de contraste IV. Paciente tolera adecuadamente, refiriendo solo sensación de calor. Se mantiene bajo vigilancia clínica sin evidencia de reacciones adversas.
 
 SIGNOS VITALES (POST-CONTRASTE)
 T/A: 122/81 mmHg  |  FC: 78 lpm  |  FR: 18 rpm  |  Temp: 36.5 Â°C  |  SatO2: 97 %
 
-${format(new Date(now.getTime() + 6 * 60000), 'HH:mm')} HORAS - FINALIZACIÃ“N Y RECOMENDACIONES
-Se finaliza el estudio. Se retira vÃ­a venosa sin complicaciones, logrando hemostasia con presiÃ³n local.
-EducaciÃ³n al Alta: Se brindan recomendaciones verbales claras al familiar sobre la importancia de una hidrataciÃ³n abundante en las prÃ³ximas horas para facilitar la eliminaciÃ³n del medio de contraste. Se indican signos de alarma por los cuales consultar (p. ej., reacciÃ³n alÃ©rgica tardÃ­a, nÃ¡useas, mareo).
+${format(new Date(now.getTime() + 6 * 60000), 'HH:mm')} HORAS - FINALIZACIÁ“N Y RECOMENDACIONES
+Se finaliza el estudio. Se retira vía venosa sin complicaciones, logrando hemostasia con presión local.
+Educación al Alta: Se brindan recomendaciones verbales claras al familiar sobre la importancia de una hidratación abundante en las próximas horas para facilitar la eliminación del medio de contraste. Se indican signos de alarma por los cuales consultar (p. ej., reacción alérgica tardía, náuseas, mareo).
 
-CondiciÃ³n de Salida: El procedimiento concluye sin novedades. La paciente se retira del servicio en condiciÃ³n estable, deambulando, en compaÃ±Ã­a de su familiar.
+Condición de Salida: El procedimiento concluye sin novedades. La paciente se retira del servicio en condición estable, deambulando, en compañía de su familiar.
             `;
             setNoteText(template.trim());
         }
@@ -1044,7 +1044,7 @@ CondiciÃ³n de Salida: El procedimiento concluye sin novedades. La paciente se 
     const handleCopy = () => {
         if (noteRef.current) {
             navigator.clipboard.writeText(noteRef.current.value);
-            toast({ title: 'Copiado', description: 'La nota de enfermerÃ­a ha sido copiada al portapapeles.' });
+            toast({ title: 'Copiado', description: 'La nota de enfermería ha sido copiada al portapapeles.' });
         }
     };
 
@@ -1054,9 +1054,9 @@ CondiciÃ³n de Salida: El procedimiento concluye sin novedades. La paciente se 
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogPrimitiveContent className="max-w-2xl">
                 <DialogHeader>
-                    <DialogTitle>Nota de EnfermerÃ­a</DialogTitle>
+                    <DialogTitle>Nota de Enfermería</DialogTitle>
                     <DialogDescription>
-                        Esta es una plantilla generada automÃ¡ticamente. Revise y edite segÃºn sea necesario antes de copiarla.
+                        Esta es una plantilla generada automáticamente. Revise y edite según sea necesario antes de copiarla.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="py-4">
@@ -1103,7 +1103,7 @@ function TurnNumberInput({ study, isAdmin, canAssignTurn }: { study: Study; isAd
               toast({ variant: 'destructive', title: 'Error', description: result.error });
             }
           } catch (error) {
-            if (!handleServerActionError({ error, toast, actionLabel: 'la actualizaciÃ³n del turno' })) {
+            if (!handleServerActionError({ error, toast, actionLabel: 'la actualización del turno' })) {
               toast({ variant: 'destructive', title: 'Error', description: 'No se pudo asignar el turno.' });
             }
           }
@@ -1165,7 +1165,7 @@ function BedNumberInput({ study, canEdit }: { study: Study; canEdit: boolean; })
             toast({ variant: 'destructive', title: 'Error', description: result.error });
           }
         } catch (error) {
-          if (!handleServerActionError({ error, toast, actionLabel: 'la asignaciÃ³n de cama' })) {
+          if (!handleServerActionError({ error, toast, actionLabel: 'la asignación de cama' })) {
             toast({ variant: 'destructive', title: 'Error', description: 'No se pudo asignar la cama.' });
           }
         }
@@ -1187,7 +1187,7 @@ function BedNumberInput({ study, canEdit }: { study: Study; canEdit: boolean; })
             toast({ variant: 'destructive', title: 'Error', description: result.error });
           }
          } catch (error) {
-          if (!handleServerActionError({ error, toast, actionLabel: 'la asignaciÃ³n de cama' })) {
+          if (!handleServerActionError({ error, toast, actionLabel: 'la asignación de cama' })) {
             toast({ variant: 'destructive', title: 'Error', description: 'No se pudo asignar la cama.' });
           }
          }
@@ -1317,7 +1317,7 @@ export function StudyTable({
   const handleStatusChange = async (studyId: string, status: StudyStatus, params?: CompletionParams, operator?: string) => {
     const result = await updateStudyStatusAction(studyId, status, serializeUserProfile(userProfile), params, operator);
     if (result.success) {
-      toast({ title: 'Estado Actualizado', description: `El estudio ahora estÃ¡ ${status}.` });
+      toast({ title: 'Estado Actualizado', description: `El estudio ahora está ${status}.` });
     } else {
       toast({ variant: 'destructive', title: 'Error', description: result.error });
     }
@@ -1365,7 +1365,7 @@ export function StudyTable({
   const handleCancelStudy = async (studyId: string) => {
     const finalReason = cancelReason === 'Otro' ? customCancelReason : cancelReason;
     if (!finalReason) {
-        toast({ variant: "destructive", title: "Error", description: "Debe seleccionar o escribir un motivo de cancelaciÃ³n." });
+        toast({ variant: "destructive", title: "Error", description: "Debe seleccionar o escribir un motivo de cancelación." });
         return;
     }
     const result = await cancelStudyAction(studyId, finalReason, userProfile);
@@ -1420,25 +1420,25 @@ export function StudyTable({
         const subject = `SOLICITUD DE ${study.studies[0]?.nombre} - ${study.patient.fullName} (${study.patient.id})`;
         
         let body = `Estimados ${study.patient.entidad},\n\n`;
-        body += `Por medio del presente, solicito la realizaciÃ³n del siguiente estudio:\n\n`;
+        body += `Por medio del presente, solicito la realización del siguiente estudio:\n\n`;
         body += `---------------------------------------------------\n`;
         body += `DATOS DEL PACIENTE:\n`;
         body += `---------------------------------------------------\n`;
         body += `- Nombre: ${study.patient.fullName}\n`;
-        body += `- IdentificaciÃ³n: ${study.patient.idType || 'ID'} ${study.patient.id}\n`;
+        body += `- Identificación: ${study.patient.idType || 'ID'} ${study.patient.id}\n`;
         body += `- Entidad: ${study.patient.entidad}\n\n`;
         body += `---------------------------------------------------\n`;
         body += `DATOS DEL ESTUDIO SOLICITADO:\n`;
         body += `---------------------------------------------------\n`;
         body += `- Estudio: ${study.studies[0]?.nombre}\n`;
-        body += `- CÃ³digo CUPS: ${study.studies[0]?.cups}\n`;
-        body += `- DiagnÃ³stico: ${study.diagnosis.code} - ${study.diagnosis.description}\n\n`;
+        body += `- Código CUPS: ${study.studies[0]?.cups}\n`;
+        body += `- Diagnóstico: ${study.diagnosis.code} - ${study.diagnosis.description}\n\n`;
         body += `---------------------------------------------------\n`;
-        body += `DATOS DEL MÃ‰DICO SOLICITANTE:\n`;
+        body += `DATOS DEL MÉDICO SOLICITANTE:\n`;
         body += `---------------------------------------------------\n`;
         body += `- Nombre: ${study.orderingPhysician?.name || 'No especificado'}\n`;
-        body += `- Registro MÃ©dico: ${study.orderingPhysician?.register || 'No especificado'}\n\n`;
-        body += `Agradecemos su pronta gestiÃ³n.\n\n`;
+        body += `- Registro Médico: ${study.orderingPhysician?.register || 'No especificado'}\n\n`;
+        body += `Agradecemos su pronta gestión.\n\n`;
         body += `Saludos cordiales.`;
         
         const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
@@ -1715,7 +1715,7 @@ export function StudyTable({
                             <div className="text-xs text-muted-foreground flex items-center gap-x-3 flex-nowrap">
                                <span className="flex items-center gap-1 shrink-0 font-bold"><Fingerprint className="h-3 w-3"/>{study.patient.id}</span>
                                <span className="flex items-center gap-1 shrink-0 font-bold"><CalendarDays className="h-3 w-3"/>{study.patient.birthDate}</span>
-                               {age !== null && <span className="font-medium shrink-0">{age} AÃ‘OS</span>}
+                               {age !== null && <span className="font-medium shrink-0">{age} AÁ‘OS</span>}
                             </div>
                             {study.patient.entidad && (
                               <div className="text-xs text-muted-foreground flex items-center gap-1 pt-0.5">
@@ -1828,7 +1828,7 @@ export function StudyTable({
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" className="h-7 w-7 p-0">
-                            <span className="sr-only">Abrir menÃº</span>
+                            <span className="sr-only">Abrir menú</span>
                             <MoreHorizontal className="h-3.5 w-3.5" />
                           </Button>
                         </DropdownMenuTrigger>
@@ -1839,7 +1839,7 @@ export function StudyTable({
                           {permissions.nursingNote && (
                             <DropdownMenuItem onClick={() => setNursingNoteStudy(study)}>
                                 <FileText className="mr-2 h-4 w-4" />
-                                <span>Nota de EnfermerÃ­a</span>
+                                <span>Nota de Enfermería</span>
                             </DropdownMenuItem>
                           )}
 
@@ -1880,15 +1880,15 @@ export function StudyTable({
                                       </DropdownMenuItem>
                                        <DropdownMenuItem onClick={() => handleDocumentOpen(study.id, 'authorization')}>
                                           <FilePlus2 className="mr-2 h-4 w-4" />
-                                          <span>AutorizaciÃ³n Servicios</span>
+                                          <span>Autorización Servicios</span>
                                       </DropdownMenuItem>
                                       <DropdownMenuItem onClick={() => handleDocumentOpen(study.id, 'survey')}>
                                           <FileQuestion className="mr-2 h-4 w-4" />
-                                          <span>Encuesta de SatisfacciÃ³n</span>
+                                          <span>Encuesta de Satisfacción</span>
                                       </DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => handleDocumentOpen(study.id, 'imaging-order')}>
                                           <Clipboard className="mr-2 h-4 w-4" />
-                                          <span>Orden ImÃ¡genes DiagnÃ³sticas</span>
+                                          <span>Orden Imágenes Diagnósticas</span>
                                         </DropdownMenuItem>
                                   </DropdownMenuSubContent>
                                 </DropdownMenuPortal>
@@ -1957,13 +1957,13 @@ export function StudyTable({
                                 <AlertDialogHeader>
                                   <AlertDialogTitle>Â¿Revertir estudio?</AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    Esta acciÃ³n cambiarÃ¡ el estado a &quot;Pendiente&quot; y borrarÃ¡ las asociadas.
+                                    Esta acción cambiará el estado a &quot;Pendiente&quot; y borrará las asociadas.
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                   <AlertDialogCancel>Cancelar</AlertDialogCancel>
                                   <AlertDialogAction onClick={() => handleStatusChange(study.id, 'Pendiente')}>
-                                    SÃ­, revertir
+                                    Sí, revertir
                                   </AlertDialogAction>
                                 </AlertDialogFooter>
                               </AlertDialogContent>
@@ -1986,7 +1986,7 @@ export function StudyTable({
                                 <AlertDialogHeader>
                                   <AlertDialogTitle>Cancelar Solicitud</AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    Selecciona un motivo para la cancelaciÃ³n. Esta acciÃ³n no se puede deshacer.
+                                    Selecciona un motivo para la cancelación. Esta acción no se puede deshacer.
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <RadioGroup
@@ -1996,11 +1996,11 @@ export function StudyTable({
                                 >
                                     <div className="flex items-center space-x-2"><RadioGroupItem value="Error en la solicitud" id="r1" /><Label htmlFor="r1">Error en la solicitud</Label></div>
                                     <div className="flex items-center space-x-2"><RadioGroupItem value="Solicitud duplicada" id="r2" /><Label htmlFor="r2">Solicitud duplicada</Label></div>
-                                    <div className="flex items-center space-x-2"><RadioGroupItem value="PeticiÃ³n del mÃ©dico tratante" id="r3" /><Label htmlFor="r3">PeticiÃ³n del mÃ©dico tratante</Label></div>
+                                    <div className="flex items-center space-x-2"><RadioGroupItem value="Petición del médico tratante" id="r3" /><Label htmlFor="r3">Petición del médico tratante</Label></div>
                                     <div className="flex items-center space-x-2"><RadioGroupItem value="Paciente no se presenta" id="r4" /><Label htmlFor="r4">Paciente no se presenta</Label></div>
                                     <div className="flex items-center space-x-2"><RadioGroupItem value="Paciente rechaza el procedimiento" id="r5" /><Label htmlFor="r5">Paciente rechaza el procedimiento</Label></div>
-                                    <div className="flex items-center space-x-2"><RadioGroupItem value="CondiciÃ³n clÃ­nica del paciente no permite" id="r6" /><Label htmlFor="r6">CondiciÃ³n clÃ­nica del paciente no permite</Label></div>
-                                    <div className="flex items-center space-x-2"><RadioGroupItem value="Falta de preparaciÃ³n del paciente" id="r7" /><Label htmlFor="r7">Falta de preparaciÃ³n del paciente</Label></div>
+                                    <div className="flex items-center space-x-2"><RadioGroupItem value="Condición clínica del paciente no permite" id="r6" /><Label htmlFor="r6">Condición clínica del paciente no permite</Label></div>
+                                    <div className="flex items-center space-x-2"><RadioGroupItem value="Falta de preparación del paciente" id="r7" /><Label htmlFor="r7">Falta de preparación del paciente</Label></div>
                                     <div className="flex items-center space-x-2"><RadioGroupItem value="Orden mal cargada" id="r8" /><Label htmlFor="r8">Orden mal cargada</Label></div>
                                     <div className="flex items-center space-x-2"><RadioGroupItem value="No cumple ayuno" id="r9" /><Label htmlFor="r9">No cumple ayuno</Label></div>
                                     <div className="flex items-center space-x-2"><RadioGroupItem value="Paciente no colabora" id="r10" /><Label htmlFor="r10">Paciente no colabora</Label></div>
@@ -2008,7 +2008,7 @@ export function StudyTable({
                                 </RadioGroup>
                                 {cancelReason === 'Otro' && (
                                     <Textarea 
-                                        placeholder="Especifique el motivo de la cancelaciÃ³n..."
+                                        placeholder="Especifique el motivo de la cancelación..."
                                         value={customCancelReason}
                                         onChange={(e) => setCustomCancelReason(e.target.value)}
                                         className="my-2"
@@ -2017,7 +2017,7 @@ export function StudyTable({
                                 <AlertDialogFooter>
                                   <AlertDialogCancel onClick={() => { setCancelReason(''); setCustomCancelReason(''); }}>Cerrar</AlertDialogCancel>
                                   <AlertDialogAction onClick={() => handleCancelStudy(study.id)}>
-                                    Confirmar CancelaciÃ³n
+                                    Confirmar Cancelación
                                   </AlertDialogAction>
                                 </AlertDialogFooter>
                               </AlertDialogContent>
@@ -2040,16 +2040,16 @@ export function StudyTable({
                               </AlertDialogTrigger>
                               <AlertDialogContent>
                                 <AlertDialogHeader>
-                                  <AlertDialogTitle>Â¿EstÃ¡s seguro?</AlertDialogTitle>
+                                  <AlertDialogTitle>Â¿Estás seguro?</AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    Esta acciÃ³n es permanente y no se puede deshacer. La solicitud se eliminarÃ¡ de
+                                    Esta acción es permanente y no se puede deshacer. La solicitud se eliminará de
                                     la base de datos.
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                   <AlertDialogCancel>Cancelar</AlertDialogCancel>
                                   <AlertDialogAction onClick={() => handleDeleteStudy(study.id)}>
-                                    SÃ­, eliminar
+                                    Sí, eliminar
                                   </AlertDialogAction>
                                 </AlertDialogFooter>
                               </AlertDialogContent>
@@ -2087,7 +2087,7 @@ export function StudyTable({
                 CARGANDO...
               </>
             ) : (
-              "Ver mÃ¡s solicitudes"
+              "Ver más solicitudes"
             )}
           </Button>
         </div>
