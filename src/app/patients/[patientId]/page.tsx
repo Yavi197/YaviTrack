@@ -17,12 +17,13 @@ import { StudyTable } from '@/components/app/study-table';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function PatientProfilePage() {
+    // All hooks must be declared before any early returns
     const params = useParams();
-    if (!params) return null;
-    const patientId = params.patientId as string;
     const router = useRouter();
     const { user, loading: authLoading, userProfile } = useAuth();
-    
+
+    const patientId = (params?.patientId as string) ?? '';
+
     const [studies, setStudies] = useState<StudyWithCompletedBy[]>([]);
     const [patientData, setPatientData] = useState<StudyWithCompletedBy['patient'] | null>(null);
     const [loading, setLoading] = useState(true);

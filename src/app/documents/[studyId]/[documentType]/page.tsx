@@ -36,42 +36,43 @@ const docTypeAbbreviations: Record<string, string> = {
 
 
 export default function DocumentPage() {
+  // All hooks must be declared before any early returns
   const params = useParams();
   const searchParams = useSearchParams();
-  
-  if (!params) return null;
-  
-  const studyId = params.studyId as string;
-  const documentType = params.documentType as keyof typeof documentComponents;
+
+  const studyId = params?.studyId as string | undefined;
+  const documentType = params?.documentType as keyof typeof documentComponents | undefined;
   const source = searchParams?.get('source');
-  
+
   const [study, setStudy] = useState<Study | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (studyId) {
-      const fetchStudy = async () => {
-        const collectionName = source === 'remissions' ? 'remissions' : 'studies';
-        const docRef = doc(db, collectionName, studyId);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const studyData = { id: docSnap.id, ...docSnap.data() } as Study;
-          setStudy(studyData);
-          
-          // Set document title for PDF saving
-          const patientName = (studyData.patient.fullName || 'paciente').toUpperCase().replace(/ /g, '_');
-          const patientIdNum = studyData.patient.id || 'ID';
-          const docTypeAbbr = docTypeAbbreviations[documentType] || 'DOCUMENTO';
-          document.title = `${patientName}_${patientIdNum}_${docTypeAbbr}`;
+    if (!studyId || !documentType) return;
+    const fetchStudy = async () => {
+      const collectionName = source === 'remissions' ? 'remissions' : 'studies';
+      const docRef = doc(db, collectionName, studyId);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const studyData = { id: docSnap.id, ...docSnap.data() } as Study;
+        setStudy(studyData);
 
-        } else {
-          console.error('No such document!');
-        }
-        setLoading(false);
-      };
-      fetchStudy();
-    }
+        // Set document title for PDF saving
+        const patientName = (studyData.patient.fullName || 'paciente').toUpperCase().replace(/ /g, '_');
+        const patientIdNum = studyData.patient.id || 'ID';
+        const docTypeAbbr = docTypeAbbreviations[documentType] || 'DOCUMENTO';
+        document.title = `${patientName}_${patientIdNum}_${docTypeAbbr}`;
+
+      } else {
+        console.error('No such document!');
+      }
+      setLoading(false);
+    };
+    fetchStudy();
   }, [studyId, documentType, source]);
+
+  // Early returns AFTER all hooks
+  if (!params || !studyId || !documentType) return null;
 
   if (!documentComponents[documentType]) {
     notFound();
