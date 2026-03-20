@@ -1741,15 +1741,15 @@ export function StudyTable({
                               {/* Line 2: Observations & Creatinine */}
                               <div className="flex items-center gap-4 flex-wrap min-h-[18px]">
                                 {singleStudy?.details && (
-                                    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-amber-700 max-w-[280px] shrink-0 min-w-0" title={singleStudy.details}>
+                                    <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-amber-700 max-w-[280px] shrink-0 min-w-0" title={singleStudy.details}>
                                         <AlertTriangle className="h-3.5 w-3.5 text-amber-500 shrink-0" />
-                                        <span className="truncate">OBS: {singleStudy.details.toUpperCase()}</span>
+                                        <span className="truncate"><span className="font-black">OBS:</span> {singleStudy.details.toUpperCase()}</span>
                                     </div>
                                 )}
                                 {study.contrastType === 'IV' && study.creatinine && (
-                                    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-violet-700">
+                                    <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-violet-700">
                                         <Droplets className="h-3.5 w-3.5 text-violet-600 shrink-0" />
-                                        <span>CREAT: {study.creatinine}</span>
+                                        <span><span className="font-black">CREAT:</span> {study.creatinine}</span>
                                     </div>
                                 )}
                                 {study.contrastType === 'IV' && !study.creatinine && (
@@ -1767,11 +1767,11 @@ export function StudyTable({
                               </div>
 
                               {/* Line 3: CUPS & CIE 10 */}
-                              <div className="flex items-center gap-x-4 text-[10px] font-black tracking-widest uppercase text-zinc-500/80 leading-none">
+                              <div className="flex items-center gap-x-4 text-[10px] tracking-widest uppercase text-zinc-500/80 leading-none">
                                 {singleStudy?.cups && (
                                   <div className="flex items-center gap-1.5 shrink-0">
                                     <div className="h-1.5 w-1.5 rounded-full bg-zinc-300" />
-                                    <span>CUPS: {singleStudy.cups}</span>
+                                    <span><span className="font-black">CUPS:</span> {singleStudy.cups}</span>
                                   </div>
                                 )}
                                 {study.diagnosis.code && (
@@ -1779,7 +1779,7 @@ export function StudyTable({
                                     <div className="h-1.5 w-1.5 rounded-full bg-zinc-300" />
                                     <Stethoscope className="h-3 w-3 text-zinc-400" />
                                     <span className="truncate" title={`${study.diagnosis.code}: ${study.diagnosis.description?.toUpperCase()}`}>
-                                      CIE 10: {study.diagnosis.code} - {study.diagnosis.description?.toUpperCase()}
+                                      <span className="font-black">CIE 10:</span> {study.diagnosis.code} - {study.diagnosis.description?.toUpperCase()}
                                     </span>
                                   </div>
                                 )}
@@ -1798,13 +1798,13 @@ export function StudyTable({
                             {study.orderDate && (
                               <div className="flex flex-col leading-none">
                                 <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-0.5">ORDEN</span>
-                                <span className="text-[11px] font-black text-zinc-600 tracking-tighter">{(() => { const d = toDateValue(study.orderDate); return d ? format(d, 'dd/MM/yy') : ''; })()}</span>
+                                <span className="text-[11px] text-zinc-600 tracking-tighter">{(() => { const d = toDateValue(study.orderDate); return d ? format(d, 'dd/MM/yy') : ''; })()}</span>
                               </div>
                             )}
                             {study.requestDate && (
                               <div className="flex flex-col leading-none">
                                 <span className={cn("text-[9px] font-black uppercase tracking-widest mb-0.5", study.status === 'Pendiente' ? "text-red-400" : "text-zinc-400")}>REGISTRO</span>
-                                <span className={cn("text-[11px] font-black tracking-tighter", study.status === 'Pendiente' ? "text-red-600" : "text-zinc-900")}>
+                                <span className={cn("text-[11px] tracking-tighter", study.status === 'Pendiente' ? "text-red-600" : "text-zinc-900")}>
                                   {(() => { const d = toDateValue(study.requestDate); return d ? format(d, 'dd/MM, HH:mm') : ''; })()}
                                 </span>
                               </div>
@@ -1812,13 +1812,13 @@ export function StudyTable({
                             {study.completionDate && (
                               <div className="flex flex-col leading-none">
                                 <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-0.5">COMPLETO</span>
-                                <span className="text-[11px] font-black text-emerald-700 tracking-tighter">{(() => { const d = toDateValue(study.completionDate); return d ? format(d, 'dd/MM, HH:mm') : ''; })()}</span>
+                                <span className="text-[11px] text-emerald-700 tracking-tighter">{(() => { const d = toDateValue(study.completionDate); return d ? format(d, 'dd/MM, HH:mm') : ''; })()}</span>
                               </div>
                             )}
                             {!isConsultations && study.readingDate && (
                                 <div className="flex flex-col leading-none">
                                     <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-0.5">LECTURA</span>
-                                    <span className="text-[11px] font-black text-blue-700 tracking-tighter">{(() => { const d = toDateValue(study.readingDate); return d ? format(d, 'dd/MM, HH:mm') : ''; })()}</span>
+                                    <span className="text-[11px] text-blue-700 tracking-tighter">{(() => { const d = toDateValue(study.readingDate); return d ? format(d, 'dd/MM, HH:mm') : ''; })()}</span>
                                 </div>
                             )}
                         </div>
