@@ -1,0 +1,116 @@
+
+rules_version = '2';
+
+// Auth helpers
+function isSignedIn() {
+  return request.auth != null;
+}
+
+function isAdmin() {
+  return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.rol == 'administrador';
+}
+
+function getUserRole() {
+  return isSignedIn() ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.rol : null;
+}
+
+function isHealthcareStaff() {
+  let role = getUserRole();
+  return role in ['administrador', 'tecnologo', 'transcriptora', 'enfermero', 'adminisonista', 'radiologist'];
+}
+
+// Validate study data
+function isValidStudy(data) {
+  return data.keys().hasAll(['patient', 'studies', 'service', 'status', 'requestDate']) &&
+         data.patient.keys().hasAll(['id', 'fullName']) &&
+         data.studies.size() > 0;
+}
+
+// Validate patient data (PHI - Protected Health Information)
+function isValidPatient(data) {
+  return data.keys().hasAll(['fullName', 'id', 'birthDate']) &&
+         data.fullName is string &&
+         data.birthDate is string;
+}
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Users collection - all operations allowed for development
+    match /users/{userId} {
+      allow read, write: if true;
+      allow delete: if true;
+    }
+    
+    // Studies collection - all operations allowed for development
+    match /studies/{studyId} {
+      allow read, write: if true;
+    }
+    
+    // Patients collection - all operations allowed for development
+    match /patients/{patientId} {
+      allow read, write: if true;
+    }
+    
+    // Appointments collection - all operations allowed for development
+    match /appointments/{appointmentId} {
+      allow read, write: if true;
+    }
+    
+    // Inventory Items collection
+    match /inventoryItems/{itemId} {
+      allow read, write: if true;
+    }
+    
+    // Inventory Stock Entries collection
+    match /inventoryStockEntries/{entryId} {
+      allow read, write: if true;
+    }
+    
+    // Inventory Consumptions collection
+    match /inventoryConsumptions/{consumptionId} {
+      allow read, write: if true;
+    }
+    
+    // Remissions collection
+    match /remissions/{remissionId} {
+      allow read, write: if true;
+    }
+    
+    // Messages collection
+    match /messages/{messageId} {
+      allow read, write: if true;
+    }
+    
+    // Specialists collection
+    match /specialists/{specialistId} {
+      allow read, write: if true;
+    }
+    
+    // Operational Expenses collection
+    match /operationalExpenses/{expenseId} {
+      allow read, write: if true;
+    }
+    
+    // Audit logs - all operations allowed for development
+    match /audit_logs/{logId} {
+      allow read, write: if true;
+    }
+    
+    // General alarms - all operations allowed for development
+    match /generalAlarms/{alarmId} {
+      allow read, write: if true;
+    }
+    
+    // Catch-all: allow all for development
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
+
+function isValidUserData(data) {
+  return data.keys().hasAll(['uid', 'nombre', 'email', 'rol']) &&
+         data.rol in ['administrador', 'tecnologo', 'transcriptora', 'enfermero', 'adminisonista'] &&
+         data.email is string;
+}

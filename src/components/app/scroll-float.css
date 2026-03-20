@@ -1,0 +1,10 @@
+.scroll-float {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+  line-height: 1.2;
+}
+
+.scroll-float .char {
+  display: inline-block;
+  transform: translateY(120%) scale(0.7, 2.3);
+  opacity: 0;
+}

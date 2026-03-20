@@ -1,0 +1,148 @@
+# Firebase App Hosting Configuration for Med-iTrack
+# This file configures Cloud Run settings and environment variables
+
+# Cloud Run configuration
+runConfig:
+  minInstances: 1
+  maxInstances: 10
+  concurrency: 80
+  cpu: 1
+  memoryMiB: 512
+
+# Environment variables for build and runtime
+env:
+  # Firebase Configuration
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: AIzaSyDfMGIX3iqXwGmKdZ95oPLakZ3M59-OVGM
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: med-itrack-ai.firebaseapp.com
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: med-itrack-ai
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: "376289882478"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: "1:376289882478:web:15fa6834d0c2dd5d08917f"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: med-itrack-ai.firebasestorage.app
+    availability:
+      - BUILD
+      - RUNTIME
+
+  # Gemini AI Configuration
+  - variable: GENKIT_GOOGLE_GENAI_API_KEY
+    secret: gemini-api-key
+    availability:
+      - BUILD
+      - RUNTIME
+
+  # Google Sheets Configuration
+  - variable: GOOGLE_SERVICE_ACCOUNT_EMAIL
+    value: firebase-app-hosting-compute@med-itrack-ai.iam.gserviceaccount.com
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: GOOGLE_PRIVATE_KEY
+    secret: google-private-key
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: GOOGLE_SHEET_ID
+    value: 1WYUsWxT9BMjtN1-_ky27W71hlS_RBlKRJzg83U_cQHs
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: GOOGLE_SHEET_ID_RX
+    value: 1i_dvEultun4Jj_eEYVaq0PlGKW9YcOpKspj0KW02b4Y
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: GOOGLE_SHEET_ID_ECO
+    value: 1MV-35C32ct4nVylWmQry4dGLkPXQdTKNgpZ2GEoGzF0
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: GOOGLE_SHEET_ID_REMISSIONS
+    value: 1Y1sDKUyLYB8Id1tHg6Oyv5vYNapmmmaPzIYLEstx5KU
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: GOOGLE_SHEET_ID_INVENTORY
+    value: 1FtQqFLJjM8lQBEcjVQCCRnmv2dRJAZziFDcRQG1N2Yo
+    availability:
+      - BUILD
+      - RUNTIME
+
+  # Twilio Configuration
+  - variable: TWILIO_ACCOUNT_SID
+    secret: twilio-account-sid
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: TWILIO_AUTH_TOKEN
+    secret: twilio-auth-token
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: TWILIO_WHATSAPP_FROM
+    value: "whatsapp:+13014798210"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: TWILIO_WHATSAPP_TEMPLATE_SID
+    value: HXaf09d8a621d79c3a015982a59d09fc27
+    availability:
+      - BUILD
+      - RUNTIME
+
+  # App Configuration
+  - variable: NEXT_PUBLIC_APP_NAME
+    value: Med-iTrack
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_APP_VERSION
+    value: "1.0.1"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: GEMINI_API_KEY
+    secret: gemini-api-key
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: GOOGLE_DRIVE_PARENT_FOLDER_ID
+    value: 1iNs99SI5EHmo-vX-pEIRZccRYsmg6Qyj
+    availability:
+      - BUILD
+      - RUNTIME

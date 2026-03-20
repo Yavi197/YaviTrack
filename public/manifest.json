@@ -1,0 +1,23 @@
+
+{
+  "theme_color": "#facc15",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/",
+  "name": "Med-iTrack",
+  "short_name": "Med-iTrack",
+  "description": "Sistema de gestión y seguimiento para solicitudes de estudios de diagnóstico por imágenes.",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

@@ -1,0 +1,125 @@
+<?xml version="1.0" ?>
+<w:document xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas" xmlns:cx="http://schemas.microsoft.com/office/drawing/2014/chartex" xmlns:cx1="http://schemas.microsoft.com/office/drawing/2015/9/8/chartex" xmlns:cx2="http://schemas.microsoft.com/office/drawing/2015/10/21/chartex" xmlns:cx3="http://schemas.microsoft.com/office/drawing/2016/5/9/chartex" xmlns:cx4="http://schemas.microsoft.com/office/drawing/2016/5/10/chartex" xmlns:cx5="http://schemas.microsoft.com/office/drawing/2016/5/11/chartex" xmlns:cx6="http://schemas.microsoft.com/office/drawing/2016/5/12/chartex" xmlns:cx7="http://schemas.microsoft.com/office/drawing/2016/5/13/chartex" xmlns:cx8="http://schemas.microsoft.com/office/drawing/2016/5/14/chartex" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:aink="http://schemas.microsoft.com/office/drawing/2016/ink" xmlns:am3d="http://schemas.microsoft.com/office/drawing/2017/model3d" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:oel="http://schemas.microsoft.com/office/2019/extlst" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:w10="urn:schemas-microsoft-com:office:word" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:w15="http://schemas.microsoft.com/office/word/2012/wordml" xmlns:w16cex="http://schemas.microsoft.com/office/word/2018/wordml/cex" xmlns:w16cid="http://schemas.microsoft.com/office/word/2016/wordml/cid" xmlns:w16="http://schemas.microsoft.com/office/word/2018/wordml" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" xmlns:w16sdtdh="http://schemas.microsoft.com/office/word/2020/wordml/sdtdatahash" xmlns:w16sdtfl="http://schemas.microsoft.com/office/word/2024/wordml/sdtformatlock" xmlns:w16se="http://schemas.microsoft.com/office/word/2015/wordml/symex" xmlns:wpg="http://schemas.microsoft.com/office/word/2010/wordprocessingGroup" xmlns:wpi="http://schemas.microsoft.com/office/word/2010/wordprocessingInk" xmlns:wne="http://schemas.microsoft.com/office/word/2006/wordml" xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape" mc:Ignorable="w14 w15 w16se w16cid w16 w16cex w16sdtdh w16sdtfl w16du wp14">
+  <w:body>
+    <w:p w14:paraId="0D7B507A" w14:textId="77777777" w:rsidR="00A328D7" w:rsidRDefault="00A328D7" w:rsidP="00273133">
+      <w:pPr>
+        <w:pStyle w:val="Textoindependiente"/>
+        <w:spacing w:before="4"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Helvetica" w:hAnsi="Helvetica"/>
+          <w:sz w:val="18"/>
+          <w:szCs w:val="18"/>
+        </w:rPr>
+      </w:pPr>
+    </w:p>
+    <w:p w14:paraId="55CABAB5" w14:textId="5A0A825A" w:rsidR="00DF15CC" w:rsidRPr="0093798F" w:rsidRDefault="00273133" w:rsidP="00273133">
+      <w:pPr>
+        <w:pStyle w:val="Textoindependiente"/>
+        <w:spacing w:before="4"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Helvetica" w:hAnsi="Helvetica"/>
+          <w:sz w:val="20"/>
+          <w:szCs w:val="20"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="0093798F">
+        <w:rPr>
+          <w:rFonts w:ascii="Helvetica" w:hAnsi="Helvetica"/>
+          <w:sz w:val="20"/>
+          <w:szCs w:val="20"/>
+        </w:rPr>
+        <w:t>{{</w:t>
+      </w:r>
+      <w:r w:rsidR="00A328D7" w:rsidRPr="0093798F">
+        <w:rPr>
+          <w:rFonts w:ascii="Helvetica" w:hAnsi="Helvetica"/>
+          <w:sz w:val="20"/>
+          <w:szCs w:val="20"/>
+        </w:rPr>
+        <w:t>TECNICA</w:t>
+      </w:r>
+      <w:r w:rsidRPr="0093798F">
+        <w:rPr>
+          <w:rFonts w:ascii="Helvetica" w:hAnsi="Helvetica"/>
+          <w:sz w:val="20"/>
+          <w:szCs w:val="20"/>
+        </w:rPr>
+        <w:t>}}</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="5088143B" w14:textId="77777777" w:rsidR="00627ABB" w:rsidRDefault="00627ABB" w:rsidP="00273133">
+      <w:pPr>
+        <w:pStyle w:val="Textoindependiente"/>
+        <w:spacing w:before="4"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Helvetica" w:hAnsi="Helvetica"/>
+          <w:sz w:val="18"/>
+          <w:szCs w:val="18"/>
+        </w:rPr>
+      </w:pPr>
+    </w:p>
+    <w:p w14:paraId="10DFA098" w14:textId="0F7D0383" w:rsidR="00DF15CC" w:rsidRPr="0093798F" w:rsidRDefault="00A328D7" w:rsidP="00A328D7">
+      <w:pPr>
+        <w:pStyle w:val="Textoindependiente"/>
+        <w:spacing w:before="4"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Helvetica" w:hAnsi="Helvetica"/>
+          <w:sz w:val="20"/>
+          <w:szCs w:val="20"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="0093798F">
+        <w:rPr>
+          <w:rFonts w:ascii="Helvetica" w:hAnsi="Helvetica"/>
+          <w:sz w:val="20"/>
+          <w:szCs w:val="20"/>
+        </w:rPr>
+        <w:t>{{INFORME}}</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="7582660F" w14:textId="77777777" w:rsidR="00627ABB" w:rsidRDefault="00627ABB" w:rsidP="00A328D7">
+      <w:pPr>
+        <w:pStyle w:val="Textoindependiente"/>
+        <w:spacing w:before="4"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Helvetica" w:hAnsi="Helvetica"/>
+          <w:sz w:val="18"/>
+          <w:szCs w:val="18"/>
+        </w:rPr>
+      </w:pPr>
+    </w:p>
+    <w:p w14:paraId="19D8D4B8" w14:textId="3DA83731" w:rsidR="00A328D7" w:rsidRPr="0093798F" w:rsidRDefault="00A328D7" w:rsidP="00A328D7">
+      <w:pPr>
+        <w:pStyle w:val="Textoindependiente"/>
+        <w:spacing w:before="4"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Helvetica" w:hAnsi="Helvetica"/>
+          <w:sz w:val="20"/>
+          <w:szCs w:val="20"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r w:rsidRPr="0093798F">
+        <w:rPr>
+          <w:rFonts w:ascii="Helvetica" w:hAnsi="Helvetica"/>
+          <w:sz w:val="20"/>
+          <w:szCs w:val="20"/>
+        </w:rPr>
+        <w:t>{{CONCLUSION}}</w:t>
+      </w:r>
+    </w:p>
+    <w:sectPr w:rsidR="00A328D7" w:rsidRPr="0093798F" w:rsidSect="00616857">
+      <w:headerReference w:type="even" r:id="rId7"/>
+      <w:headerReference w:type="default" r:id="rId8"/>
+      <w:footerReference w:type="even" r:id="rId9"/>
+      <w:footerReference w:type="default" r:id="rId10"/>
+      <w:headerReference w:type="first" r:id="rId11"/>
+      <w:footerReference w:type="first" r:id="rId12"/>
+      <w:type w:val="continuous"/>
+      <w:pgSz w:w="12240" w:h="15840"/>
+      <w:pgMar w:top="720" w:right="720" w:bottom="720" w:left="720" w:header="0" w:footer="758" w:gutter="0"/>
+      <w:pgNumType w:start="1" w:chapStyle="1" w:chapSep="emDash"/>
+      <w:cols w:space="720"/>
+      <w:docGrid w:linePitch="299"/>
+    </w:sectPr>
+  </w:body>
+</w:document>
