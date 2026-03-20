@@ -8,9 +8,9 @@ const STALE_PATTERNS = [
 ];
 
 export type ToastFn = (toast: {
-  title?: string;
-  description?: string;
-  variant?: "default" | "destructive" | "outline" | null;
+  title?: ReactNode;
+  description?: ReactNode;
+  variant?: "default" | "destructive" | null;
   action?: ReactNode;
 }) => void;
 
