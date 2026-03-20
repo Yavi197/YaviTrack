@@ -463,7 +463,7 @@ export async function createStudyAction(
             const sheetPayload: Study = {
                 ...(studyData as Study),
                 id: newStudyRef.id,
-                requestDate: new Date() as any,
+                requestDate: serverTimestamp() as any,
                 completionDate: undefined,
                 readingDate: undefined,
             };
@@ -568,7 +568,7 @@ export async function updateStudyAction(studyId: string, data: OrderData) {
                 service: existingData.service,
                 subService: existingData.subService,
                 status: 'Pendiente',
-                requestDate: new Date() as any,
+                requestDate: serverTimestamp() as any,
                 completionDate: undefined,
                 readingDate: undefined,
                 orderDate: toDateValue(existingData.orderDate),
