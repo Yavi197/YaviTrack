@@ -1082,7 +1082,7 @@ export default function DashboardPage() {
   const handleManualRequest = useCallback((patientId: string) => {
     const existingStudies = studies.filter(s => s.patient.id === patientId).sort((a, b) => b.requestDate.toMillis() - a.requestDate.toMillis());
     const existingStudy = existingStudies[0];
-    const initialData: Partial<Study> = existingStudy ? { id: '', ...existingStudy, patient: { ...existingStudy.patient, id: patientId }, studies: [] } : { patient: { fullName: '', id: patientId, entidad: '', birthDate: '' } , studies: [], diagnosis: { code: '', description: '' }, };
+    const initialData: Partial<Study> = existingStudy ? { ...existingStudy, id: '', patient: { ...existingStudy.patient, id: patientId }, studies: [] } : { patient: { fullName: '', id: patientId, entidad: '', birthDate: '' } , studies: [], diagnosis: { code: '', description: '' }, };
     setInitialDialogData(initialData);
     setDialogOpen(true);
 }, [studies]);
