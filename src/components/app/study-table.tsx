@@ -42,7 +42,7 @@ import { Label } from '../ui/label';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import type { DateRange } from 'react-day-picker';
-import { cn, getAgeFromBirthDate } from '@/lib/utils';
+import { cn, getAgeFromBirthDate, toDateValue } from '@/lib/utils';
 import { Badge } from '../ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useAuth } from '@/context/auth-context';
