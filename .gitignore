@@ -39,3 +39,6 @@ next-env.d.ts
 firebase-debug.log*
 
 yavitrack-0c057275b178.json
+
+tsc_*.txt
+tsc_output*.txt
