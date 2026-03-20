@@ -38,9 +38,12 @@ const docTypeAbbreviations: Record<string, string> = {
 export default function DocumentPage() {
   const params = useParams();
   const searchParams = useSearchParams();
+  
+  if (!params) return null;
+  
   const studyId = params.studyId as string;
   const documentType = params.documentType as keyof typeof documentComponents;
-  const source = searchParams.get('source');
+  const source = searchParams?.get('source');
   
   const [study, setStudy] = useState<Study | null>(null);
   const [loading, setLoading] = useState(true);

@@ -73,8 +73,8 @@ export default function QualityReportsPage() {
       (snapshot) => {
         const pendingReports: QualityReportRow[] = snapshot.docs
           .map((doc) => ({
-            id: doc.id,
             ...(doc.data() as QualityReport),
+            id: doc.id,
           }))
           .sort((a, b) => {
             const aDate = a.createdAt?.toMillis?.() ?? 0;

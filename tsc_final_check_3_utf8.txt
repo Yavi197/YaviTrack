@@ -1,0 +1,4 @@
+﻿src/components/app/study-dialog.tsx(78,27): error TS2345: Argument of type 'ConsultationData | StudyData' is not assignable to parameter of type 'StudyData'.
+  Property 'modalidad' is missing in type 'ConsultationData' but required in type 'StudyData'.
+src/components/app/study-table.tsx(789,21): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.

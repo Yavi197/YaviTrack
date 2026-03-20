@@ -2,6 +2,7 @@
 'use client';
 import type { Study } from '@/lib/types';
 import { DocumentHeader } from '@/components/app/document-header';
+import { cn } from '@/lib/utils';
 
 const SurveyQuestion = ({ question, options }: { question: string, options: string[] }) => (
     <div className="py-2 border-b">
@@ -61,11 +62,11 @@ export function SurveyTemplate({ study }: { study: Study }) {
       <div className="grid grid-cols-2 gap-8 pt-8">
         <div className="border-t border-gray-400 text-center pt-2">
           <p className="font-bold">Firma del Paciente (o Acudiente)</p>
-          <p className="text-xs" {...editableProps}>(Nombre y C.C.)</p>
+          <p {...editableProps} className={cn("text-xs", editableProps.className)}>(Nombre y C.C.)</p>
         </div>
         <div className="border-t border-gray-400 text-center pt-2">
           <p className="font-bold">Firma del Funcionario que Recibe</p>
-           <p className="text-xs" {...editableProps}>(Nombre y C.C.)</p>
+           <p {...editableProps} className={cn("text-xs", editableProps.className)}>(Nombre y C.C.)</p>
         </div>
       </div>
     </div>

@@ -90,8 +90,8 @@ export async function generateTechnologistShiftsAction(input: z.infer<typeof tec
                 assignedUserId: params.data.technologistId,
                 assignedUserName: params.data.assignedUserName,
                 assignedRole: params.data.assignedRole ?? 'tecnologo',
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp(),
+                createdAt: serverTimestamp() as any,
+                updatedAt: serverTimestamp() as any,
             } satisfies TechnologistShift);
         }
 
@@ -463,7 +463,7 @@ export async function createStudyAction(
             const sheetPayload: Study = {
                 ...(studyData as Study),
                 id: newStudyRef.id,
-                requestDate: new Date(),
+                requestDate: new Date() as any,
                 completionDate: undefined,
                 readingDate: undefined,
             };
@@ -568,7 +568,7 @@ export async function updateStudyAction(studyId: string, data: OrderData) {
                 service: existingData.service,
                 subService: existingData.subService,
                 status: 'Pendiente',
-                requestDate: new Date(),
+                requestDate: new Date() as any,
                 completionDate: undefined,
                 readingDate: undefined,
                 orderDate: toDateValue(existingData.orderDate),
@@ -626,7 +626,7 @@ export async function updateStudyStatusAction(
             }
             const studyData = studyDoc.data() as Study;
 
-            const updateData: Partial<StudyWithCompletedBy> & { [key: string]: any } = { status };
+            const updateData: any = { status };
             
             if (status === 'Completado') {
                 updateData.completionDate = serverTimestamp() as any;
@@ -1472,6 +1472,10 @@ const addMultipleInventoryEntriesSchema = z.object({
     quantity: z.number().min(1),
     lote: z.string().optional(),
     price: z.number().optional(),
+    unidad: z.string().optional(),
+    fechaVencimiento: z.string().optional(),
+    proveedor: z.string().optional(),
+    observaciones: z.string().optional(),
   })),
   userProfile: z.custom<UserProfile>(),
 });
@@ -1483,7 +1487,7 @@ export async function addMultipleInventoryEntriesAction(data: z.infer<typeof add
     }
 
     const batch = writeBatch(db);
-    const sheetEntries = [];
+    const sheetEntries: any[] = [];
 
     try {
         for (const entry of entries) {

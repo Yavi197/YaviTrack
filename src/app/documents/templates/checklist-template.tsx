@@ -2,6 +2,7 @@
 'use client';
 import type { Study } from '@/lib/types';
 import { DocumentHeader } from '@/components/app/document-header';
+import { cn } from '@/lib/utils';
 
 const ChecklistItem = ({ label, subLabel, noOptionText = "No" }: { label: string; subLabel?: React.ReactNode; noOptionText?: string }) => (
     <tr className="border-b">
@@ -70,7 +71,7 @@ export function ChecklistTemplate({ study }: { study: Study }) {
                     subLabel={
                         <div className="flex items-baseline gap-2 mt-1">
                             <span className="text-xs font-semibold">¿Cuál?:</span>
-                            <div className="flex-1 border-b border-dotted border-gray-400" {...editableProps}></div>
+                            <div {...editableProps} className={cn("flex-1 border-b border-dotted border-gray-400", editableProps.className)}></div>
                         </div>
                     }
                 />
@@ -110,11 +111,11 @@ export function ChecklistTemplate({ study }: { study: Study }) {
       <div className="grid grid-cols-2 gap-8 pt-12">
         <div className="border-t border-gray-400 text-center pt-2">
           <p className="font-bold">Firma del Tecnólogo/Profesional Responsable</p>
-          <p className="text-xs" {...editableProps}>(Nombre y C.C.)</p>
+          <p {...editableProps} className={cn("text-xs", editableProps.className)}>(Nombre y C.C.)</p>
         </div>
          <div className="border-t border-gray-400 text-center pt-2">
           <p className="font-bold">Firma del Paciente (o Acudiente)</p>
-           <p className="text-xs" {...editableProps}>(Nombre y C.C.)</p>
+           <p {...editableProps} className={cn("text-xs", editableProps.className)}>(Nombre y C.C.)</p>
         </div>
       </div>
     </div>

@@ -23,7 +23,7 @@ const modules = [
 export function AppHeader() {
   const pathname = usePathname();
   // Detectar módulo actual
-  const currentModule = modules.find(m => pathname.startsWith(m.href));
+  const currentModule = pathname ? modules.find(m => pathname.startsWith(m.href)) : null;
   // Mostrar solo los otros módulos
   const visibleModules = modules.filter(m => m.href !== currentModule?.href);
 

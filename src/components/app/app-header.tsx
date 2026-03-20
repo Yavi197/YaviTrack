@@ -17,7 +17,7 @@ import {
   DropdownMenuPortal,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, User as UserIcon, UserPlus, Download, Users, LifeBuoy, Package, Beaker, ShieldPlus, FileText, FileBarChart, HardDrive, DollarSign, Eye, Tv, VolumeX, Loader2, Stethoscope, BriefcaseMedical, FileSpreadsheet, MessageSquare, LogOutIcon, CalendarClock, AlertTriangle } from "lucide-react";
+import { LogOut, User as UserIcon, UserPlus, Download, Users, LifeBuoy, Package, Beaker, ShieldPlus, FileText, FileBarChart, HardDrive, DollarSign, Eye, Tv, VolumeX, Loader2, Stethoscope, Briefcase, FileSpreadsheet, MessageSquare, LogOutIcon, CalendarClock, AlertTriangle } from "lucide-react";
 import { ModalityIcon } from "@/components/icons/modality-icon";
 import Link from 'next/link';
 import { AppLogoIcon } from "@/components/icons/app-logo-icon";
@@ -237,21 +237,21 @@ export default function AppHeader() {
                       icon: <FileSpreadsheet className="h-5 w-5" />,
                       color: "bg-green-600 hover:bg-green-700",
                       label: "Abrir Remisiones",
-                      show: !pathname.startsWith("/remissions"),
+                      show: pathname ? !pathname.startsWith("/remissions") : true,
                     },
                     {
                       href: "/imaging",
                       icon: <ModalityIcon style={{ width: 20, height: 20, color: '#222' }} />,
                       color: "bg-yellow-400 hover:bg-yellow-500",
                       label: "Abrir Imágenes",
-                      show: !pathname.startsWith("/imaging"),
+                      show: pathname ? !pathname.startsWith("/imaging") : true,
                     },
                     {
                       href: "/consultations",
                       icon: <Stethoscope className="h-5 w-5" />,
                       color: "bg-blue-600 hover:bg-blue-700",
                       label: "Abrir Consultas",
-                      show: !pathname.startsWith("/consultations"),
+                      show: pathname ? !pathname.startsWith("/consultations") : true,
                     },
                   ];
                   return (
@@ -422,7 +422,7 @@ export default function AppHeader() {
                                     </DropdownMenuItem>
                                     <DropdownMenuItem asChild className="cursor-pointer">
                                         <Link href="/clinical-assistant-view">
-                                            <BriefcaseMedical className="mr-2 h-4 w-4" />
+                                            <Briefcase className="mr-2 h-4 w-4" />
                                             <span>Vista Aux. Clínica</span>
                                         </Link>
                                     </DropdownMenuItem>

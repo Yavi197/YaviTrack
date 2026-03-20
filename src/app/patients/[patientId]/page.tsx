@@ -18,6 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function PatientProfilePage() {
     const params = useParams();
+    if (!params) return null;
     const patientId = params.patientId as string;
     const router = useRouter();
     const { user, loading: authLoading, userProfile } = useAuth();

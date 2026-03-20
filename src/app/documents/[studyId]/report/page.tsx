@@ -140,6 +140,7 @@ function ReportPageClient({ studyId }: { studyId: string }) {
 // This is the main page component, which is a Server Component
 export default function GeneratedReportPage() {
     const params = useParams();
+    if (!params) return null;
     const studyId = params.studyId as string;
 
     if (!studyId) {

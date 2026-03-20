@@ -67,7 +67,7 @@ export function EditStudyDialog({ open, onOpenChange, study }: EditStudyDialogPr
     const [addModalOpen, setAddModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
 
-    const isConsultationsModule = pathname.includes('/consultations');
+    const isConsultationsModule = pathname ? pathname.includes('/consultations') : false;
     const searchList = isConsultationsModule ? ALL_CONSULTATIONS : ALL_STUDIES;
     
         const resolveStudyModality = (item: { modality?: string; modalidad?: string; especialidad?: string }) =>
@@ -202,7 +202,7 @@ export function EditStudyDialog({ open, onOpenChange, study }: EditStudyDialogPr
     if (!study) return null;
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange} aria-modal="true" role="dialog" aria-label="Formulario de edición de solicitud">
+        <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[850px] p-0 rounded-3xl overflow-hidden border-none shadow-2xl" style={{overflow: 'visible', zIndex: 50}}>
                 <div className="bg-white px-10 pt-10 pb-4">
                     <DialogHeader>
@@ -217,7 +217,7 @@ export function EditStudyDialog({ open, onOpenChange, study }: EditStudyDialogPr
                         onKeyDown={handleFormKeyDown}
                         aria-labelledby="dialog-title"
                         aria-describedby="dialog-desc"
-                        role="form"
+
                         tabIndex={0}
                     >
                         <div className="max-h-[65vh] overflow-y-auto px-8 pb-8 space-y-6" style={{WebkitOverflowScrolling: 'touch'}} role="region" aria-label="Formulario principal">

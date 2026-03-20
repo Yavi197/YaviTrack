@@ -641,29 +641,28 @@ export function RemissionsTable({ statusFilter, onStatusSummaryChange, onCountsC
       setLastVisible(lastDoc);
       setHasMore(snapshot.docs.length === PAGE_SIZE);
 
-      const summary = sorted.reduce<Record<string, number>>((acc, item) => {
+      const summary: Record<string, number> = {};
+      sorted.forEach((item) => {
         const key = item.status || 'Sin estado';
-        acc[key] = (acc[key] || 0) + 1;
-        return acc;
-      }, {});
+        summary[key] = (summary[key] || 0) + 1;
+      });
 
       if (onStatusSummaryChange) {
         onStatusSummaryChange(summary);
       }
 
       if (onCountsChange) {
-        const modalities = sorted.reduce<Record<string, number>>((acc, item) => {
-          const raw = (item.studies && item.studies[0] && (item.studies[0].modality || item.studies[0].modalidad)) || 'OTROS';
-          const key = normalizeModalityCode(String(raw));
-          acc[key] = (acc[key] || 0) + 1;
-          return acc;
-        }, {});
+        const modalities: Record<string, number> = {};
+        const services: Record<string, number> = {};
+        
+        sorted.forEach((item) => {
+          const raw = (item.studies && item.studies[0] && item.studies[0].modality) || 'OTROS';
+          const modKey = normalizeModalityCode(String(raw));
+          modalities[modKey] = (modalities[modKey] || 0) + 1;
 
-        const services = sorted.reduce<Record<string, number>>((acc, item) => {
           const svc = item.service || 'C.EXT';
-          acc[svc] = (acc[svc] || 0) + 1;
-          return acc;
-        }, {});
+          services[svc] = (services[svc] || 0) + 1;
+        });
 
         onCountsChange({ status: summary, modalities, services });
       }
@@ -700,7 +699,7 @@ export function RemissionsTable({ statusFilter, onStatusSummaryChange, onCountsC
     .filter(r => statusFilter === "Todos" ? true : r.status === statusFilter)
     .filter(r => {
       if (modalityFilter && modalityFilter !== 'ALL') {
-        const raw = (r.studies && r.studies[0] && (r.studies[0].modality || r.studies[0].modalidad)) || 'OTROS';
+        const raw = (r.studies && r.studies[0] && r.studies[0].modality) || 'OTROS';
         const key = normalizeModalityCode(String(raw));
         if (key !== modalityFilter) return false;
       }
@@ -777,7 +776,7 @@ export function RemissionsTable({ statusFilter, onStatusSummaryChange, onCountsC
               : null;
           const createdAtLabel = createdAtDate ? format(createdAtDate, "dd/MM · HH:mm") : null;
 
-          const isInactive = rem.status === "Vencido";
+          const isInactive = (rem.status as string) === "Vencido";
           return (
             <TableRow
               key={rem.id}
@@ -873,8 +872,8 @@ export function RemissionsTable({ statusFilter, onStatusSummaryChange, onCountsC
               </TableCell>
               <TableCell className="p-2 text-xs font-medium align-top text-left">
                   <div className="flex flex-col items-start gap-0.5 text-muted-foreground">
-                      {rem.requestDateLabel && (
-                          <div>Orden: {rem.requestDateLabel}</div>
+                      {rem.requestDate && (
+                          <div>Orden: {format(rem.requestDate.toDate(), "dd/MM/yyyy")}</div>
                       )}
                       {createdAtDate && (
                           <div className={cn(

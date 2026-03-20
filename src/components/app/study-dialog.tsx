@@ -68,16 +68,16 @@ export function StudyDialog({ open, onOpenChange, initialData, mode }: StudyDial
     const [addModalOpen, setAddModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
 
-    const isConsultationsModule = pathname.includes('/consultations');
+    const isConsultationsModule = pathname ? pathname.includes('/consultations') : false;
     // Agrupar estudios por modalidad para una selección más visual
     const searchList = isConsultationsModule ? ALL_CONSULTATIONS : ALL_STUDIES;
     const groupedStudies = !isConsultationsModule
         ? searchList.reduce((acc, study) => {
-            const key = normalizeModalityCode(study.modalidad);
+            const key = normalizeModalityCode((study as any).modalidad || (study as any).especialidad);
             if (!acc[key]) acc[key] = [];
             acc[key].push(study);
             return acc;
-        }, {} as Record<string, typeof ALL_STUDIES>)
+        }, {} as Record<string, any[]>)
         : null;
 
     const groupedStudySections = useMemo(() => {
@@ -183,7 +183,7 @@ export function StudyDialog({ open, onOpenChange, initialData, mode }: StudyDial
             // Only advance focus if the target is an input and not a button or textarea
             if (target.tagName === 'INPUT' && target.getAttribute('type') !== 'submit') {
                 e.preventDefault();
-                const form = target.form;
+                const form = (target as HTMLInputElement).form;
                 if (form && form.elements) {
                     const index = Array.prototype.indexOf.call(form, target);
                     // Find next input (skip buttons)
@@ -216,7 +216,7 @@ export function StudyDialog({ open, onOpenChange, initialData, mode }: StudyDial
     }
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange} aria-modal="true" role="dialog" aria-label="Formulario de solicitud manual">
+        <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[850px] p-0 rounded-3xl overflow-hidden border-none shadow-2xl" style={{overflow: 'visible', zIndex: 50}}>
                 <div className="bg-white px-10 pt-10 pb-4">
                     <DialogHeader>
@@ -231,17 +231,17 @@ export function StudyDialog({ open, onOpenChange, initialData, mode }: StudyDial
                         onKeyDown={handleFormKeyDown}
                         aria-labelledby="dialog-title"
                         aria-describedby="dialog-desc"
-                        role="form"
+
                         tabIndex={0}
                     >
                         <div className="max-h-[65vh] overflow-y-auto px-8 pb-8 space-y-6" style={{WebkitOverflowScrolling: 'touch'}} onKeyDown={e => {
-                            if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
+                            if (e.key === 'Enter' && (e.target as HTMLElement).tagName === 'INPUT') {
                                 // Solo avanza el foco, nunca envía el formulario
                                 e.preventDefault();
-                                const form = e.target.form;
+                                const form = (e.target as HTMLInputElement).form;
                                 if (form && form.elements) {
                                     const index = Array.prototype.indexOf.call(form, e.target);
-                                    form.elements[index + 1]?.focus();
+                                    (form.elements[index + 1] as HTMLElement)?.focus();
                                 }
                                 // Si form es null, solo previene el default y no hace nada más
                             }
@@ -395,7 +395,7 @@ export function StudyDialog({ open, onOpenChange, initialData, mode }: StudyDial
                                                         >
                                                             <span className="font-mono text-xs text-gray-700 bg-gray-100 rounded px-2 py-1">{item.cups}</span>
                                                             <span className="font-semibold text-sm text-gray-900">{item.nombre}</span>
-                                                            <span className="ml-2 text-xs text-blue-600 font-bold">{item.modality}</span>
+                                                            <span className="ml-2 text-xs text-blue-600 font-bold">{(item as any).modality || (item as any).modalidad || (item as any).especialidad}</span>
                                                         </button>
                                                     ))
                                                 )

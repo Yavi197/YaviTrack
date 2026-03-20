@@ -59,8 +59,8 @@ export type TechnologistShift = {
     date: string; // YYYY-MM-DD (zona Colombia)
     shiftType: ShiftType;
     sequenceOrder: number; // 1-4 según el ciclo Corrido-Noche-Posturno-Libre
-    startTime: Timestamp;
-    endTime: Timestamp;
+    startTime: Timestamp | any;
+    endTime: Timestamp | any;
     hours: number;
     holiday?: boolean;
     status: TechnologistShiftStatus;
@@ -70,7 +70,7 @@ export type TechnologistShift = {
     assignedRole?: ShiftAssignableRole;
     modality?: CalendarModality;
     metadata?: Record<string, string | number | boolean>;
-    createdAt?: Timestamp;
+    createdAt?: Timestamp | any;
     updatedAt?: Timestamp;
 };
 

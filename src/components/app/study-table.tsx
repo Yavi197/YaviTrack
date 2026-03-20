@@ -61,9 +61,6 @@ import * as z from 'zod';
 import { Form, FormControl, FormField, FormItem } from '../ui/form';
 import { DateRangePicker } from '../ui/date-range-picker';
 import { ModalityIcon } from '../icons/modality-icon';
-import { EcoIcon } from '../icons/eco-icon';
-import { RmnIcon } from '../icons/rmn-icon';
-import { RxIcon } from '../icons/rx-icon';
 
 interface StudyTableProps {
   studies: StudyWithCompletedBy[];
@@ -437,7 +434,7 @@ function CompletionDialog({ study, onConfirm, children }: { study: Study; onConf
 
     const handleConfirm = (data: CompletionFormData) => {
         const consumedItems: ConsumedItem[] = [];
-        const contrastMl = parseFloat(data.contrastAdministeredMl?.replace(',', '.')) || 0;
+        const contrastMl = parseFloat((data.contrastAdministeredMl || "0").replace(',', '.')) || 0;
 
         if (isContrastedIV && contrastItem && contrastMl > 0) {
              consumedItems.push({ id: contrastItem.id, name: contrastItem.name, amount: contrastMl });
@@ -461,11 +458,11 @@ function CompletionDialog({ study, onConfirm, children }: { study: Study; onConf
         }
 
         const finalParams: CompletionParams = {
-            kV: parseFloat(data.kV?.replace(',', '.')) || undefined,
-            mA: parseFloat(data.mA?.replace(',', '.')) || undefined,
-            timeMs: parseFloat(data.timeMs?.replace(',', '.')) || undefined,
-            ctdi: parseFloat(data.ctdi?.replace(',', '.')) || undefined,
-            dlp: parseFloat(data.dlp?.replace(',', '.')) || undefined,
+            kV: parseFloat((data.kV || "0").replace(',', '.')) || undefined,
+            mA: parseFloat((data.mA || "0").replace(',', '.')) || undefined,
+            timeMs: parseFloat((data.timeMs || "0").replace(',', '.')) || undefined,
+            ctdi: parseFloat((data.ctdi || "0").replace(',', '.')) || undefined,
+            dlp: parseFloat((data.dlp || "0").replace(',', '.')) || undefined,
             consumedItems: consumedItems.length > 0 ? consumedItems : undefined,
             contrastAdministeredMl: contrastMl > 0 ? contrastMl : undefined,
         };
@@ -482,11 +479,11 @@ function CompletionDialog({ study, onConfirm, children }: { study: Study; onConf
                 <FormItem>
                     <Label>{label}</Label>
                     <div className="flex items-center">
-                        <Button type="button" size="icon" variant="outline" className="h-8 w-8 rounded-r-none" onClick={() => form.setValue(name, String(Math.max(0, parseInt(field.value || '0') - 1)))}><Minus className="h-4 w-4" /></Button>
+                        <Button type="button" size="icon" variant="outline" className="h-8 w-8 rounded-r-none" onClick={() => form.setValue(name, String(Math.max(0, parseInt(String(field.value || '0')) - 1)) as any)}><Minus className="h-4 w-4" /></Button>
                         <FormControl>
                             <Input type="number" {...field} className="h-8 w-12 rounded-none p-0 text-center" />
                         </FormControl>
-                        <Button type="button" size="icon" variant="outline" className="h-8 w-8 rounded-l-none" onClick={() => form.setValue(name, String(parseInt(field.value || '0') + 1))}><Plus className="h-4 w-4" /></Button>
+                        <Button type="button" size="icon" variant="outline" className="h-8 w-8 rounded-l-none" onClick={() => form.setValue(name, String(parseInt(String(field.value || '0')) + 1) as any)}><Plus className="h-4 w-4" /></Button>
                     </div>
                 </FormItem>
             )}
@@ -789,7 +786,7 @@ function AttachReportDialog({ study, open, onOpenChange }: { study: Study | null
                 
                 const textExtractionResult = await extractReportTextAction(dataUri);
                 if (textExtractionResult.success) {
-                    finalReportText = textExtractionResult.text;
+                    finalReportText = textExtractionResult.text || '';
                 } else {
                     toast({ variant: 'destructive', title: 'Advertencia', description: 'No se pudo extraer el texto del PDF, pero el archivo se adjuntó.' });
                 }
@@ -1497,9 +1494,10 @@ export function StudyTable({
     Completado: { icon: CheckCircle, label: "Completado", style: "bg-emerald-600 text-white shadow-sm" },
     Leído: { icon: FileText, label: "Leído", style: "bg-blue-600 text-white shadow-sm" },
     Cancelado: { icon: Ban, label: "Cancelado", style: "bg-slate-500 text-white shadow-sm" },
+    Anulado: { icon: XCircle, label: "Anulado", style: "bg-zinc-500 text-white shadow-sm" },
   };
 
-  const statusOptions: StudyStatus[] = ["Pendiente", "Completado", "Leído", "Cancelado"];
+  const statusOptions: StudyStatus[] = ["Pendiente", "Completado", "Leído", "Cancelado", "Anulado"];
 
   const formatEntityName = (name: string) => {
     if (name.toUpperCase().includes('CAJACOPI')) {

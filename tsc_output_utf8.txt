@@ -1,0 +1,96 @@
+﻿src/app/(dashboard)/remissions/RemissionsTable.tsx(659,104): error TS2339: Property 'modalidad' does not exist on type '{ nombre: string; cups: string; modality: string; details?: string | undefined; }'.
+src/app/(dashboard)/remissions/RemissionsTable.tsx(702,90): error TS2339: Property 'modalidad' does not exist on type '{ nombre: string; cups: string; modality: string; details?: string | undefined; }'.
+src/app/(dashboard)/remissions/RemissionsTable.tsx(779,30): error TS2367: This comparison appears to be unintentional because the types '"Pendiente"' and '"Vencido"' have no overlap.
+src/app/(dashboard)/remissions/RemissionsTable.tsx(875,28): error TS2551: Property 'requestDateLabel' does not exist on type 'Remission'. Did you mean 'requestDate'?
+src/app/(dashboard)/remissions/RemissionsTable.tsx(876,44): error TS2551: Property 'requestDateLabel' does not exist on type 'Remission'. Did you mean 'requestDate'?
+src/app/(dashboard)/statistics/page.tsx(245,99): error TS2345: Argument of type 'Timestamp' is not assignable to parameter of type 'string | number | Date'.
+  Type 'Timestamp' is missing the following properties from type 'Date': toDateString, toTimeString, toLocaleDateString, toLocaleTimeString, and 36 more.
+src/app/actions.ts(93,17): error TS2739: Type 'FieldValue' is missing the following properties from type 'Timestamp': seconds, nanoseconds, toDate, toMillis, toJSON
+src/app/actions.ts(94,17): error TS2739: Type 'FieldValue' is missing the following properties from type 'Timestamp': seconds, nanoseconds, toDate, toMillis, toJSON
+src/app/actions.ts(466,17): error TS2739: Type 'Date' is missing the following properties from type 'Timestamp': seconds, nanoseconds, toDate, toMillis, isEqual
+src/app/actions.ts(562,41): error TS2352: Conversion of type '{ id: string; patient: { fullName: string; id: string; entidad: string; idType?: string | undefined; birthDate?: string | undefined; sex?: string | undefined; }; diagnosis: { code: string; description: string; }; ... 32 more ...; assignedSpecialistId?: string; }' to type 'Study' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Types of property 'requestDate' are incompatible.
+    Type 'Date' is missing the following properties from type 'Timestamp': seconds, nanoseconds, toDate, toMillis, isEqual
+src/app/actions.ts(633,17): error TS2739: Type 'FieldValue' is missing the following properties from type 'Timestamp': seconds, nanoseconds, toDate, toMillis, toJSON
+src/app/actions.ts(634,17): error TS2322: Type 'FieldValue' is not assignable to type 'string'.
+src/app/actions.ts(684,17): error TS2739: Type 'FieldValue' is missing the following properties from type 'Timestamp': seconds, nanoseconds, toDate, toMillis, toJSON
+src/app/actions.ts(687,17): error TS2739: Type 'FieldValue' is missing the following properties from type 'Timestamp': seconds, nanoseconds, toDate, toMillis, toJSON
+src/app/actions.ts(688,17): error TS2739: Type 'FieldValue' is missing the following properties from type 'Timestamp': seconds, nanoseconds, toDate, toMillis, toJSON
+src/app/actions.ts(689,17): error TS2322: Type 'FieldValue' is not assignable to type 'string'.
+src/app/actions.ts(690,17): error TS2740: Type 'FieldValue' is missing the following properties from type 'ConsumedItem[]': length, pop, push, concat, and 35 more.
+src/app/actions.ts(694,17): error TS2739: Type 'FieldValue' is missing the following properties from type 'Timestamp': seconds, nanoseconds, toDate, toMillis, toJSON
+src/app/actions.ts(695,17): error TS2739: Type 'FieldValue' is missing the following properties from type 'Timestamp': seconds, nanoseconds, toDate, toMillis, toJSON
+src/app/actions.ts(696,17): error TS2322: Type 'FieldValue' is not assignable to type 'number'.
+src/app/actions.ts(697,17): error TS2322: Type 'FieldValue' is not assignable to type 'number'.
+src/app/actions.ts(698,17): error TS2322: Type 'FieldValue' is not assignable to type 'number'.
+src/app/actions.ts(699,17): error TS2322: Type 'FieldValue' is not assignable to type 'number'.
+src/app/actions.ts(700,17): error TS2322: Type 'FieldValue' is not assignable to type 'number'.
+src/app/actions.ts(701,17): error TS2322: Type 'FieldValue' is not assignable to type 'string'.
+src/app/actions.ts(702,17): error TS2322: Type 'FieldValue' is not assignable to type 'string'.
+src/app/actions.ts(703,17): error TS2322: Type 'FieldValue' is not assignable to type 'ContrastType | null | undefined'.
+src/app/actions.ts(704,17): error TS2322: Type 'FieldValue' is not assignable to type 'number'.
+src/app/actions.ts(705,17): error TS2740: Type 'FieldValue' is missing the following properties from type 'ConsumedItem[]': length, pop, push, concat, and 35 more.
+src/app/actions.ts(1504,31): error TS2339: Property 'unidad' does not exist on type '{ service: "RX" | "TAC" | "ECO" | "General"; presentation: string; itemId: string; itemName: string; quantity: number; price?: number | undefined; lote?: string | undefined; }'.
+src/app/actions.ts(1505,41): error TS2339: Property 'fechaVencimiento' does not exist on type '{ service: "RX" | "TAC" | "ECO" | "General"; presentation: string; itemId: string; itemName: string; quantity: number; price?: number | undefined; lote?: string | undefined; }'.
+src/app/actions.ts(1506,34): error TS2339: Property 'proveedor' does not exist on type '{ service: "RX" | "TAC" | "ECO" | "General"; presentation: string; itemId: string; itemName: string; quantity: number; price?: number | undefined; lote?: string | undefined; }'.
+src/app/actions.ts(1507,38): error TS2339: Property 'observaciones' does not exist on type '{ service: "RX" | "TAC" | "ECO" | "General"; presentation: string; itemId: string; itemName: string; quantity: number; price?: number | undefined; lote?: string | undefined; }'.
+src/app/actions.ts(1510,31): error TS2345: Argument of type '{ date: Date; service: "RX" | "TAC" | "ECO" | "General"; presentation: InventoryItem["presentation"] | string; itemId: string; itemName: string; lote?: string | undefined; observaciones?: string | undefined; ... 5 more ...; proveedor?: string | undefined; }' is not assignable to parameter of type 'never'.
+src/app/documents/[studyId]/[documentType]/page.tsx(41,19): error TS18047: 'params' is possibly 'null'.
+src/app/documents/[studyId]/[documentType]/page.tsx(42,24): error TS18047: 'params' is possibly 'null'.
+src/app/documents/[studyId]/[documentType]/page.tsx(43,18): error TS18047: 'searchParams' is possibly 'null'.
+src/app/documents/[studyId]/report/page.tsx(143,21): error TS18047: 'params' is possibly 'null'.
+src/app/documents/templates/checklist-template.tsx(73,34): error TS2783: 'className' is specified more than once, so this usage will be overwritten.
+src/app/documents/templates/checklist-template.tsx(113,14): error TS2783: 'className' is specified more than once, so this usage will be overwritten.
+src/app/documents/templates/checklist-template.tsx(117,15): error TS2783: 'className' is specified more than once, so this usage will be overwritten.
+src/app/documents/templates/consent-template.tsx(190,61): error TS2783: 'className' is specified more than once, so this usage will be overwritten.
+src/app/documents/templates/survey-template.tsx(64,14): error TS2783: 'className' is specified more than once, so this usage will be overwritten.
+src/app/documents/templates/survey-template.tsx(68,15): error TS2783: 'className' is specified more than once, so this usage will be overwritten.
+src/app/patients/[patientId]/page.tsx(21,23): error TS18047: 'params' is possibly 'null'.
+src/components/app/app-header.tsx(240,30): error TS18047: 'pathname' is possibly 'null'.
+src/components/app/app-header.tsx(247,30): error TS18047: 'pathname' is possibly 'null'.
+src/components/app/app-header.tsx(254,30): error TS18047: 'pathname' is possibly 'null'.
+src/components/app/AppHeader.tsx(26,43): error TS18047: 'pathname' is possibly 'null'.
+src/components/app/assign-operator-dialog.tsx(46,76): error TS2322: Type '{ children: Element; open: boolean; onOpenChange: (open: boolean) => void; "aria-modal": string; role: string; "aria-label": string; }' is not assignable to type 'IntrinsicAttributes & AlertDialogProps'.
+  Property 'role' does not exist on type 'IntrinsicAttributes & AlertDialogProps'.
+src/components/app/contrast-stock-dialog.tsx(147,79): error TS2322: Type '{ children: Element; open: boolean; onOpenChange: (open: boolean) => void; "aria-modal": string; role: string; "aria-labelledby": string; "aria-describedby": string; }' is not assignable to type 'IntrinsicAttributes & DialogProps'.
+  Property 'role' does not exist on type 'IntrinsicAttributes & DialogProps'.
+src/components/app/contrast-stock-dialog.tsx(169,79): error TS2322: Type '{ children: Element; open: boolean; onOpenChange: (open: boolean) => void; "aria-modal": string; role: string; "aria-labelledby": string; "aria-describedby": string; }' is not assignable to type 'IntrinsicAttributes & DialogProps'.
+  Property 'role' does not exist on type 'IntrinsicAttributes & DialogProps'.
+src/components/app/contrast-stock-dialog.tsx(177,37): error TS2322: Type '"primary"' is not assignable to type '"link" | "default" | "destructive" | "outline" | "secondary" | "ghost" | null | undefined'.
+src/components/app/edit-study-dialog.tsx(70,35): error TS18047: 'pathname' is possibly 'null'.
+src/components/app/edit-study-dialog.tsx(205,75): error TS2322: Type '{ children: Element; open: boolean; onOpenChange: (open: boolean) => void; "aria-modal": string; role: string; "aria-label": string; }' is not assignable to type 'IntrinsicAttributes & DialogProps'.
+  Property 'role' does not exist on type 'IntrinsicAttributes & DialogProps'.
+src/components/app/study-dialog.tsx(71,35): error TS18047: 'pathname' is possibly 'null'.
+src/components/app/study-dialog.tsx(76,53): error TS2339: Property 'modalidad' does not exist on type 'ConsultationData | StudyData'.
+  Property 'modalidad' does not exist on type 'ConsultationData'.
+src/components/app/study-dialog.tsx(78,27): error TS2345: Argument of type 'ConsultationData | StudyData' is not assignable to parameter of type 'StudyData'.
+  Property 'modalidad' is missing in type 'ConsultationData' but required in type 'StudyData'.
+src/components/app/study-dialog.tsx(186,37): error TS2339: Property 'form' does not exist on type 'HTMLElement'.
+src/components/app/study-dialog.tsx(219,75): error TS2322: Type '{ children: Element; open: boolean; onOpenChange: (open: boolean) => void; "aria-modal": string; role: string; "aria-label": string; }' is not assignable to type 'IntrinsicAttributes & DialogProps'.
+  Property 'role' does not exist on type 'IntrinsicAttributes & DialogProps'.
+src/components/app/study-dialog.tsx(238,63): error TS2339: Property 'tagName' does not exist on type 'EventTarget'.
+src/components/app/study-dialog.tsx(241,55): error TS2339: Property 'form' does not exist on type 'EventTarget'.
+src/components/app/study-dialog.tsx(398,122): error TS2339: Property 'modality' does not exist on type 'ConsultationData | StudyData'.
+  Property 'modality' does not exist on type 'ConsultationData'.
+src/components/app/study-table.tsx(64,25): error TS2307: Cannot find module '../icons/eco-icon' or its corresponding type declarations.
+src/components/app/study-table.tsx(65,25): error TS2307: Cannot find module '../icons/rmn-icon' or its corresponding type declarations.
+src/components/app/study-table.tsx(66,24): error TS2307: Cannot find module '../icons/rx-icon' or its corresponding type declarations.
+src/components/app/study-table.tsx(440,39): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/components/app/study-table.tsx(464,28): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/components/app/study-table.tsx(465,28): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/components/app/study-table.tsx(466,32): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/components/app/study-table.tsx(467,30): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/components/app/study-table.tsx(468,29): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/components/app/study-table.tsx(485,175): error TS2345: Argument of type 'string | number' is not assignable to parameter of type 'string'.
+  Type 'number' is not assignable to type 'string'.
+src/components/app/study-table.tsx(489,163): error TS2345: Argument of type 'string | number' is not assignable to parameter of type 'string'.
+  Type 'number' is not assignable to type 'string'.
+src/components/app/study-table.tsx(792,21): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/components/app/study-table.tsx(1495,9): error TS2741: Property 'Anulado' is missing in type '{ Pendiente: { icon: React.ForwardRefExoticComponent<Omit<LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>>; label: string; style: string; }; Completado: { ...; }; Le├¡do: { ...; }; Cancelado: { ...; }; }' but required in type 'Record<StudyStatus, { icon: ElementType<any, keyof IntrinsicElements>; label: string; style: string; }>'.

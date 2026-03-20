@@ -242,7 +242,11 @@ export default function StatisticsPage() {
         const totalStudies = completed.length;
         
         // Turnaround
-        const ttimes = completed.map(s => s.completionDate && s.requestDate ? differenceInMinutes(s.completionDate, s.requestDate) : null).filter((t): t is number => t !== null);
+        const ttimes = completed.map(s => {
+            const compDate = s.completionDate instanceof Timestamp ? (s.completionDate as Timestamp).toDate() : (s.completionDate as any);
+            const reqDate = s.requestDate instanceof Timestamp ? (s.requestDate as Timestamp).toDate() : (s.requestDate as any);
+            return compDate && reqDate ? differenceInMinutes(compDate, reqDate) : null;
+        }).filter((t): t is number => t !== null);
         const avgT = ttimes.length > 0 ? ttimes.reduce((a, b) => a + b, 0) / ttimes.length : 0;
         let avgFormatted = "---";
         if (avgT > 0) {

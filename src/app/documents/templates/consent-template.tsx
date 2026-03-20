@@ -3,7 +3,7 @@
 import type { Study } from '@/lib/types';
 import { format } from 'date-fns';
 import Image from 'next/image';
-import { getAgeFromBirthDate } from '@/lib/utils';
+import { getAgeFromBirthDate, cn } from '@/lib/utils';
 
 
 const ConsentHeader = ({ study, currentPage, totalPages, showPatientData }: { study: Study, currentPage: number, totalPages: number, showPatientData: boolean }) => {
@@ -143,19 +143,19 @@ export function ConsentTemplate({ study }: { study: Study }) {
         <div className="pt-4">
             <div className="border-t border-black pt-1 w-3/5">
                 <p className="font-bold m-0">Firma del paciente, tutor legal o familiar.</p>
-                <div className="flex"><strong>C.C. N°:</strong> <span {...editableProps} className="flex-1 border-b border-dotted border-black ml-2"></span></div>
+                <div className="flex"><strong>C.C. N°:</strong> <span {...editableProps} className={cn("flex-1 border-b border-dotted border-black ml-2", editableProps.className)}></span></div>
             </div>
         </div>
 
         <p className="pt-2 leading-snug">
-          <strong>Tutor legal o familiar:</strong> s&eacute; que el paciente <strong {...editableProps} className="px-2">{study.patient.fullName}</strong> ha sido considerado por ahora incapaz de tomar por sí mismo la decisión de aceptar o rechazar el procedimiento descrito arriba. El equipo de salud de la institución me ha explicado de forma clara que es, como se hace y para qué sirve este procedimiento. También se han explicado sus riesgos y complicaciones. He comprendido todo lo anterior perfectamente y por ello <strong>YO:</strong> <span style={lineStyle} {...editableProps}></span>, con documento de identidad: <span style={{...lineStyle, minWidth: '120px'}} {...editableProps}></span>, <strong>doy mi consentimiento</strong> para que el personal asistencial que atiende al paciente le realicen este procedimiento.
+          <strong>Tutor legal o familiar:</strong> s&eacute; que el paciente <strong {...editableProps} className={cn("px-2", editableProps.className)}>{study.patient.fullName}</strong> ha sido considerado por ahora incapaz de tomar por sí mismo la decisión de aceptar o rechazar el procedimiento descrito arriba. El equipo de salud de la institución me ha explicado de forma clara que es, como se hace y para qué sirve este procedimiento. También se han explicado sus riesgos y complicaciones. He comprendido todo lo anterior perfectamente y por ello <strong>YO:</strong> <span style={lineStyle} {...editableProps}></span>, con documento de identidad: <span style={{...lineStyle, minWidth: '120px'}} {...editableProps}></span>, <strong>doy mi consentimiento</strong> para que el personal asistencial que atiende al paciente le realicen este procedimiento.
         </p>
 
         <div className="flex justify-between pt-4">
             <div className="border-t border-black pt-1 w-3/5">
                 <p className="m-0">Firma del Tutor legal o Familiar</p>
-                <div className="flex">Parentesco: <span {...editableProps} className="flex-1 border-b border-dotted border-black ml-2"></span></div>
-                <div className="flex">C.C. N°: <span {...editableProps} className="flex-1 border-b border-dotted border-black ml-2"></span></div>
+                <div className="flex">Parentesco: <span {...editableProps} className={cn("flex-1 border-b border-dotted border-black ml-2", editableProps.className)}></span></div>
+                <div className="flex">C.C. N°: <span {...editableProps} className={cn("flex-1 border-b border-dotted border-black ml-2", editableProps.className)}></span></div>
             </div>
         </div>
       </div>
@@ -169,8 +169,8 @@ export function ConsentTemplate({ study }: { study: Study }) {
             <div className="pt-12">
                 <div className="border-t border-black pt-1 w-3/5">
                     <p>Firma y sello del personal encargado</p>
-                    <div className="flex">Nombre: <span {...editableProps} className="flex-1 border-b border-dotted border-black ml-2"></span></div>
-                    <div className="flex">Tarjeta Profesional N°: <span {...editableProps} className="flex-1 border-b border-dotted border-black ml-2"></span></div>
+                    <div className="flex">Nombre: <span {...editableProps} className={cn("flex-1 border-b border-dotted border-black ml-2", editableProps.className)}></span></div>
+                    <div className="flex">Tarjeta Profesional N°: <span {...editableProps} className={cn("flex-1 border-b border-dotted border-black ml-2", editableProps.className)}></span></div>
                 </div>
             </div>
 
@@ -182,12 +182,12 @@ export function ConsentTemplate({ study }: { study: Study }) {
             <div className="pt-12">
                 <div className="border-t border-black pt-1 w-3/5">
                     <p>Firma del Paciente, Tutor Legal o Familiar</p>
-                    <div className="flex">C.C. N°: <span {...editableProps} className="flex-1 border-b border-dotted border-black ml-2"></span></div>
+                    <div className="flex">C.C. N°: <span {...editableProps} className={cn("flex-1 border-b border-dotted border-black ml-2", editableProps.className)}></span></div>
                 </div>
             </div>
 
             <div className="pt-8">
-                <strong>Firmado en la fecha:</strong> <span className="p-2 border border-dotted border-black min-w-[120px] inline-block" {...editableProps}>&nbsp;</span>
+                <strong>Firmado en la fecha:</strong> <span {...editableProps} className={cn("p-2 border border-dotted border-black min-w-[120px] inline-block", editableProps.className)}>&nbsp;</span>
             </div>
         </div>
       </div>

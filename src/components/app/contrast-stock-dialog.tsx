@@ -144,7 +144,7 @@ export function ContrastStockDialog({ open, onOpenChange }: ContrastStockDialogP
 
     if (contrastItems.length === 0) {
         return (
-            <Dialog open={open} onOpenChange={onOpenChange} aria-modal="true" role="dialog" aria-labelledby="contrast-dialog-title" aria-describedby="contrast-dialog-desc">
+            <Dialog open={open} onOpenChange={onOpenChange}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle id="contrast-dialog-title">Gestión de Medios de Contraste</DialogTitle>
@@ -166,7 +166,7 @@ export function ContrastStockDialog({ open, onOpenChange }: ContrastStockDialogP
 
     return (
         <>
-            <Dialog open={open} onOpenChange={onOpenChange} aria-modal="true" role="dialog" aria-labelledby="contrast-dialog-title" aria-describedby="contrast-dialog-desc">
+            <Dialog open={open} onOpenChange={onOpenChange}>
                 <DialogContent className="max-w-2xl">
                     <DialogHeader>
                         <div className="flex justify-between items-center">
@@ -174,7 +174,7 @@ export function ContrastStockDialog({ open, onOpenChange }: ContrastStockDialogP
                                 <DialogTitle className="font-headline text-2xl" id="contrast-dialog-title">Gestión de Medios de Contraste</DialogTitle>
                                 <DialogDescription id="contrast-dialog-desc">Consulta el historial de entradas y el stock total de contraste.</DialogDescription>
                             </div>
-                            <Button variant="primary" onClick={() => setAddDialogOpen(true)} aria-label="Agregar Entrada de Insumo">
+                            <Button variant="default" onClick={() => setAddDialogOpen(true)} aria-label="Agregar Entrada de Insumo">
                                 + Agregar Entrada de Insumo
                             </Button>
                         </div>

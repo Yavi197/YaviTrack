@@ -43,7 +43,7 @@ export function AssignOperatorDialog({
   };
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange} aria-modal="true" role="dialog" aria-label="Asignar operador de turno">
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle id="assign-operator-title">{title}</AlertDialogTitle>
