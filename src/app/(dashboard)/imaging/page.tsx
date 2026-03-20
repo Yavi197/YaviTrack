@@ -120,7 +120,7 @@ function UnifiedControlPanel({
     aiLoading,
     orderType,
     onOrderTypeChange,
-}) {
+}: any) : any {
     const { isImpersonating, stopImpersonating } = useAuth();
     const [dragging, setDragging] = useState(false);
     const [newPatientId, setNewPatientId] = useState("");
@@ -331,7 +331,7 @@ function UnifiedControlPanel({
     );
 }
 
-function DailySummaryWidget({ dutyUsers, allUsers, onStatusChange, onStatusFilterToggle, filteredSummary, reportSummary, activeFilters, selectedOperator }) {
+function DailySummaryWidget({ dutyUsers, allUsers, onStatusChange, onStatusFilterToggle, filteredSummary, reportSummary, activeFilters, selectedOperator }: any) : any {
     const { currentProfile } = useAuth();
     const { toast } = useToast();
     const [loading, setLoading] = useState<Record<string, boolean>>({});

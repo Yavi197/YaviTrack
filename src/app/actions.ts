@@ -349,7 +349,13 @@ export async function createStudyAction(
     data: OrderData, 
     userProfile: UserProfile | null,
     options: CreateStudyOptions = {}
-) {
+): Promise<{ 
+    success: boolean; 
+    error?: string; 
+    studyCount?: number; 
+    requiresConfirmation?: boolean; 
+    duplicateStudyName?: string; 
+}> {
     if (!userProfile) {
         return { success: false, error: "User profile not available." };
     }
