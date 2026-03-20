@@ -137,9 +137,6 @@ env:
       - RUNTIME
   - variable: GEMINI_API_KEY
     secret: gemini-api-key
-    availability:
-      - BUILD
-      - RUNTIME
 
   - variable: GOOGLE_DRIVE_PARENT_FOLDER_ID
     value: 1iNs99SI5EHmo-vX-pEIRZccRYsmg6Qyj

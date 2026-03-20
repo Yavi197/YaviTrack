@@ -46,6 +46,7 @@ import { RemissionRequestDialog } from '@/components/app/remission-request-dialo
 import { ShiftHandoverDialog } from '@/components/app/shift-handover-dialog';
 import { ShiftReceiptDialog } from '@/components/app/shift-receipt-dialog';
 import { getLatestShiftHandover } from '@/app/actions';
+import { DuplicateStudyDialog } from '@/components/app/duplicate-study-dialog';
 
 
 const ALL_FILTER = "TODOS";
