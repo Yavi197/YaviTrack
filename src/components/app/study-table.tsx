@@ -1,4 +1,4 @@
-﻿
+
 "use client"
 
 import * as React from 'react';
@@ -806,7 +806,7 @@ function AttachReportDialog({ study, open, onOpenChange }: { study: Study | null
                 throw new Error(saveResult.error || "No se pudo guardar la informaciÃ³n del informe.");
             }
             
-            toast({ title: "Informe Adjuntado", description: "El informe ha sido procesado y el estudio marcado como 'LeÃ­do'." });
+            toast({ title: "Informe Adjuntado", description: "El informe ha sido procesado y el estudio marcado como 'Leído'." });
             onOpenChange(false);
 
         } catch (error: any) {
@@ -1462,7 +1462,7 @@ export function StudyTable({
     const canRevert = (isAdmin || isTech) && status !== 'Pendiente';
     const canContrast = (isAdmin || isNurse) && (studyModality === 'RX' || studyModality === 'TAC');
     const canAttachReport = (rol === 'transcriptora' || isAdmin) && status === 'Completado';
-    const canViewReport = status === 'LeÃ­do' && !!(study.reportUrl || study.reportText);
+    const canViewReport = status === 'Leído' && !!(study.reportUrl || study.reportText);
     const canAssignTurn = rol === 'adminisonista' && study.service === 'C.EXT' && !study.turnNumber;
     const canCall = study.service === 'C.EXT' && study.status === 'Pendiente' && !!study.turnNumber && (rol === 'tecnologo' || rol === 'adminisonista' || isAdmin);
     const canEditBed = (isNurse || isAdmin) && study.service !== 'C.EXT';
@@ -1492,12 +1492,12 @@ export function StudyTable({
   const statusConfig: Record<StudyStatus, { icon: React.ElementType, label: string, style: string }> = {
     Pendiente: { icon: AlertTriangle, label: "Pendiente", style: "bg-red-600 text-white shadow-sm" },
     Completado: { icon: CheckCircle, label: "Completado", style: "bg-emerald-600 text-white shadow-sm" },
-    LeÃ­do: { icon: FileText, label: "LeÃ­do", style: "bg-blue-600 text-white shadow-sm" },
+    Leído: { icon: FileText, label: "Leído", style: "bg-blue-600 text-white shadow-sm" },
     Cancelado: { icon: Ban, label: "Cancelado", style: "bg-slate-500 text-white shadow-sm" },
     Anulado: { icon: XCircle, label: "Anulado", style: "bg-zinc-500 text-white shadow-sm" },
   };
 
-  const statusOptions: StudyStatus[] = ["Pendiente", "Completado", "LeÃ­do", "Cancelado", "Anulado"];
+  const statusOptions: StudyStatus[] = ["Pendiente", "Completado", "Leído", "Cancelado", "Anulado"];
 
   const formatEntityName = (name: string) => {
     if (name.toUpperCase().includes('CAJACOPI')) {
