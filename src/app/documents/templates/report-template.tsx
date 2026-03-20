@@ -309,6 +309,7 @@ export function ReportTemplate({ study, reportText, radiologist }: ReportTemplat
                                             </div>
                                             <div className="grid grid-cols-[95px_1fr_180px] items-center gap-2.7">
                                                 <div className="flex items-center justify-center">
+                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
                                                     <img src="/templates/mercado-logo.jpeg" alt="Logotipo Instituto del Sistema Nervioso de Córdoba" className="max-h-[95px] object-contain" />
                                                 </div>
                                                 <div className="text-center px-3 flex flex-col justify-center gap-0.9" style={{ fontFamily: '"Trebuchet MS", sans-serif', lineHeight: 1.35, letterSpacing: '0.02em' }}>

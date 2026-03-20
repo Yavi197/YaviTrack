@@ -36,7 +36,7 @@ export function DuplicateStudyDialog({
             <span>Posible Solicitud Duplicada</span>
           </AlertDialogTitle>
           <AlertDialogDescription className="pt-4 text-zinc-900 font-medium">
-            Se ha detectado una solicitud de <span className="font-black underline">"{studyName}"</span> para el paciente <span className="font-black italic">{patientName}</span> en las últimas 24 horas.
+            Se ha detectado una solicitud de <span className="font-black underline">&quot;{studyName}&quot;</span> para el paciente <span className="font-black italic">{patientName}</span> en las últimas 24 horas.
             <br /><br />
             ¿Desea crear esta nueva solicitud de todas formas o cancelar el proceso?
           </AlertDialogDescription>

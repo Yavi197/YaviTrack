@@ -71,6 +71,7 @@ export default function ScanBar({ onFileSelect, inputId = 'scan-bar', onlyInput 
 
     window.addEventListener('paste', handlePaste as any);
     return () => window.removeEventListener('paste', handlePaste as any);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (onlyInput) {
