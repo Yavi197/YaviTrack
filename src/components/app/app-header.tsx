@@ -133,25 +133,30 @@ function HeaderContrastIndicator() {
 }
 
 
-function AdverseEventReporter() {
+function AdverseEventReporter({ onQualityReport }: { onQualityReport: () => void }) {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="destructive" size="icon" className="h-10 w-10 rounded-full bg-red-600 text-white shadow-lg shadow-red-200 hover:-translate-y-0.5 hover:bg-red-700 transition-all border-none group">
                     <ShieldPlus className="h-5 w-5 group-hover:scale-110 transition-transform" />
-                    <span className="sr-only">Reportar Evento Adverso</span>
+                    <span className="sr-only">Reportar Evento Adverso o Novedad</span>
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Reporte de Seguridad</DropdownMenuLabel>
+            <DropdownMenuContent align="end" className="w-64">
+                <DropdownMenuLabel>Seguridad y Calidad</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
+                <DropdownMenuItem onClick={onQualityReport} className="cursor-pointer">
+                    <AlertTriangle className="mr-2 h-4 w-4 text-amber-500" />
+                    <span className="font-semibold">Reportar Novedad / Sugerencia</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild className="cursor-pointer">
                     <a href="https://docs.google.com/forms/d/1l-Pi7tMeUa9cfjIcBoZo5sFlkglutOKuxLKYQyM5azU/viewform?edit_requested=true" target="_blank" rel="noopener noreferrer">
                         <FileBarChart className="mr-2 h-4 w-4" />
                         <span>Evento Adverso (Formulario)</span>
                     </a>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
+                <DropdownMenuItem asChild className="cursor-pointer">
                     <a href="/docs/formato_farmacovigilancia.docx" download>
                         <FileText className="mr-2 h-4 w-4" />
                         <span>Fármacovigilancia (Documento)</span>
@@ -216,12 +221,12 @@ export default function AppHeader() {
       <header className="theme-yellow sticky top-0 z-40 w-full border-b border-zinc-200/50 bg-white/70 backdrop-blur-3xl shadow-sm" role="banner" aria-label="Barra de navegación principal">
         <div className="w-full h-20 px-4 sm:px-6 xl:px-10 flex items-center justify-between" role="navigation" aria-label="Navegación principal">
           <div className="flex items-center gap-4">
-            <Link href="/" className="flex items-center gap-3 px-3 py-2 rounded-2xl hover:bg-white transition-all shadow-sm border border-transparent hover:border-zinc-100 hover:shadow-md group" aria-label="Ir al inicio">
-              <div className="bg-zinc-50 border border-zinc-200 p-2 rounded-xl shadow-sm group-hover:scale-105 transition-transform">
-                <AppLogoIcon className="h-6 w-6" />
+            <Link href="/" className="flex items-center gap-2 px-1 py-1 transition-all group" aria-label="Ir al inicio">
+              <div className="group-hover:scale-105 transition-transform">
+                <AppLogoIcon className="h-7 w-7" />
               </div>
               <div className="flex flex-col justify-center">
-                <h1 className="text-xl font-black font-headline tracking-tighter text-zinc-900 uppercase leading-none">Med-iTrack</h1>
+                <h1 className="text-xl font-black font-headline tracking-tighter text-zinc-900 leading-none">Med-iTrack</h1>
               </div>
             </Link>
           </div>
@@ -235,13 +240,13 @@ export default function AppHeader() {
                     {
                       href: "/remissions",
                       icon: <FileSpreadsheet className="h-5 w-5" />,
-                      color: "bg-green-600 hover:bg-green-700",
+                      color: "bg-emerald-400 hover:bg-emerald-500",
                       label: "Abrir Remisiones",
                       show: pathname ? !pathname.startsWith("/remissions") : true,
                     },
                     {
                       href: "/imaging",
-                      icon: <ModalityIcon style={{ width: 20, height: 20, color: '#222' }} />,
+                      icon: <ModalityIcon style={{ width: 20, height: 20, color: '#000' }} />,
                       color: "bg-yellow-400 hover:bg-yellow-500",
                       label: "Abrir Imágenes",
                       show: pathname ? !pathname.startsWith("/imaging") : true,
@@ -249,22 +254,20 @@ export default function AppHeader() {
                     {
                       href: "/consultations",
                       icon: <Stethoscope className="h-5 w-5" />,
-                      color: "bg-blue-600 hover:bg-blue-700",
+                      color: "bg-blue-400 hover:bg-blue-500",
                       label: "Abrir Consultas",
                       show: pathname ? !pathname.startsWith("/consultations") : true,
                     },
                   ];
                   return (
-                    <div className="flex items-center gap-1.5 bg-zinc-50/80 p-1.5 rounded-full border-2 border-zinc-100 shadow-sm">
+                    <div className="flex items-center gap-1.5 bg-zinc-50/80 p-1.5 rounded-full border border-zinc-200 shadow-sm">
                       {buttons.filter(b => b.show).map(b => (
                         <Button
                           key={b.href}
-                          variant="default"
+                          variant="ghost"
                           size="icon"
-                          className={`h-9 w-9 rounded-full text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg ${b.color}`}
+                          className={`h-9 w-9 rounded-full text-zinc-950 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${b.color}`}
                           asChild
-                          title={b.label}
-                          aria-label={b.label}
                         >
                           <Link href={b.href} aria-label={b.label}>
                             {b.icon}
@@ -299,17 +302,7 @@ export default function AppHeader() {
                   </Button>
                 )}
 
-                  <Button
-                    variant="outline"
-                    className="h-10 px-4 rounded-full border-2 border-amber-200 bg-amber-50 font-black tracking-tight text-amber-700 hover:bg-amber-100 hover:border-amber-300 hover:text-amber-800 transition-colors shadow-sm"
-                    onClick={() => setIsQualityDialogOpen(true)}
-                    title="Reportar novedad o sugerencia"
-                  >
-                    <AlertTriangle className="mr-2 h-4 w-4" />
-                    Reportar Novedad
-                  </Button>
-
-                <AdverseEventReporter />
+                <AdverseEventReporter onQualityReport={() => setIsQualityDialogOpen(true)} />
               </div>
               
               <Separator orientation="vertical" className="h-8" />

@@ -233,24 +233,35 @@ function UnifiedControlPanel({
           <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest px-1 mb-0.5 block">{title}</label>
           <Popover>
               <PopoverTrigger asChild disabled={disabled}>
-                  <button disabled={disabled} className={cn("flex items-center gap-2 p-2 rounded-2xl border-2 bg-white/80 backdrop-blur-sm text-center transition-all duration-300 w-full justify-between h-14", disabled ? "cursor-not-allowed opacity-50" : "hover:border-amber-500 hover:bg-amber-50 hover:-translate-y-1 hover:shadow-lg", activeValue !== 'TODOS' ? "border-amber-600 shadow-lg shadow-amber-50" : "border-zinc-100")}>
+                  <button disabled={disabled} className={cn("flex items-center gap-2 p-2 rounded-2xl border-2 bg-white/80 backdrop-blur-sm text-center transition-all duration-300 w-full justify-between h-14 shadow-sm", disabled ? "cursor-not-allowed opacity-50" : "hover:border-amber-400 hover:bg-amber-50 hover:-translate-y-1 hover:shadow-xl", activeValue !== 'TODOS' ? "border-amber-400 shadow-md shadow-amber-100/50" : "border-zinc-100")}>
                       <div className="flex items-center gap-3">
-                        <div className={cn("p-1.5 rounded-xl transition-colors", activeValue === 'TODOS' ? "bg-zinc-100 text-zinc-400" : "bg-amber-100 text-amber-600")}>
+                        <div className={cn("p-1.5 rounded-xl transition-colors", activeValue === 'TODOS' ? "bg-zinc-100 text-zinc-400" : "bg-amber-400 text-amber-950")}>
                            {React.createElement(iconMap[activeValue] || iconMap.TODOS, { className: "h-5 w-5" })}
                         </div>
-                        <span className="font-black text-[11px] tracking-tight uppercase">{nameMap ? nameMap[activeValue] : activeValue}</span>
+                        <span className="font-black text-xs font-headline tracking-tighter uppercase leading-none">{nameMap ? nameMap[activeValue] : activeValue}</span>
                       </div>
-                      <span className="font-black text-2xl tracking-tighter text-zinc-900">{type === 'service' ? summary.services[activeValue as GeneralService] : summary.modalities[activeValue as Modality]}</span>
+                      <span className="font-black text-2xl tracking-tighter text-zinc-900 leading-none">{type === 'service' ? summary.services[activeValue as GeneralService] : summary.modalities[activeValue as Modality]}</span>
                   </button>
               </PopoverTrigger>
-              <PopoverContent className="w-48 p-1">
+              <PopoverContent className="w-52 p-1.5 rounded-2xl border-zinc-200 overflow-hidden shadow-2xl">
                   <div className="flex flex-col gap-1">
-                    {options.map((option) => (
-                       <Button key={option} variant={activeFilters.service === option || activeFilters.modality === option ? 'default' : 'ghost'} className="justify-start" onClick={() => onFilterToggle(type, option)}>
-                          {nameMap ? nameMap[option] : option}
-                          {(activeFilters.service === option || activeFilters.modality === option) && <Check className="ml-auto h-4 w-4" />}
-                       </Button>
-                    ))}
+                    {options.map((option) => {
+                       const isActive = activeFilters.service === option || activeFilters.modality === option;
+                       return (
+                         <Button 
+                            key={option} 
+                            variant="ghost" 
+                            className={cn(
+                                "justify-start font-black text-xs h-10 uppercase tracking-tighter rounded-xl transition-all",
+                                isActive ? "bg-amber-400 text-amber-950 hover:bg-amber-500" : "text-zinc-500 hover:bg-amber-50 hover:text-amber-600"
+                            )} 
+                            onClick={() => onFilterToggle(type, option)}
+                         >
+                            {nameMap ? nameMap[option] : option}
+                            {isActive && <Check className="ml-auto h-4 w-4 text-amber-950" />}
+                         </Button>
+                       );
+                    })}
                   </div>
               </PopoverContent>
           </Popover>
@@ -577,7 +588,7 @@ function DailySummaryWidget({ dutyUsers, allUsers, onStatusChange, onStatusFilte
                     <InfoCard title="Pendientes" value={filteredSummary.pending} icon={Hourglass} color="text-red-500" onClick={() => onStatusFilterToggle('Pendiente')} isButton={true} isActive={activeFilters.status.includes('Pendiente')}/>
                     <InfoCard title="Completados" value={filteredSummary.completed} icon={ListChecks} color="text-emerald-600" onClick={() => onStatusFilterToggle('Completado')} isButton={true} isActive={activeFilters.status.includes('Completado')}/>
                     <InfoCard title="Pend. Lectura" value={reportSummary.pending} icon={FileClock} color="text-orange-600" onClick={() => onStatusFilterToggle('Completado')} isButton={true} isActive={activeFilters.status.length === 1 && activeFilters.status[0] === 'Completado'}/>
-                    <InfoCard title="Realizados" value={reportSummary.completed} icon={FileCheck2} color="text-emerald-700" onClick={() => onStatusFilterToggle('Leído')} isButton={true} isActive={activeFilters.status.includes('Leído')}/>
+                    <InfoCard title="Leídos" value={reportSummary.completed} icon={FileCheck2} color="text-emerald-700" onClick={() => onStatusFilterToggle('Leído')} isButton={true} isActive={activeFilters.status.includes('Leído')}/>
                 </div>
                 <div className="flex flex-col sm:flex-row items-center gap-3">
                     <StatusButton user={rxTechnologist} serviceName="Rayos X" />

@@ -1119,7 +1119,7 @@ function TurnNumberInput({ study, isAdmin, canAssignTurn }: { study: Study; isAd
                 onChange={handleTurnChange}
                 onKeyDown={handleKeyDown}
                 onBlur={() => !study.turnNumber && setIsEditing(canAssignTurn)}
-                className="font-mono font-bold h-auto w-10 px-1 py-0 text-center bg-background"
+                className="font-mono font-bold h-auto w-10 px-1 py-0 text-center bg-background text-[10px] leading-none"
                 autoFocus
                 onClick={(e) => e.stopPropagation()}
             />
@@ -1129,7 +1129,7 @@ function TurnNumberInput({ study, isAdmin, canAssignTurn }: { study: Study; isAd
     return (
         <span
             className={cn(
-                "font-mono font-bold cursor-text",
+                "font-mono font-bold cursor-text text-[10px] leading-none",
                 (isAdmin || canAssignTurn) && "hover:underline cursor-pointer"
             )}
             onClick={(e) => {
@@ -1202,7 +1202,7 @@ function BedNumberInput({ study, canEdit }: { study: Study; canEdit: boolean; })
                 onChange={handleBedChange}
                 onKeyDown={handleKeyDown}
                 onBlur={handleBlur}
-                className="font-mono font-bold h-auto w-16 px-1 py-0 text-center bg-background"
+                className="font-mono font-bold h-auto w-16 px-1 py-0 text-center bg-background text-[10px] leading-none"
                 autoFocus
                 onClick={(e) => e.stopPropagation()}
                 placeholder="CAMA"
@@ -1213,7 +1213,7 @@ function BedNumberInput({ study, canEdit }: { study: Study; canEdit: boolean; })
     return (
         <span
             className={cn(
-                "font-mono font-bold cursor-text",
+                "font-mono font-bold cursor-text text-[10px] leading-none",
                 canEdit && "hover:underline cursor-pointer"
             )}
             onClick={(e) => {
@@ -1696,131 +1696,153 @@ export function StudyTable({
                       )}
                     </TableCell>
                     <TableCell className="p-2 align-top">
-                        <div className="space-y-1">
-                            <div className="font-bold uppercase flex items-center justify-between">
+                        <div className="flex flex-col space-y-0">
+                            <div className="h-5 flex items-center justify-between">
                                <Link href={`/patients/${study.patient.id}`} className="hover:underline flex-1 truncate pr-2">
-                                  <span className="font-black text-sm uppercase text-zinc-900 tracking-wide">{study.patient.fullName}</span>
+                                  <span className="font-black text-sm uppercase text-zinc-900 tracking-wide leading-none">{study.patient.fullName}</span>
                                </Link>
-                                <Badge variant="outline" className={cn("whitespace-nowrap px-2 py-0.5 rounded-full border-zinc-200 bg-white shadow-sm h-auto")}>
+                                <div className={cn(
+                                    "w-[56px] h-[22px] rounded-lg border border-zinc-200 bg-white shadow-sm flex items-center justify-center font-black text-[10px] uppercase tracking-tighter shrink-0"
+                                )}>
                                     <EditServiceDialog study={study}>
-                                        <span className="font-mono font-bold cursor-pointer hover:underline px-1">{abbreviateSubService(study.subService)}</span>
+                                        <span className="font-mono font-bold cursor-pointer hover:underline text-[10px] leading-none">{abbreviateSubService(study.subService)}</span>
                                     </EditServiceDialog>
                                      {study.service === 'C.EXT' ? (
                                         <TurnNumberInput study={study} isAdmin={isAdmin} canAssignTurn={permissions.assignTurn}/>
                                     ) : (
                                         <BedNumberInput study={study} canEdit={permissions.editBed} />
                                     )}
-                                </Badge>
+                                </div>
                             </div>
-                            <div className="text-xs text-muted-foreground flex items-center gap-x-3 flex-nowrap">
-                               <span className="flex items-center gap-1 shrink-0 font-bold"><Fingerprint className="h-3 w-3"/>{study.patient.id}</span>
-                               <span className="flex items-center gap-1 shrink-0 font-bold"><CalendarDays className="h-3 w-3"/>{study.patient.birthDate}</span>
-                               {age !== null && <span className="font-medium shrink-0">{age} AÁ‘OS</span>}
+                            <div className="flex flex-col space-y-0">
+                                <div className="h-4 flex items-center text-xs text-muted-foreground gap-x-3 flex-wrap">
+                                   <div className="flex items-center gap-1.5 shrink-0">
+                                     <div className="h-1 w-1 rounded-full bg-zinc-300 shrink-0" />
+                                     <span className="leading-none"><span className="font-semibold">ID:</span> {study.patient.id}</span>
+                                   </div>
+                                   <div className="flex items-center gap-1.5 shrink-0">
+                                     <div className="h-1 w-1 rounded-full bg-zinc-300 shrink-0" />
+                                     <span className="leading-none"><span className="font-semibold">FN:</span> {study.patient.birthDate}{age !== null ? ` - ${age} AÑOS` : ''}</span>
+                                   </div>
+                                </div>
+                                {study.patient.entidad && (
+                                  <div className="h-4 flex items-center text-xs text-muted-foreground gap-1.5 flex-nowrap">
+                                    <div className="h-1 w-1 rounded-full bg-zinc-300 shrink-0" />
+                                    <span className="truncate leading-none"><span className="font-semibold">ENTIDAD:</span> {formatEntityName(study.patient.entidad)}</span>
+                                  </div>
+                                )}
                             </div>
-                            {study.patient.entidad && (
-                              <div className="text-xs text-muted-foreground flex items-center gap-1 pt-0.5">
-                                <Building className="h-3 w-3 shrink-0" />
-                                <span className="truncate font-semibold">{formatEntityName(study.patient.entidad)}</span>
-                              </div>
-                            )}
                         </div>
                     </TableCell>
                     <TableCell className="p-2 align-top">
                         <div className='flex gap-3 items-start'>
-                             <div className="w-[60px] min-h-[50px] flex flex-col items-center justify-center p-2 rounded-xl bg-zinc-100/80 font-black text-[11px] text-center border-2 border-zinc-200 shadow-sm text-zinc-700 tracking-tighter">
-                                {getModalityDisplay(study)}
-                            </div>
-                            <div className="flex-1 min-w-0 pr-2 space-y-1">
+                             <div className="h-5 flex items-center">
+                                 <div className={cn(
+                                    "w-[56px] h-[22px] rounded-lg border shadow-sm flex items-center justify-center font-black text-[10px] uppercase tracking-wider shrink-0",
+                                    (() => {
+                                        const mod = study.studies[0]?.modality?.toUpperCase();
+                                        switch (mod) {
+                                            case 'TAC': return "bg-blue-50 text-blue-700 border-blue-200";
+                                            case 'RX': return "bg-violet-50 text-violet-700 border-violet-200";
+                                            case 'ECO': return "bg-emerald-50 text-emerald-700 border-emerald-200";
+                                            case 'MAMO': return "bg-amber-50 text-amber-700 border-amber-200";
+                                            case 'DENSITOMETRIA': return "bg-rose-50 text-rose-700 border-rose-200";
+                                            case 'RMN': return "bg-indigo-50 text-indigo-700 border-indigo-200";
+                                            default: return "bg-zinc-50 text-zinc-600 border-zinc-200";
+                                        }
+                                    })()
+                                 )}>
+                                    {study.studies[0]?.modality}
+                                </div>
+                             </div>
+                            <div className="flex-1 min-w-0 pr-2 flex flex-col space-y-0">
                               {/* Line 1: Study Name */}
-                              <div className="flex items-center gap-2">
-                                <p className="font-black text-zinc-900 text-[13px] uppercase tracking-wide leading-tight truncate" title={singleStudy?.nombre?.toUpperCase()}>
+                              <div className="h-5 flex items-center">
+                                <p className="font-black text-zinc-900 text-sm uppercase tracking-wide leading-none truncate" title={singleStudy?.nombre?.toUpperCase()}>
                                   {singleStudy?.nombre?.toUpperCase()}
                                 </p>
                               </div>
 
                               {/* Line 2: Observations & Creatinine */}
-                              <div className="flex items-center gap-4 flex-wrap min-h-[18px]">
+                              <div className="h-4 flex items-center gap-x-3 flex-wrap text-xs text-muted-foreground">
                                 {singleStudy?.details && (
-                                    <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-amber-700 max-w-[280px] shrink-0 min-w-0" title={singleStudy.details}>
-                                        <AlertTriangle className="h-3.5 w-3.5 text-amber-500 shrink-0" />
-                                        <span className="truncate"><span className="font-black">OBS:</span> {singleStudy.details.toUpperCase()}</span>
+                                    <div className="flex items-center gap-1.5 max-w-[280px] shrink-0 min-w-0" title={singleStudy.details}>
+                                        <div className="h-1 w-1 rounded-full bg-zinc-300 shrink-0" />
+                                        <span className="truncate leading-none"><span className="font-semibold">OBS:</span> {singleStudy.details.toUpperCase()}</span>
                                     </div>
                                 )}
-                                {study.contrastType === 'IV' && study.creatinine && (
-                                    <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-violet-700">
-                                        <Droplets className="h-3.5 w-3.5 text-violet-600 shrink-0" />
-                                        <span><span className="font-black">CREAT:</span> {study.creatinine}</span>
-                                    </div>
-                                )}
-                                {study.contrastType === 'IV' && !study.creatinine && (
-                                    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-blue-700">
-                                        <SyringeIcon className="h-3.5 w-3.5 text-blue-500 shrink-0" />
-                                        <span>IV</span>
+                                {study.contrastType === 'IV' && (
+                                    <div className="flex items-center gap-1.5">
+                                        <div className="h-1 w-1 rounded-full bg-zinc-300 shrink-0" />
+                                        {study.creatinine ? (
+                                            <span className="leading-none"><span className="font-semibold">CREAT:</span> {study.creatinine}</span>
+                                        ) : (
+                                            <span className="font-semibold leading-none">IV</span>
+                                        )}
                                     </div>
                                 )}
                                 {study.contrastType === 'Bario' && (
-                                    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-teal-700">
-                                        <Beaker className="h-3.5 w-3.5 text-teal-500 shrink-0" />
-                                        <span>BARIO</span>
+                                    <div className="flex items-center gap-1.5">
+                                        <div className="h-1 w-1 rounded-full bg-zinc-300 shrink-0" />
+                                        <span className="font-semibold leading-none">BARIO</span>
                                     </div>
                                 )}
                               </div>
 
                               {/* Line 3: CUPS & CIE 10 */}
-                              <div className="flex items-center gap-x-4 text-[10px] tracking-widest uppercase text-zinc-500/80 leading-none">
+                              <div className="h-4 flex items-center gap-x-3 text-xs text-muted-foreground flex-wrap">
                                 {singleStudy?.cups && (
                                   <div className="flex items-center gap-1.5 shrink-0">
-                                    <div className="h-1.5 w-1.5 rounded-full bg-zinc-300" />
-                                    <span><span className="font-black">CUPS:</span> {singleStudy.cups}</span>
+                                    <div className="h-1 w-1 rounded-full bg-zinc-300" />
+                                    <span className="leading-none"><span className="font-semibold">CUPS:</span> {singleStudy.cups}</span>
                                   </div>
                                 )}
                                 {study.diagnosis.code && (
                                   <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                                    <div className="h-1.5 w-1.5 rounded-full bg-zinc-300" />
-                                    <Stethoscope className="h-3 w-3 text-zinc-400" />
-                                    <span className="truncate" title={`${study.diagnosis.code}: ${study.diagnosis.description?.toUpperCase()}`}>
-                                      <span className="font-black">CIE 10:</span> {study.diagnosis.code} - {study.diagnosis.description?.toUpperCase()}
+                                    <div className="h-1 w-1 rounded-full bg-zinc-300" />
+                                    <span className="truncate leading-none" title={`${study.diagnosis.code}: ${study.diagnosis.description?.toUpperCase()}`}>
+                                      <span className="font-semibold">CIE 10:</span> {study.diagnosis.code} - {study.diagnosis.description?.toUpperCase()}
                                     </span>
                                   </div>
                                 )}
                               </div>
 
                               {study.status === 'Cancelado' && study.cancellationReason && (
-                                  <p className="text-orange-500 text-[10px] font-black uppercase tracking-widest mt-1">
-                                    MOTIVO: {study.cancellationReason.toUpperCase()}
-                                  </p>
+                                  <div className="h-4 flex items-center">
+                                    <p className="text-orange-500 text-xs font-semibold uppercase leading-none">
+                                        MOTIVO: {study.cancellationReason.toUpperCase()}
+                                    </p>
+                                  </div>
                               )}
                             </div>
                         </div>
                     </TableCell>
                     <TableCell className="p-2 align-top text-left w-[170px]">
-                        <div className="grid grid-cols-2 gap-x-2 gap-y-2">
-                            {study.orderDate && (
-                              <div className="flex flex-col leading-none">
-                                <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-0.5">ORDEN</span>
-                                <span className="text-[11px] text-zinc-600 tracking-tighter">{(() => { const d = toDateValue(study.orderDate); return d ? format(d, 'dd/MM/yy') : ''; })()}</span>
-                              </div>
-                            )}
-                            {study.requestDate && (
-                              <div className="flex flex-col leading-none">
-                                <span className={cn("text-[9px] font-black uppercase tracking-widest mb-0.5", study.status === 'Pendiente' ? "text-red-400" : "text-zinc-400")}>REGISTRO</span>
-                                <span className={cn("text-[11px] tracking-tighter", study.status === 'Pendiente' ? "text-red-600" : "text-zinc-900")}>
-                                  {(() => { const d = toDateValue(study.requestDate); return d ? format(d, 'dd/MM, HH:mm') : ''; })()}
-                                </span>
-                              </div>
-                            )}
-                            {study.completionDate && (
-                              <div className="flex flex-col leading-none">
-                                <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-0.5">COMPLETO</span>
-                                <span className="text-[11px] text-emerald-700 tracking-tighter">{(() => { const d = toDateValue(study.completionDate); return d ? format(d, 'dd/MM, HH:mm') : ''; })()}</span>
-                              </div>
-                            )}
-                            {!isConsultations && study.readingDate && (
-                                <div className="flex flex-col leading-none">
-                                    <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-0.5">LECTURA</span>
-                                    <span className="text-[11px] text-blue-700 tracking-tighter">{(() => { const d = toDateValue(study.readingDate); return d ? format(d, 'dd/MM, HH:mm') : ''; })()}</span>
+                        <div className="flex flex-col space-y-0">
+                            {study.orderDate ? (
+                                <div className="h-4 flex items-center gap-1.5 text-xs text-muted-foreground">
+                                    <div className="h-1 w-1 rounded-full bg-zinc-300 shrink-0" />
+                                    <span className="leading-none"><span className="font-semibold text-zinc-500 inline-block w-[65px]">F. ORDEN:</span> {format(toDateValue(study.orderDate), 'dd/MM/yy')}</span>
                                 </div>
-                            )}
+                            ) : <div className="h-4" />}
+                            {study.requestDate ? (
+                                <div className={cn("h-4 flex items-center gap-1.5 text-xs", (study.status === 'Pendiente' || !study.accessionNumber) ? 'text-red-500 font-bold' : 'text-muted-foreground')}>
+                                    <div className={cn("h-1 w-1 rounded-full shrink-0", (study.status === 'Pendiente' || !study.accessionNumber) ? 'bg-red-400' : 'bg-zinc-300')} />
+                                    <span className="leading-none"><span className={cn("font-semibold inline-block w-[65px]", (study.status === 'Pendiente' || !study.accessionNumber) ? 'text-red-600' : 'text-zinc-500')}>F. PENDI:</span> {format(toDateValue(study.requestDate), 'dd/MM, HH:mm')}</span>
+                                </div>
+                            ) : <div className="h-4" />}
+                            {study.completionDate ? (
+                                <div className="h-4 flex items-center gap-1.5 text-xs text-emerald-600">
+                                    <div className="h-1 w-1 rounded-full bg-emerald-400 shrink-0" />
+                                    <span className="leading-none"><span className="font-semibold text-emerald-700 inline-block w-[65px]">F. COMPL:</span> {format(toDateValue(study.completionDate), 'dd/MM, HH:mm')}</span>
+                                </div>
+                            ) : <div className="h-4" />}
+                            {study.readingDate ? (
+                                <div className="h-4 flex items-center gap-1.5 text-xs text-blue-600">
+                                    <div className="h-1 w-1 rounded-full bg-blue-400 shrink-0" />
+                                    <span className="leading-none"><span className="font-semibold text-blue-700 inline-block w-[65px]">F. LEIDO:</span> {format(toDateValue(study.readingDate), 'dd/MM, HH:mm')}</span>
+                                </div>
+                            ) : <div className="h-4" />}
                         </div>
                     </TableCell>
                     <TableCell className="p-2 text-right align-top">
