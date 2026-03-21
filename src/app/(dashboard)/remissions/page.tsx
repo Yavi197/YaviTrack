@@ -22,7 +22,7 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 import { cn } from '@/lib/utils';
 import { Button } from "@/components/ui/button";
 import { SelectStudiesDialog } from '@/components/app/select-studies-dialog';
-import type { OrderData, GeneralService, SubServiceArea } from "@/lib/types";
+import type { OrderData, GeneralService, SubServiceArea, Study } from "@/lib/types";
 
 function FilterPopover({ title, options, activeValue, onFilterToggle, countsMap }: { title: string, options: any[], activeValue: string, onFilterToggle: any, countsMap: any }) {
   return (
