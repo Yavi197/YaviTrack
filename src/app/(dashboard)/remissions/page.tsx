@@ -87,7 +87,7 @@ function UnifiedControlPanel({
 }: { 
     searchTerm: string; 
     setSearchTerm: (s: string) => void;
-    handleScanFile: (f: File) => void;
+    handleScanFile: (f: File | null) => void;
     handleManualEntry: (s: string) => void;
     filterModality: string;
     setFilterModality: (s: string) => void;
@@ -248,7 +248,7 @@ export default function RemissionsPage() {
     return { total, pendingAuthorization, scheduled, informed };
   }, [statusSummary]);
 
-  const handleScanFile = (file: File) => {
+  const handleScanFile = (file: File | null) => {
     if (!file) return;
     if (!userProfile) { toast({ variant: 'destructive', title: 'Error', description: 'Usuario no autenticado.' }); return; }
     
