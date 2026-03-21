@@ -1826,9 +1826,9 @@ export function StudyTable({
                                 </div>
                             ) : <div className="h-4" />}
                             {study.requestDate ? (
-                                <div className={cn("h-4 flex items-center gap-1.5 text-xs", (study.status === 'Pendiente' || !study.accessionNumber) ? 'text-red-500 font-bold' : 'text-muted-foreground')}>
-                                    <div className={cn("h-1 w-1 rounded-full shrink-0", (study.status === 'Pendiente' || !study.accessionNumber) ? 'bg-red-400' : 'bg-zinc-300')} />
-                                    <span className="leading-none"><span className={cn("font-semibold inline-block w-[65px]", (study.status === 'Pendiente' || !study.accessionNumber) ? 'text-red-600' : 'text-zinc-500')}>F. PENDI:</span> {toDateValue(study.requestDate) ? format(toDateValue(study.requestDate)!, 'dd/MM, HH:mm') : '--'}</span>
+                                <div className={cn("h-4 flex items-center gap-1.5 text-xs", (study.status === 'Pendiente' || !singleStudy?.accessionNumber) ? 'text-red-500 font-bold' : 'text-muted-foreground')}>
+                                    <div className={cn("h-1 w-1 rounded-full shrink-0", (study.status === 'Pendiente' || !singleStudy?.accessionNumber) ? 'bg-red-400' : 'bg-zinc-300')} />
+                                    <span className="leading-none"><span className={cn("font-semibold inline-block w-[65px]", (study.status === 'Pendiente' || !singleStudy?.accessionNumber) ? 'text-red-600' : 'text-zinc-500')}>F. PENDI:</span> {toDateValue(study.requestDate) ? format(toDateValue(study.requestDate)!, 'dd/MM, HH:mm') : '--'}</span>
                                 </div>
                             ) : <div className="h-4" />}
                             {study.completionDate ? (
