@@ -125,7 +125,7 @@ env:
 
   # App Configuration
   - variable: NEXT_PUBLIC_APP_NAME
-    value: Med-iTrack
+    value: Medi-Track
     availability:
       - BUILD
       - RUNTIME

@@ -340,7 +340,7 @@ function TurneroPageContent() {
     return (
         <>
         <Head>
-            <title>Sala de Espera - Med-iTrack</title>
+            <title>Sala de Espera - Medi-Track</title>
         </Head>
         <div className="flex flex-col min-h-screen bg-background text-foreground">
             <header className="bg-background/80 backdrop-blur-sm sticky top-0 z-10 border-b">
@@ -348,7 +348,7 @@ function TurneroPageContent() {
                     <div className="flex items-center justify-between h-20">
                         <div className="flex items-center gap-4">
                             <AppLogoIcon className="h-10 w-10 text-primary" />
-                            <h1 className="text-2xl font-bold font-headline">Med-iTrack</h1>
+                            <h1 className="text-2xl font-bold font-headline">Medi-Track</h1>
                         </div>
                         <div className="text-2xl font-semibold">
                             <time dateTime={currentTime.toISOString()}>
@@ -370,7 +370,7 @@ function TurneroPageContent() {
             </main>
             <footer className="border-t">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-                    <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} Med-iTrack. Todos los derechos reservados.</p>
+                    <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} Medi-Track. Todos los derechos reservados.</p>
                     {canRequestSilence && <SilenceRequestButton />}
                 </div>
             </footer>

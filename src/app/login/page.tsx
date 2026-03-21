@@ -29,7 +29,7 @@ export default function LoginPage() {
       console.log("Login successful:", result.user.uid);
       toast({
         title: "Inicio de sesión exitoso",
-        description: "Bienvenido a Med-iTrack.",
+        description: "Bienvenido a Medi-Track.",
       });
       router.push("/");
     } catch (error: any) {
@@ -58,7 +58,7 @@ export default function LoginPage() {
             <Link href="/" className="flex justify-center items-center mb-4">
                 <AppLogoIcon className="h-12 w-12 text-primary" />
             </Link>
-          <CardTitle className="text-3xl font-headline">Acceder a Med-iTrack</CardTitle>
+          <CardTitle className="text-3xl font-headline">Acceder a Medi-Track</CardTitle>
           <CardDescription>
             Ingresa tus credenciales para gestionar las solicitudes.
           </CardDescription>

@@ -97,7 +97,7 @@ export function OwnAuthorizationTemplate({ study }: { study: Study }) {
             <div className="absolute bottom-10 left-10 right-10 text-xs text-center">
                  <p className="font-bold">FECHA DE EMISIÓN: {studyDate ? format(studyDate, 'dd/MM/yyyy') : 'N/A'}</p>
                  <p className="mt-1">Esta autorización es válida por 30 días a partir de la fecha de emisión.</p>
-                 <p className="mt-4 border-t border-dotted border-black pt-1">GENERADO POR: DPTO IMAGENES DIAGNOSTICAS - MED-ITRACK</p>
+                 <p className="mt-4 border-t border-dotted border-black pt-1">GENERADO POR: DPTO IMAGENES DIAGNOSTICAS - MEDI-TRACK</p>
             </div>
         </div>
     );

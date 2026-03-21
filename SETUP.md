@@ -1,4 +1,4 @@
-# SETUP GUÍA - Med-iTrack
+# SETUP GUÍA - Medi-Track
 
 ## ✅ Lo que ya está hecho
 

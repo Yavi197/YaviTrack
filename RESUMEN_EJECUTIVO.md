@@ -1,4 +1,4 @@
-# 📊 RESUMEN EJECUTIVO - Med-iTrack Setup Completo
+# 📊 RESUMEN EJECUTIVO - Medi-Track Setup Completo
 
 ## 🎯 OBJETIVO CUMPLIDO
 

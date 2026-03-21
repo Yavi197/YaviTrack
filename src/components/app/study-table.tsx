@@ -1554,7 +1554,7 @@ export function StudyTable({
                     </DropdownMenuContent>
                 </DropdownMenu>
               </TableHead>
-              <TableHead style={{ minWidth: '340px', width: '30%' }} className="px-2">
+              <TableHead style={{ minWidth: '280px', width: '24%' }} className="px-2">
                  {isAdmin && !isPatientProfile ? (
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -1738,20 +1738,21 @@ export function StudyTable({
                         <div className='flex gap-3 items-start'>
                              <div className="h-5 flex items-center">
                                  <div className={cn(
-                                    "w-[56px] h-[22px] rounded-lg border shadow-sm flex items-center justify-center font-black text-[10px] uppercase tracking-wider shrink-0",
+                                    "w-[72px] h-[26px] rounded-lg border shadow-sm flex items-center justify-center gap-1.5 font-black text-[10px] uppercase tracking-wider shrink-0",
                                     (() => {
                                         const mod = study.studies[0]?.modality?.toUpperCase();
                                         switch (mod) {
-                                            case 'TAC': return "bg-emerald-50 text-emerald-700 border-emerald-200";
-                                            case 'RX': return "bg-blue-50 text-blue-700 border-blue-200";
-                                            case 'ECO': return "bg-red-50 text-red-700 border-red-200";
-                                            case 'MAMO': return "bg-amber-50 text-amber-700 border-amber-200";
-                                            case 'DENSITOMETRIA': return "bg-rose-50 text-rose-700 border-rose-200";
-                                            case 'RMN': return "bg-yellow-50 text-yellow-700 border-yellow-200";
-                                            default: return "bg-zinc-50 text-zinc-600 border-zinc-200";
+                                            case 'TAC': return "bg-emerald-500/90 text-white border-emerald-600 shadow-emerald-100";
+                                            case 'RX': return "bg-blue-500/90 text-white border-blue-600 shadow-blue-100";
+                                            case 'ECO': return "bg-rose-500/90 text-white border-rose-600 shadow-rose-100";
+                                            case 'MAMO': return "bg-pink-400/90 text-white border-pink-500 shadow-pink-100";
+                                            case 'DENSITOMETRIA': return "bg-indigo-500/90 text-white border-indigo-600 shadow-indigo-100";
+                                            case 'RMN': return "bg-amber-500/90 text-white border-amber-600 shadow-amber-100";
+                                            default: return "bg-zinc-500/90 text-white border-zinc-600 shadow-zinc-100";
                                         }
                                     })()
                                  )}>
+                                    <ModalityIcon className="h-3.5 w-3.5" />
                                     {study.studies[0]?.modality}
                                 </div>
                              </div>

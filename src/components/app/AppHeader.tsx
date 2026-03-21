@@ -30,8 +30,8 @@ export function AppHeader() {
   return (
     <header className="flex items-center justify-between px-6 py-3 bg-gray-50 border-b">
       <div className="flex items-center gap-2">
-        <Image src="/icons/logo.svg" alt="Med-iTrack" width={32} height={32} />
-        <span className="font-bold text-xl text-gray-900">Med-iTrack</span>
+        <Image src="/icons/logo.svg" alt="Medi-Track" width={32} height={32} />
+        <span className="font-bold text-xl text-gray-900">Medi-Track</span>
       </div>
       <nav className="flex items-center gap-3">
         {visibleModules.map(m => (

@@ -1808,6 +1808,7 @@ export async function createRemissionAction(data: RemissionRequest): Promise<{ s
                 error: `Remisión guardada pero no se pudo actualizar la hoja de cálculo: ${sheetsError.message}`
             };
         }
+        return { success: true, firestoreSuccess: true };
 
     } catch (error: any) {
         console.error("Error creating remission:", error);
@@ -1841,7 +1842,7 @@ export async function updateRemissionStatusAction(remissionId: string, status: R
         await updateDoc(remissionRef, updateData);
         
         const updatedDoc = await getDoc(remissionRef);
-        if (updatedDoc.exists()) {
+        if (updatedDoc.exists() && updatedDoc.data().status === 'Informado') {
              await appendOrUpdateRemissionSheet(updatedDoc.data() as any, remissionId);
         }
 
@@ -1894,7 +1895,7 @@ export async function uploadAuthorizationAndUpdateRemissionAction(remissionId: s
         });
         
         const updatedDoc = await getDoc(remissionRef);
-        if (updatedDoc.exists()) {
+        if (updatedDoc.exists() && updatedDoc.data().status === 'Informado') {
             await appendOrUpdateRemissionSheet(updatedDoc.data() as any, remissionId);
         }
         
@@ -1948,7 +1949,7 @@ export async function uploadReminderAndUpdateRemissionAction(remissionId: string
         });
         
         const updatedDoc = await getDoc(remissionRef);
-        if (updatedDoc.exists()) {
+        if (updatedDoc.exists() && updatedDoc.data().status === 'Informado') {
             await appendOrUpdateRemissionSheet(updatedDoc.data() as any, remissionId);
         }
 
@@ -2002,7 +2003,7 @@ export async function uploadReportAndUpdateRemissionAction(remissionId: string, 
         });
         
         const updatedDoc = await getDoc(remissionRef);
-        if (updatedDoc.exists()) {
+        if (updatedDoc.exists() && updatedDoc.data().status === 'Informado') {
             await appendOrUpdateRemissionSheet(updatedDoc.data() as any, remissionId);
         }
         
@@ -2032,7 +2033,7 @@ export async function scheduleRemissionAppointmentAction(remissionId: string, ap
         });
         
         const updatedDoc = await getDoc(remissionRef);
-        if (updatedDoc.exists()) {
+        if (updatedDoc.exists() && updatedDoc.data().status === 'Informado') {
             await appendOrUpdateRemissionSheet(updatedDoc.data() as any, remissionId);
         }
 
@@ -2054,7 +2055,7 @@ export async function updateRemissionBedNumberAction(remissionId: string, bedNum
         
         // Update Sheets too
         const updatedDoc = await getDoc(remissionRef);
-        if (updatedDoc.exists()) {
+        if (updatedDoc.exists() && updatedDoc.data().status === 'Informado') {
             await appendOrUpdateRemissionSheet(updatedDoc.data() as any, remissionId);
         }
 

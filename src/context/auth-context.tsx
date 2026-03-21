@@ -232,7 +232,7 @@ export const AuthLoader = ({ children }: { children: ReactNode }) => {
       <div className="flex h-screen w-screen items-center justify-center">
         <div className="flex flex-col items-center gap-4 text-center">
             <AppLogoIcon className="h-16 w-16 text-primary animate-pulse" />
-            <p className="text-muted-foreground">Cargando Med-iTrack...</p>
+            <p className="text-muted-foreground">Cargando Medi-Track...</p>
         </div>
       </div>
     );

@@ -226,7 +226,7 @@ export default function AppHeader() {
                 <AppLogoIcon className="h-7 w-7" />
               </div>
               <div className="flex flex-col justify-center">
-                <h1 className="text-xl font-black font-headline tracking-tighter text-zinc-900 leading-none">Med-iTrack</h1>
+                <h1 className="text-xl font-black font-headline tracking-tighter text-zinc-900 leading-none">Medi-Track</h1>
               </div>
             </Link>
           </div>

@@ -5,8 +5,8 @@
   "display": "standalone",
   "scope": "/",
   "start_url": "/",
-  "name": "Med-iTrack",
-  "short_name": "Med-iTrack",
+  "name": "Medi-Track",
+  "short_name": "Medi-Track",
   "description": "Sistema de gestión y seguimiento para solicitudes de estudios de diagnóstico por imágenes.",
   "icons": [
     {

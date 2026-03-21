@@ -57,9 +57,10 @@ interface StudyDialogProps {
     onOpenChange: (open: boolean) => void;
     initialData?: Partial<Study>;
     mode: 'manual' | 'edit';
+    onCreate?: (data: OrderData) => Promise<{ success: boolean; error?: string; studyCount?: number }>;
 }
 
-export function StudyDialog({ open, onOpenChange, initialData, mode }: StudyDialogProps) {
+export function StudyDialog({ open, onOpenChange, initialData, mode, onCreate }: StudyDialogProps) {
         const firstInputRef = useRef<HTMLInputElement>(null);
     const { currentProfile } = useAuth();
     const { toast } = useToast();
@@ -164,10 +165,17 @@ export function StudyDialog({ open, onOpenChange, initialData, mode }: StudyDial
         if (mode === 'edit') return; // Should be handled by EditStudyDialog
 
         setLoading(true);
-        const result = await createStudyAction(data as OrderData, currentProfile);
+        const result = onCreate 
+            ? await onCreate(data as OrderData) 
+            : await createStudyAction(data as OrderData, currentProfile);
 
         if (result.success) {
-            toast({ title: 'Solicitudes Creadas', description: `${(result as any).studyCount} nuevas solicitudes han sido registradas.` });
+            toast({ 
+                title: onCreate ? 'Registro Creado' : 'Solicitudes Creadas', 
+                description: onCreate 
+                    ? 'El registro se ha guardado correctamente.' 
+                    : `${(result as any).studyCount} nuevas solicitudes han sido registradas.` 
+            });
             onOpenChange(false);
         } else {
             toast({ variant: 'destructive', title: 'Error', description: result.error });

@@ -2,7 +2,7 @@
 'use server';
 
 import { google, sheets_v4 } from 'googleapis';
-import { Study, StudyWithCompletedBy, OrderData, QualityReport } from '@/lib/types';
+import { Study, StudyWithCompletedBy, OrderData, QualityReport, Remission } from '@/lib/types';
 import { formatInTimeZone } from 'date-fns-tz';
 import { EXPORT_COLUMNS, REMISSION_EXPORT_COLUMNS, INVENTORY_EXPORT_COLUMNS } from './export-columns';
 import { differenceInYears } from 'date-fns';
@@ -555,11 +555,7 @@ export async function appendOrderToSheet(studyData: Study): Promise<void> {
 
         await ensureSheetExists(sheets, spreadsheetId, sheetName, headers);
 
-        const formattedDate = completionDate
-            ? formatBogotaDate(completionDate)
-            : requestDate
-                ? formatBogotaDate(requestDate)
-                : '';
+        const formattedDate = requestDate ? formatBogotaDate(requestDate) : '';
         const age = getAgeFromBirthDateGSheet(studyData.patient.birthDate);
         const studyWithCompletedBy = studyData as StudyWithCompletedBy;
 
@@ -704,8 +700,8 @@ export async function appendOrUpdateRemissionSheet(data: OrderData & {
     }
 
     const headerRow = rows[0] || headers;
-    const idIndex = headerRow.indexOf('N° ID');
-    const rowIndex = rows.findIndex(row => row[idIndex] === (data.patient?.id || studyId));
+    const idIndex = headerRow.indexOf('ID FIRESTORE');
+    const rowIndex = rows.findIndex(row => row[idIndex] === studyId);
 
     // Helper para formatear Firestore Timestamp
     const formatTimestamp = (ts: any, fallbackToNow = false) => {
@@ -901,6 +897,65 @@ export async function appendInventoryEntriesToSheet(entries: Array<{
             requestBody: { values: rows },
         }));
         console.log(`[Google Sheets] Successfully appended ${rows.length} inventory entries to ${sheetName}.`);
+    }
+}
+
+export async function softDeleteRemissionSheet(remission: Remission): Promise<void> {
+    const spreadsheetId = REMISSIONS_SPREADSHEET_ID || SPREADSHEET_ID;
+    if (!spreadsheetId) return;
+
+    const sheets = await getSheetsClient();
+    if (!sheets) return;
+
+    try {
+        const createdAtDate = coerceValueToDate(remission.createdAt) || new Date();
+        const sheetName = getMonthlySheetName(createdAtDate);
+        const headers = REMISSION_EXPORT_COLUMNS;
+        const sheetKey = makeSheetKey(spreadsheetId, sheetName);
+
+        // We need to find the row to update its status to 'ELIMINADO'
+        const range = buildSheetRange(sheetName, headers.length);
+        const getRes = await withSheetsRetry(() => sheets.spreadsheets.values.get({
+            spreadsheetId,
+            range
+        }));
+
+        const rows = getRes.data.values || [];
+        if (rows.length === 0) return;
+
+        const headerRow = rows[0] || headers;
+        const idIndex = headerRow.indexOf('ID FIRESTORE');
+        const statusIndex = headerRow.indexOf('ESTADO REMISION');
+        const dateIndex = headerRow.indexOf('FECHA ESTADO');
+
+        if (idIndex === -1 || statusIndex === -1) return;
+
+        const rowIndex = rows.findIndex(row => row[idIndex] === remission.id);
+        if (rowIndex === -1) {
+            console.warn(`[Google Sheets] Could not find remission ${remission.id} in sheet ${sheetName} for deletion.`);
+            return;
+        }
+
+        const updateRow = rows[rowIndex];
+        updateRow[statusIndex] = 'ELIMINADO';
+        if (dateIndex !== -1) {
+            updateRow[dateIndex] = formatBogotaDate(new Date());
+        }
+
+        const updateRange = `${sheetName}!A${rowIndex + 1}`;
+        await queueSheetsWrite(() => sheets.spreadsheets.values.update({
+            spreadsheetId,
+            range: updateRange,
+            valueInputOption: 'USER_ENTERED',
+            requestBody: { values: [updateRow] },
+        }));
+
+        // Invalidate cache
+        sheetCache.delete(sheetKey);
+        console.log(`[Google Sheets] Successfully marked remission ${remission.id} as ELIMINADO.`);
+
+    } catch (error) {
+        console.error(`[Google Sheets Error] Failed to soft delete remission ${remission.id}:`, error);
     }
 }
     

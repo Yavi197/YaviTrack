@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { GeneralServices, SubServiceAreas, type GeneralService, type SubServiceArea, type Remission, type RemissionStatus } from "@/lib/types";
 import { format } from "date-fns";
 import { db } from "@/lib/firebase";
-import { appendOrUpdateRemissionSheet } from "@/services/google-sheets";
+import { appendOrUpdateRemissionSheet, softDeleteRemissionSheet } from "@/services/google-sheets";
 import { collection, query, onSnapshot, orderBy, startAfter, getDocs } from "firebase/firestore";
 import { limit as firestoreLimit } from 'firebase/firestore';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuItem } from "@/components/ui/dropdown-menu";
@@ -22,6 +22,7 @@ import { epsEmailMap } from "@/lib/eps-data";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { cn, toDateValue } from "@/lib/utils";
+import { ModalityIcon } from "@/components/icons/modality-icon";
 import { updateRemissionBedNumberAction } from "@/app/actions";
 
 
@@ -561,6 +562,9 @@ function RemissionAuthorizationActions({ remission, enabled, onEdit }: { remissi
     if (!enabled) return;
     setDeleteLoading(true);
     try {
+      // Synchronize with Google Sheets before deleting from Firestore
+      await softDeleteRemissionSheet(remission);
+      
       const { doc, deleteDoc } = await import("firebase/firestore");
       await deleteDoc(doc(db, "remissions", remission.id));
       toast({ title: "Remisión eliminada", description: `${patient.fullName} fue removido del listado.` });
@@ -741,7 +745,7 @@ export function RemissionsTable({ statusFilter, onStatusSummaryChange, onCountsC
                     </DropdownMenuTrigger>
                 </DropdownMenu>
             </TableHead>
-            <TableHead style={{ minWidth: "340px", width: "30%" }} className="px-2">
+            <TableHead style={{ minWidth: "280px", width: "24%" }} className="px-2">
                   <div className="relative">
                     {currentProfile?.rol === 'administrador' ? (
                       <>
@@ -845,21 +849,22 @@ export function RemissionsTable({ statusFilter, onStatusSummaryChange, onCountsC
               <TableCell className="p-2 align-top">
                 <div className='flex gap-3 items-start'>
                   <div className="h-5 flex items-center shrink-0">
-                     <div className={cn(
-                        "w-[56px] h-[22px] rounded-lg border shadow-sm flex items-center justify-center font-black text-[10px] uppercase tracking-wider shrink-0",
+                      <div className={cn(
+                        "w-[72px] h-[26px] rounded-lg border shadow-sm flex items-center justify-center gap-1.5 font-black text-[10px] uppercase tracking-wider shrink-0",
                         (() => {
                             const mod = (primaryStudy ? (primaryStudy.modality || rem.service) : (rem.service || 'N/A'))?.toString().toUpperCase();
                             switch (mod) {
-                                case 'TAC': return "bg-emerald-50 text-emerald-700 border-emerald-200";
-                                case 'RX': return "bg-blue-50 text-blue-700 border-blue-200";
-                                case 'ECO': return "bg-red-50 text-red-700 border-red-200";
-                                case 'MAMO': return "bg-amber-50 text-amber-700 border-amber-200";
-                                case 'DENSITOMETRIA': return "bg-rose-50 text-rose-700 border-rose-200";
-                                case 'RMN': return "bg-yellow-50 text-yellow-700 border-yellow-200";
-                                default: return "bg-zinc-100 text-zinc-600 border-zinc-200";
+                                case 'TAC': return "bg-emerald-500/90 text-white border-emerald-600 shadow-emerald-100";
+                                case 'RX': return "bg-blue-500/90 text-white border-blue-600 shadow-blue-100";
+                                case 'ECO': return "bg-rose-500/90 text-white border-rose-600 shadow-rose-100";
+                                case 'MAMO': return "bg-pink-400/90 text-white border-pink-500 shadow-pink-100";
+                                case 'DENSITOMETRIA': return "bg-indigo-500/90 text-white border-indigo-600 shadow-indigo-100";
+                                case 'RMN': return "bg-amber-500/90 text-white border-amber-600 shadow-amber-100";
+                                default: return "bg-zinc-500/90 text-white border-zinc-600 shadow-zinc-100";
                             }
                         })()
-                    )}>
+                      )}>
+                        <ModalityIcon className="h-3.5 w-3.5" />
                         {primaryStudy ? (primaryStudy.modality || rem.service) : (rem.service || 'N/A')}
                     </div>
                   </div>

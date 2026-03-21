@@ -102,7 +102,7 @@ export default function SignupPage() {
             </div>
           <CardTitle className="text-3xl font-headline">Crear Nuevo Usuario</CardTitle>
           <CardDescription>
-            Completa los datos para registrar un nuevo usuario en Med-iTrack.
+            Completa los datos para registrar un nuevo usuario en Medi-Track.
           </CardDescription>
         </CardHeader>
         <CardContent>

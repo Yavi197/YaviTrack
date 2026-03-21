@@ -3,8 +3,8 @@ import { MetadataRoute } from 'next'
  
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Med-iTrack',
-    short_name: 'Med-iTrack',
+    name: 'Medi-Track',
+    short_name: 'Medi-Track',
     description: 'Sistema de gestión y seguimiento para solicitudes de estudios de diagnóstico por imágenes.',
     start_url: '/',
     display: 'standalone',
