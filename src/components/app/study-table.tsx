@@ -1822,25 +1822,25 @@ export function StudyTable({
                             {study.orderDate ? (
                                 <div className="h-4 flex items-center gap-1.5 text-xs text-muted-foreground">
                                     <div className="h-1 w-1 rounded-full bg-zinc-300 shrink-0" />
-                                    <span className="leading-none"><span className="font-semibold text-zinc-500 inline-block w-[65px]">F. ORDEN:</span> {format(toDateValue(study.orderDate), 'dd/MM/yy')}</span>
+                                    <span className="leading-none"><span className="font-semibold text-zinc-500 inline-block w-[65px]">F. ORDEN:</span> {toDateValue(study.orderDate) ? format(toDateValue(study.orderDate)!, 'dd/MM/yy') : '--'}</span>
                                 </div>
                             ) : <div className="h-4" />}
                             {study.requestDate ? (
                                 <div className={cn("h-4 flex items-center gap-1.5 text-xs", (study.status === 'Pendiente' || !study.accessionNumber) ? 'text-red-500 font-bold' : 'text-muted-foreground')}>
                                     <div className={cn("h-1 w-1 rounded-full shrink-0", (study.status === 'Pendiente' || !study.accessionNumber) ? 'bg-red-400' : 'bg-zinc-300')} />
-                                    <span className="leading-none"><span className={cn("font-semibold inline-block w-[65px]", (study.status === 'Pendiente' || !study.accessionNumber) ? 'text-red-600' : 'text-zinc-500')}>F. PENDI:</span> {format(toDateValue(study.requestDate), 'dd/MM, HH:mm')}</span>
+                                    <span className="leading-none"><span className={cn("font-semibold inline-block w-[65px]", (study.status === 'Pendiente' || !study.accessionNumber) ? 'text-red-600' : 'text-zinc-500')}>F. PENDI:</span> {toDateValue(study.requestDate) ? format(toDateValue(study.requestDate)!, 'dd/MM, HH:mm') : '--'}</span>
                                 </div>
                             ) : <div className="h-4" />}
                             {study.completionDate ? (
                                 <div className="h-4 flex items-center gap-1.5 text-xs text-emerald-600">
                                     <div className="h-1 w-1 rounded-full bg-emerald-400 shrink-0" />
-                                    <span className="leading-none"><span className="font-semibold text-emerald-700 inline-block w-[65px]">F. COMPL:</span> {format(toDateValue(study.completionDate), 'dd/MM, HH:mm')}</span>
+                                    <span className="leading-none"><span className="font-semibold text-emerald-700 inline-block w-[65px]">F. COMPL:</span> {toDateValue(study.completionDate) ? format(toDateValue(study.completionDate)!, 'dd/MM, HH:mm') : '--'}</span>
                                 </div>
                             ) : <div className="h-4" />}
                             {study.readingDate ? (
                                 <div className="h-4 flex items-center gap-1.5 text-xs text-blue-600">
                                     <div className="h-1 w-1 rounded-full bg-blue-400 shrink-0" />
-                                    <span className="leading-none"><span className="font-semibold text-blue-700 inline-block w-[65px]">F. LEIDO:</span> {format(toDateValue(study.readingDate), 'dd/MM, HH:mm')}</span>
+                                    <span className="leading-none"><span className="font-semibold text-blue-700 inline-block w-[65px]">F. LEIDO:</span> {toDateValue(study.readingDate) ? format(toDateValue(study.readingDate)!, 'dd/MM, HH:mm') : '--'}</span>
                                 </div>
                             ) : <div className="h-4" />}
                         </div>
