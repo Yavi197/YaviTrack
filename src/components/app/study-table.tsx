@@ -1742,12 +1742,12 @@ export function StudyTable({
                                     (() => {
                                         const mod = study.studies[0]?.modality?.toUpperCase();
                                         switch (mod) {
-                                            case 'TAC': return "bg-blue-50 text-blue-700 border-blue-200";
-                                            case 'RX': return "bg-violet-50 text-violet-700 border-violet-200";
-                                            case 'ECO': return "bg-emerald-50 text-emerald-700 border-emerald-200";
+                                            case 'TAC': return "bg-emerald-50 text-emerald-700 border-emerald-200";
+                                            case 'RX': return "bg-blue-50 text-blue-700 border-blue-200";
+                                            case 'ECO': return "bg-red-50 text-red-700 border-red-200";
                                             case 'MAMO': return "bg-amber-50 text-amber-700 border-amber-200";
                                             case 'DENSITOMETRIA': return "bg-rose-50 text-rose-700 border-rose-200";
-                                            case 'RMN': return "bg-indigo-50 text-indigo-700 border-indigo-200";
+                                            case 'RMN': return "bg-yellow-50 text-yellow-700 border-yellow-200";
                                             default: return "bg-zinc-50 text-zinc-600 border-zinc-200";
                                         }
                                     })()
@@ -1819,28 +1819,22 @@ export function StudyTable({
                     </TableCell>
                     <TableCell className="p-2 align-top text-left w-[170px]">
                         <div className="flex flex-col space-y-0">
-                            {study.orderDate ? (
-                                <div className="h-4 flex items-center gap-1.5 text-xs text-muted-foreground">
-                                    <div className="h-1 w-1 rounded-full bg-zinc-300 shrink-0" />
-                                    <span className="leading-none"><span className="font-semibold text-zinc-500 inline-block w-[65px]">F. ORDEN:</span> {toDateValue(study.orderDate) ? format(toDateValue(study.orderDate)!, 'dd/MM/yy') : '--'}</span>
-                                </div>
-                            ) : <div className="h-4" />}
                             {study.requestDate ? (
-                                <div className={cn("h-4 flex items-center gap-1.5 text-xs", (study.status === 'Pendiente' || !study.admissionNumber) ? 'text-red-500 font-bold' : 'text-muted-foreground')}>
-                                    <div className={cn("h-1 w-1 rounded-full shrink-0", (study.status === 'Pendiente' || !study.admissionNumber) ? 'bg-red-400' : 'bg-zinc-300')} />
-                                    <span className="leading-none"><span className={cn("font-semibold inline-block w-[65px]", (study.status === 'Pendiente' || !study.admissionNumber) ? 'text-red-600' : 'text-zinc-500')}>F. PENDI:</span> {toDateValue(study.requestDate) ? format(toDateValue(study.requestDate)!, 'dd/MM, HH:mm') : '--'}</span>
+                                <div className="h-4 flex items-center gap-1.5 text-xs text-red-500 font-bold">
+                                    <div className="h-1 w-1 rounded-full shrink-0 bg-red-400" />
+                                    <span className="leading-none"><span className="font-semibold inline-block w-[50px] text-red-600">PEND:</span> {(() => { const d = toDateValue(study.requestDate); return d ? format(d, "dd/MM, HH:mm") : '--'; })()}</span>
                                 </div>
                             ) : <div className="h-4" />}
                             {study.completionDate ? (
-                                <div className="h-4 flex items-center gap-1.5 text-xs text-emerald-600">
-                                    <div className="h-1 w-1 rounded-full bg-emerald-400 shrink-0" />
-                                    <span className="leading-none"><span className="font-semibold text-emerald-700 inline-block w-[65px]">F. COMPL:</span> {toDateValue(study.completionDate) ? format(toDateValue(study.completionDate)!, 'dd/MM, HH:mm') : '--'}</span>
+                                <div className="h-4 flex items-center gap-1.5 text-xs text-emerald-500 font-bold">
+                                    <div className="h-1 w-1 rounded-full shrink-0 bg-emerald-400" />
+                                    <span className="leading-none"><span className="font-semibold inline-block w-[50px] text-emerald-600">COMP:</span> {(() => { const d = toDateValue(study.completionDate); return d ? format(d, "dd/MM, HH:mm") : '--'; })()}</span>
                                 </div>
                             ) : <div className="h-4" />}
                             {study.readingDate ? (
-                                <div className="h-4 flex items-center gap-1.5 text-xs text-blue-600">
-                                    <div className="h-1 w-1 rounded-full bg-blue-400 shrink-0" />
-                                    <span className="leading-none"><span className="font-semibold text-blue-700 inline-block w-[65px]">F. LEIDO:</span> {toDateValue(study.readingDate) ? format(toDateValue(study.readingDate)!, 'dd/MM, HH:mm') : '--'}</span>
+                                <div className="h-4 flex items-center gap-1.5 text-xs text-indigo-500 font-bold">
+                                    <div className="h-1 w-1 rounded-full shrink-0 bg-indigo-400" />
+                                    <span className="leading-none"><span className="font-semibold inline-block w-[50px] text-indigo-600">INFO:</span> {(() => { const d = toDateValue(study.readingDate); return d ? format(d, "dd/MM, HH:mm") : '--'; })()}</span>
                                 </div>
                             ) : <div className="h-4" />}
                         </div>

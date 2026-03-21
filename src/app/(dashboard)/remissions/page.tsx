@@ -25,13 +25,8 @@ import { Check } from 'lucide-react';
 import { SelectStudiesDialog } from '@/components/app/select-studies-dialog';
 import type { OrderData, GeneralService, SubServiceArea } from "@/lib/types";
 
-function UnifiedControlPanel({ 
-    searchTerm, setSearchTerm, handleScanFile, handleManualEntry,
-    filterModality, setFilterModality, modalityCounts, metricsTotal,
-    filterService, setFilterService, serviceCounts,
-    orderType, onOrderTypeChange
-}: any) {
-    const FilterPopover = ({ title, options, activeValue, onFilterToggle, countsMap }: { title: string, options: any[], activeValue: string, onFilterToggle: any, countsMap: any }) => (
+function FilterPopover({ title, options, activeValue, onFilterToggle, countsMap }: { title: string, options: any[], activeValue: string, onFilterToggle: any, countsMap: any }) {
+  return (
       <div>
           <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest px-1 mb-0.5 block">{title}</label>
           <Popover>
@@ -43,22 +38,53 @@ function UnifiedControlPanel({
                         </div>
                         <span className="font-black text-[11px] tracking-tight uppercase">{activeValue === 'ALL' ? 'TODOS' : activeValue}</span>
                       </div>
-                      <span className="font-black text-2xl tracking-tighter text-zinc-900">{activeValue === 'ALL' ? metricsTotal : (countsMap[activeValue] || 0)}</span>
+                      <span className="font-black text-2xl tracking-tighter text-zinc-900">{activeValue === 'ALL' ? (countsMap?.total || 0) : (countsMap[activeValue] || 0)}</span>
                   </button>
               </PopoverTrigger>
               <PopoverContent className="w-56 p-1">
                   <div className="flex flex-col gap-1">
-                    {options.map((option: string) => (
-                       <Button key={option} variant={activeValue === option ? 'default' : 'ghost'} className="justify-start uppercase font-black text-[10px] tracking-widest" onClick={() => onFilterToggle(option)}>
-                          {option === 'ALL' ? 'TODOS' : option}
-                          {activeValue === option && <Check className="ml-auto h-4 w-4" />}
-                       </Button>
-                    ))}
+                    {options.map((option: string) => {
+                       const isModality = title === 'Modalidad';
+                       const getOptionColor = (opt: string) => {
+                           if (!isModality) return '';
+                           switch (opt) {
+                               case 'ECO': return 'text-red-600 hover:bg-red-50';
+                               case 'RMN': return 'text-yellow-600 hover:bg-yellow-50';
+                               case 'RX': return 'text-blue-600 hover:bg-blue-50';
+                               case 'TAC': return 'text-emerald-600 hover:bg-emerald-50';
+                               default: return '';
+                           }
+                       };
+                       const colorClass = getOptionColor(option);
+
+                       return (
+                           <Button 
+                              key={option} 
+                              variant={activeValue === option ? 'default' : 'ghost'} 
+                              className={cn(
+                                  "justify-start uppercase font-black text-[10px] tracking-widest transition-all",
+                                  activeValue === option ? "" : colorClass
+                              )} 
+                              onClick={() => onFilterToggle(option)}
+                           >
+                              {option === 'ALL' ? 'TODOS' : option}
+                              {activeValue === option && <Check className="ml-auto h-4 w-4" />}
+                           </Button>
+                       );
+                    })}
                   </div>
               </PopoverContent>
           </Popover>
       </div>
-    );
+  );
+}
+
+function UnifiedControlPanel({ 
+    searchTerm, setSearchTerm, handleScanFile, handleManualEntry,
+    filterModality, setFilterModality, modalityCounts, metricsTotal,
+    filterService, setFilterService, serviceCounts,
+    orderType, onOrderTypeChange
+}: any) {
 
     return (
         <Card className="shadow-2xl border-none h-full flex flex-col rounded-[2rem] overflow-hidden bg-white/50 backdrop-blur-xl">
@@ -90,57 +116,58 @@ function UnifiedControlPanel({
                   <ScanBar onlyInput inputId="remission-scan-input" onFileSelect={(file) => { void handleScanFile(file); }} />
                   <div className="relative w-full flex items-center bg-white rounded-xl shadow-sm border border-zinc-100 p-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
-                    <Input id="new-request-id" placeholder="ID / pegar / cargar" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void handleManualEntry(searchTerm); } }} className="pl-9 pr-10 border-0 focus-visible:ring-0 shadow-none bg-transparent placeholder:text-zinc-400 text-sm font-bold h-9" />
+                    <Input id="new-request-id" placeholder="Crear solicitud..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void handleManualEntry(searchTerm); } }} className="pl-9 pr-10 border-0 focus-visible:ring-0 shadow-none bg-transparent placeholder:text-zinc-400 text-sm font-bold h-9" />
                     <button type="button" aria-label="Cargar archivo" className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 bg-zinc-100 hover:bg-amber-100 hover:text-amber-600 rounded-lg text-zinc-400 transition-colors flex items-center justify-center" onClick={() => { const el = document.getElementById('remission-scan-input') as HTMLInputElement | null; el?.click(); }}>
                       <Paperclip className="h-4 w-4 text-current" />
                     </button>
                   </div>
-                  <span className="text-[9px] text-zinc-400 font-bold uppercase tracking-widest mt-2 text-center block leading-tight">(Ingrese un ID o cargue la orden)</span>
+                  <span className="text-[10px] text-zinc-400 font-bold px-4 text-center block italic mt-1">Arrastra el archivo o ingresa el ID directamente</span>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                   <FilterPopover title="Servicio" options={['ALL', 'URG', 'HOSP', 'UCI', 'C.EXT']} activeValue={filterService} onFilterToggle={setFilterService} countsMap={serviceCounts} />
-                   <FilterPopover title="Modalidad" options={['ALL', 'RX', 'TAC', 'RMN', 'ECO']} activeValue={filterModality} onFilterToggle={setFilterModality} countsMap={modalityCounts} />
+                   <FilterPopover title="Servicio" options={['ALL', 'URG', 'HOSP', 'UCI', 'C.EXT']} activeValue={filterService} onFilterToggle={setFilterService} countsMap={{ ...serviceCounts, total: metricsTotal }} />
+                   <FilterPopover title="Modalidad" options={['ALL', 'RX', 'TAC', 'RMN', 'ECO']} activeValue={filterModality} onFilterToggle={setFilterModality} countsMap={{ ...modalityCounts, total: metricsTotal }} />
                 </div>
             </CardContent>
         </Card>
     );
 }
 
+function InfoCard({ title, value, icon: Icon, color, onClick, isButton = false, isActive = false }: { title: string, value: number, icon: React.ElementType, color: string, onClick?: () => void, isButton?: boolean, isActive?: boolean }) {
+    const Wrapper = isButton && onClick ? 'button' : 'div' as any;
+    const shadowColor = color.includes('red') ? 'shadow-red-100' : color.includes('green') ? 'shadow-emerald-100' : color.includes('sky') ? 'shadow-sky-100' : 'shadow-violet-100';
+    const bgColor = color.includes('red') ? 'bg-red-600' : color.includes('green') ? 'bg-emerald-600' : color.includes('sky') ? 'bg-sky-600' : 'bg-violet-600';
+
+    return (
+        <Wrapper 
+            onClick={onClick} 
+            className={cn(
+                "relative flex flex-col p-3.5 rounded-[1.2rem] transition-all duration-500 group overflow-hidden border-none text-left h-full w-full",
+                isButton ? "cursor-pointer hover:-translate-y-1" : "",
+                isActive ? cn(bgColor, "text-white shadow-2xl", shadowColor) : "bg-white text-zinc-900 shadow-xl shadow-zinc-100 hover:shadow-2xl"
+            )}
+        >
+            {/* Decorative Icon Background */}
+            <div className="absolute top-[-5px] right-[-5px] p-1 opacity-5 scale-125 rotate-12 pointer-events-none group-hover:scale-105 group-hover:opacity-10 transition-all duration-700">
+                <Icon className="h-20 w-20" />
+            </div>
+
+            <div className="relative z-10 flex flex-col h-full justify-between">
+                <div className={cn(
+                    "p-1.5 w-fit rounded-lg mb-2 transition-all duration-500",
+                    isActive ? "bg-white/20 text-white" : cn("bg-zinc-100", color)
+                )}>
+                    <Icon className="h-5 w-5" />
+                </div>
+                <div>
+                    <p className={cn("text-[9px] font-black uppercase tracking-widest", isActive ? "text-white/70" : "text-zinc-400")}>{title}</p>
+                    <p className={cn("text-2xl font-black tracking-tighter leading-none mt-0.5")}>{value}</p>
+                </div>
+            </div>
+        </Wrapper>
+    );
+}
+
 function DailySummaryWidget({ metrics, selectedStatus, setSelectedStatus }: any) {
-    const InfoCard = ({ title, value, icon: Icon, color, onClick, isButton = false, isActive = false }: { title: string, value: number, icon: React.ElementType, color: string, onClick?: () => void, isButton?: boolean, isActive?: boolean }) => {
-        const Wrapper = isButton && onClick ? 'button' : 'div' as any;
-        const shadowColor = color.includes('red') ? 'shadow-red-100' : color.includes('green') ? 'shadow-emerald-100' : color.includes('sky') ? 'shadow-sky-100' : 'shadow-violet-100';
-        const bgColor = color.includes('red') ? 'bg-red-600' : color.includes('green') ? 'bg-emerald-600' : color.includes('sky') ? 'bg-sky-600' : 'bg-violet-600';
-
-        return (
-            <Wrapper 
-                onClick={onClick} 
-                className={cn(
-                    "relative flex flex-col p-3.5 rounded-[1.2rem] transition-all duration-500 group overflow-hidden border-none text-left h-full w-full",
-                    isButton ? "cursor-pointer hover:-translate-y-1" : "",
-                    isActive ? cn(bgColor, "text-white shadow-2xl", shadowColor) : "bg-white text-zinc-900 shadow-xl shadow-zinc-100 hover:shadow-2xl"
-                )}
-            >
-                {/* Decorative Icon Background */}
-                <div className="absolute top-[-5px] right-[-5px] p-1 opacity-5 scale-125 rotate-12 pointer-events-none group-hover:scale-105 group-hover:opacity-10 transition-all duration-700">
-                    <Icon className="h-20 w-20" />
-                </div>
-
-                <div className="relative z-10 flex flex-col h-full justify-between">
-                    <div className={cn(
-                        "p-1.5 w-fit rounded-lg mb-2 transition-all duration-500",
-                        isActive ? "bg-white/20 text-white" : cn("bg-zinc-100", color)
-                    )}>
-                        <Icon className="h-5 w-5" />
-                    </div>
-                    <div>
-                        <p className={cn("text-[9px] font-black uppercase tracking-widest", isActive ? "text-white/70" : "text-zinc-400")}>{title}</p>
-                        <p className={cn("text-2xl font-black tracking-tighter leading-none mt-0.5")}>{value}</p>
-                    </div>
-                </div>
-            </Wrapper>
-        );
-    };
 
     return (
         <Card className="shadow-2xl border-none h-full flex flex-col rounded-[2rem] overflow-hidden bg-white/50 backdrop-blur-xl">
@@ -251,6 +278,12 @@ export default function RemissionsPage() {
     setSelectStudiesOpen(false);
   };
 
+  const handleCountsChange = useCallback(({ status, modalities, services }: { status: Record<string, number>, modalities: Record<string, number>, services: Record<string, number> }) => {
+    setStatusSummary(status || {});
+    setModalityCounts(modalities || {});
+    setServiceCounts(services || {});
+  }, []);
+
   const handleManualEntry = async (text: string) => {
     if (!text || text.trim().length === 0) return;
     if (!userProfile) {
@@ -286,7 +319,7 @@ export default function RemissionsPage() {
   };
 
   return (
-    <div className="container mx-auto space-y-6 py-6">
+    <div className="w-full px-4 sm:px-6 xl:px-10 py-6 space-y-6">
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         <div className="lg:col-span-2">
@@ -317,23 +350,16 @@ export default function RemissionsPage() {
 
       {/* Removed duplicated SummaryCard grid (we show compact 2x2 on the right now) */}
 
-      <Card className="shadow-2xl border-none rounded-[2rem] overflow-hidden bg-white/50 backdrop-blur-xl">
-        {/* Header intentionally removed to hide module title and status label */}
-        <CardContent className="p-0">
+      <div className="w-full">
           <RemissionsTable
             statusFilter={selectedStatus}
             modalityFilter={filterModality}
             serviceFilter={filterService}
             onStatusSummaryChange={setStatusSummary}
-            onCountsChange={({ status, modalities, services }) => {
-              setStatusSummary(status || {});
-              setModalityCounts(modalities || {});
-              setServiceCounts(services || {});
-            }}
+            onCountsChange={handleCountsChange}
             onEditRemission={handleEditRemission}
           />
-        </CardContent>
-      </Card>
+      </div>
       <EditStudyDialog
         open={editDialogOpen}
         onOpenChange={(open) => {

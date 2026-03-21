@@ -247,13 +247,26 @@ function UnifiedControlPanel({
                   <div className="flex flex-col gap-1">
                     {options.map((option) => {
                        const isActive = activeFilters.service === option || activeFilters.modality === option;
+                       const isModality = type === 'modality';
+                       const getOptionColor = (opt: string) => {
+                           if (!isModality) return '';
+                           switch (opt) {
+                               case 'ECO': return 'text-red-600 hover:bg-red-50';
+                               case 'RMN': return 'text-yellow-600 hover:bg-yellow-50';
+                               case 'RX': return 'text-blue-600 hover:bg-blue-50';
+                               case 'TAC': return 'text-emerald-600 hover:bg-emerald-50';
+                               default: return '';
+                           }
+                       };
+                       const colorClass = isActive ? "" : getOptionColor(option);
+
                        return (
                          <Button 
                             key={option} 
                             variant="ghost" 
                             className={cn(
                                 "justify-start font-black text-xs h-10 uppercase tracking-tighter rounded-xl transition-all",
-                                isActive ? "bg-amber-400 text-amber-950 hover:bg-amber-500" : "text-zinc-500 hover:bg-amber-50 hover:text-amber-600"
+                                isActive ? "bg-amber-400 text-amber-950 hover:bg-amber-500" : cn("text-zinc-500 hover:bg-amber-50 hover:text-amber-600", colorClass)
                             )} 
                             onClick={() => onFilterToggle(type, option)}
                          >

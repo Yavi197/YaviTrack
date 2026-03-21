@@ -181,12 +181,33 @@ function UnifiedControlPanel({
               <PopoverContent className="w-56 p-1">
                   <ScrollArea className="h-72">
                     <div className="flex flex-col gap-1 pr-3">
-                      {options.map((option) => (
-                         <Button key={option.value} variant={activeValue === option.value ? 'default' : 'ghost'} className="justify-start uppercase font-black text-[10px] tracking-widest" onClick={() => onFilterToggle(type, option.value)}>
-                            {option.name}
-                            {activeValue === option.value && <Check className="ml-auto h-4 w-4" />}
-                         </Button>
-                      ))}
+                      {options.map((option) => {
+                         const isActive = activeValue === option.value;
+                         const getOptionColor = (name: string) => {
+                             const upper = name.toUpperCase();
+                             if (upper.includes('ECO')) return 'text-red-600 hover:bg-red-50';
+                             if (upper.includes('MAGNETIC')) return 'text-yellow-600 hover:bg-yellow-50';
+                             if (upper.includes('RAYOS') || upper.includes('RX')) return 'text-blue-600 hover:bg-blue-50';
+                             if (upper.includes('TOMO') || upper.includes('TAC')) return 'text-emerald-600 hover:bg-emerald-50';
+                             return '';
+                         };
+                         const colorClass = isActive ? "" : getOptionColor(option.name);
+
+                         return (
+                           <Button 
+                              key={option.value} 
+                              variant={isActive ? 'default' : 'ghost'} 
+                              className={cn(
+                                  "justify-start uppercase font-black text-[10px] tracking-widest transition-all",
+                                  isActive ? "" : colorClass
+                              )} 
+                              onClick={() => onFilterToggle(type, option.value)}
+                           >
+                              {option.name}
+                              {isActive && <Check className="ml-auto h-4 w-4" />}
+                           </Button>
+                         );
+                      })}
                     </div>
                   </ScrollArea>
               </PopoverContent>
@@ -241,12 +262,12 @@ function UnifiedControlPanel({
                     ) : (
                         <div className="w-full">
                             <input type="file" ref={fileInputRef} className="hidden" onChange={(e) => handleFileChange(e.target.files)} accept=".pdf,.png,.jpg,.jpeg" disabled={aiLoading || !canCreateRequest}/>
-                             <div className="relative w-full flex items-center bg-white rounded-xl shadow-sm border border-zinc-100 p-1">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
-                                <Input id="new-request-id" placeholder={getPlaceholderText()} value={newPatientId} onChange={handleIdChange} onKeyDown={handleKeyDown} onPaste={handlePaste} className="pl-9 pr-10 border-0 focus-visible:ring-0 shadow-none bg-transparent placeholder:text-zinc-400 text-sm font-bold h-9"/>
-                                <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 bg-zinc-100 hover:bg-amber-100 hover:text-amber-600 rounded-lg text-zinc-400 transition-colors" onClick={() => fileInputRef.current?.click()} disabled={aiLoading || !canCreateRequest} aria-label="Cargar archivo"><Paperclip className="h-4 w-4" /></Button>
+                             <div className="relative w-full flex items-center bg-white rounded-xl shadow-sm border border-zinc-100 p-0.5 mb-1.5">
+                                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+                                <Input id="new-request-id" placeholder={getPlaceholderText()} value={newPatientId} onChange={handleIdChange} onKeyDown={handleKeyDown} onPaste={handlePaste} className="pl-10 pr-10 border-0 focus-visible:ring-0 shadow-none bg-transparent h-10 text-xs font-bold text-zinc-900 placeholder:text-zinc-400"/>
+                                <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg hover:bg-amber-50 hover:text-amber-600 transition-colors" onClick={() => fileInputRef.current?.click()} disabled={aiLoading || !canCreateRequest} aria-label="Cargar archivo"><Paperclip className="h-4 w-4" /></Button>
                             </div>
-                           {canEnterId && <span className="text-[9px] text-zinc-400 font-bold uppercase tracking-widest mt-2 text-center block leading-tight">(Arrastre un archivo, pegue una imagen, o id doc)</span>}
+                           {canEnterId && <span className="text-[10px] text-zinc-400 font-bold px-4 text-center block italic mt-1">Arrastra el archivo o ingresa el ID directamente</span>}
                         </div>
                     )}
                 </div>
@@ -735,7 +756,7 @@ export default function ConsultationsDashboardPage() {
   const loadingSkeleton = (<div className='space-y-2 p-4'><Skeleton className="h-12 w-full" /><Skeleton className="h-12 w-full" /><Skeleton className="h-12 w-full" /><Skeleton className="h-12 w-full" /></div>);
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="w-full px-4 sm:px-6 xl:px-10 py-6 space-y-6">
       <OperatorSelectionDialog />
       <ShiftReminderDialog show={showReminder} onConfirm={confirmReminder} />
       <AlarmDialog alarm={activeAlarm} onClose={() => setActiveAlarm(null)} />
@@ -792,8 +813,7 @@ export default function ConsultationsDashboardPage() {
         </div>
       )}
       
-      <Card>
-        <CardContent className="p-0">
+      <div className="w-full">
           {(loading && studies.length === 0) ? (loadingSkeleton) : (
             <Suspense fallback={loadingSkeleton}>
               <StudyTable 
@@ -819,8 +839,7 @@ export default function ConsultationsDashboardPage() {
               />
             </Suspense>
           )}
-        </CardContent>
-      </Card>
+      </div>
       <StudyDialog open={dialogOpen} onOpenChange={setDialogOpen} initialData={initialDialogData} mode="manual" />
       <EditStudyDialog open={editDialogOpen} onOpenChange={setEditDialogOpen} study={editingStudy} />
     </div>

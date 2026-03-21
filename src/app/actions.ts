@@ -1762,12 +1762,13 @@ export async function createRemissionAction(data: RemissionRequest): Promise<{ s
             observaciones: resolvedObservaciones,
             createdAt: timestamp,
             updatedAt: timestamp,
+            pendienteAutAt: timestamp,
             createdBy: {
                 uid: userProfile.uid,
                 name: userProfile.nombre,
                 email: userProfile.email
             },
-            status: "Pendiente"
+            status: "Pendiente Aut"
         };
         
         // Save to Firestore first (critical operation)
@@ -1784,12 +1785,13 @@ export async function createRemissionAction(data: RemissionRequest): Promise<{ s
             observaciones: resolvedObservaciones,
             createdAt: new Date(),
             updatedAt: new Date(),
+            pendienteAutAt: new Date(),
             createdBy: {
                 uid: userProfile.uid,
                 name: userProfile.nombre,
                 email: userProfile.email
             },
-            status: "Pendiente"
+            status: "Pendiente Aut"
         };
 
         // Update sheets with retry logic
@@ -1830,6 +1832,10 @@ export async function updateRemissionStatusAction(remissionId: string, status: R
             updateData.programadoAt = now;
         } else if (status === 'Realizado') {
             updateData.realizadoAt = now;
+        } else if (status === 'Informado') {
+            updateData.informadoAt = now;
+        } else if (status === 'Pendiente Aut') {
+            updateData.pendienteAutAt = now;
         }
 
         await updateDoc(remissionRef, updateData);

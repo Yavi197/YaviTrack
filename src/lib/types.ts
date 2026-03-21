@@ -149,7 +149,7 @@ export type StudyWithCompletedBy = Study & {
     completedBy?: string;
 };
 
-export type RemissionStatus = "Pendiente" | "Solicitado" | "Autorizado" | "Cupo Solicitado" | "Programado" | "Vencido" | "Realizado";
+export type RemissionStatus = "Pendiente" | "Pendiente Aut" | "Solicitado" | "Autorizado" | "Cupo Solicitado" | "Programado" | "Vencido" | "Realizado" | "Informado";
 
 export type Remission = Study & {
     status: RemissionStatus;
@@ -173,6 +173,8 @@ export type Remission = Study & {
     cupoSolicitadoAt?: Timestamp;
     programadoAt?: Timestamp;
     realizadoAt?: Timestamp;
+    informadoAt?: Timestamp;
+    pendienteAutAt?: Timestamp;
     appointmentDate?: Timestamp;
 };
 

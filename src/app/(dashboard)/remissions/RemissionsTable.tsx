@@ -205,12 +205,15 @@ function StatusButton({ currentStatus, remissionId }: { currentStatus: string, r
       const now = new Date();
       const formattedDate = format(now, "dd/MM/yyyy HH:mm");
       setDate(formattedDate);
-      // Actualizar estado y fecha en Firestore
-      const { updateDoc, doc, getDoc } = await import("firebase/firestore");
-      await updateDoc(doc(db, "remissions", remissionId), {
+      const { updateDoc, doc, getDoc, serverTimestamp } = await import("firebase/firestore");
+      const updateData: any = {
         status: status,
         statusDate: formattedDate
-      });
+      };
+      if (status === 'Programado') updateData.programadoAt = serverTimestamp();
+      if (status === 'Informado') updateData.informadoAt = serverTimestamp();
+      
+      await updateDoc(doc(db, "remissions", remissionId), updateData);
       console.log("[Remissions] Estado y fecha guardados en Firestore", remissionId, status, formattedDate);
       // Obtener datos actualizados de la remisión
       const remissionSnap = await getDoc(doc(db, "remissions", remissionId));
@@ -261,40 +264,47 @@ function StatusButton({ currentStatus, remissionId }: { currentStatus: string, r
   const Icon = visual.icon;
 
   return (
-    <div className="relative w-full h-[48px]">
-      <button
-        className={`relative flex w-full h-full flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-1 text-[9px] font-extrabold uppercase tracking-tight shadow-sm transition text-center leading-none ${visual.style}`}
-        onClick={() => !statusLoading && setOpen(!open)}
-        disabled={statusLoading}
-        title={date ? `Actualizado ${date}` : undefined}
-      >
-        <Icon className="h-3.5 w-3.5" />
-        <span className="whitespace-normal">{formatStatus(visual.label)}</span>
-        {date && <span className="text-[7.5px] opacity-90 mt-0.5">{date}</span>}
-        {statusLoading && (
-          <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-white/70">
-            <Loader2 className="h-4 w-4 animate-spin text-zinc-900" />
-          </div>
-        )}
-        {statusError && (
-          <span className="absolute inset-0 flex items-center justify-center rounded-lg bg-red-100 text-red-700 text-[8px] font-bold">{statusError}</span>
-        )}
-      </button>
-      {open && (
-
-        <div className="absolute z-10 mt-2 w-full rounded-xl border border-zinc-200 bg-white/95 shadow-lg">
+    <div className="relative w-full h-full flex flex-col items-center justify-center">
+      <DropdownMenu open={open} onOpenChange={setOpen}>
+        <DropdownMenuTrigger asChild>
+          <button
+            className={cn(
+                "relative flex w-full max-w-[120px] min-h-[58px] mx-auto flex-col items-center justify-center rounded-xl px-1 py-2 text-[9.5px] font-black uppercase tracking-widest shadow-sm transition text-center leading-[1.1]",
+                visual.style,
+                statusLoading && "opacity-50 cursor-not-allowed"
+            )}
+            disabled={statusLoading}
+            title={date ? `Actualizado ${date}` : undefined}
+          >
+            <Icon className="h-3.5 w-3.5" />
+            <span className="whitespace-normal">{formatStatus(visual.label)}</span>
+            {date && <span className="text-[7.5px] opacity-90 mt-0.5">{date}</span>}
+            {statusLoading && (
+              <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-white/70">
+                <Loader2 className="h-4 w-4 animate-spin text-zinc-900" />
+              </div>
+            )}
+            {statusError && (
+              <span className="absolute inset-0 flex items-center justify-center rounded-lg bg-red-100 text-red-700 text-[8px] font-bold">{statusError}</span>
+            )}
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="center" className="w-[140px] rounded-xl border border-zinc-200 bg-white shadow-xl p-1 z-[100]">
           {allowed.map(status => (
-            <button
+            <DropdownMenuItem
               key={status}
-              className={`flex w-full items-center justify-between px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] transition ${selected === status ? 'bg-zinc-900 text-white' : 'hover:bg-zinc-50 text-zinc-600'}`}
-              onClick={() => handleSelect(status)}
+              className={cn(
+                  "flex w-full items-center justify-center px-3 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all rounded-lg cursor-pointer mb-0.5 last:mb-0 text-center",
+                  selected === status ? 'bg-zinc-900 text-white shadow-md' : 'hover:bg-zinc-100 text-zinc-600'
+              )}
+              onSelect={() => handleSelect(status)}
               disabled={statusLoading}
             >
               {formatStatus(status)}
-            </button>
+            </DropdownMenuItem>
           ))}
-        </div>
-      )}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }
@@ -354,8 +364,8 @@ function RemissionBedNumberInput({ remission, canEdit }: { remission: Remission;
   return (
       <span
           className={cn(
-              "font-mono font-bold px-1 rounded hover:bg-zinc-200 transition-colors",
-              canEdit ? "cursor-pointer" : "cursor-default text-muted-foreground/50"
+              "font-mono font-bold cursor-text text-[10px] leading-none",
+              canEdit && "hover:underline cursor-pointer"
           )}
           onClick={(e) => {
               if (canEdit) {
@@ -577,7 +587,7 @@ function RemissionAuthorizationActions({ remission, enabled, onEdit }: { remissi
         <Edit className="h-4 w-4 shrink-0" />
         <span>Editar Remisión</span>
       </DropdownMenuItem>
-      <DropdownMenuItem onClick={() => setDeleteDialogOpen(true)} disabled={!enabled} className="flex items-center gap-2 cursor-pointer text-red-600 focus:text-red-700 bg-red-50/50 focus:bg-red-50">
+      <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setDeleteDialogOpen(true); }} disabled={!enabled} className="flex items-center gap-2 cursor-pointer text-red-600 focus:text-red-700 bg-red-50/50 focus:bg-red-50">
         <Trash2 className="h-4 w-4 shrink-0" />
         <span>Eliminar</span>
       </DropdownMenuItem>
@@ -720,18 +730,18 @@ export function RemissionsTable({ statusFilter, onStatusSummaryChange, onCountsC
 
 
   return (
-    <div className="rounded-md border">
+    <div className="rounded-2xl border-none shadow-xl bg-white overflow-hidden ring-1 ring-zinc-200/50">
       <Table style={{ tableLayout: "fixed" }}>
         <TableHeader>
-          <TableRow className="bg-muted/50 hover:bg-muted/50">
-            <TableHead className="p-1" style={{ width: '80px' }}>
+          <TableRow className="bg-zinc-50/80 hover:bg-zinc-50 border-b-2 border-zinc-100">
+            <TableHead className="p-2" style={{ width: '130px' }}>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className='font-bold w-full h-full justify-start px-2'>Estado</Button>
+                        <Button variant="ghost" className='font-black text-[11px] w-full h-full justify-start px-2 text-zinc-900 uppercase tracking-widest'>ESTADO</Button>
                     </DropdownMenuTrigger>
                 </DropdownMenu>
             </TableHead>
-            <TableHead style={{ width: "280px" }}>
+            <TableHead style={{ minWidth: "340px", width: "30%" }} className="px-2">
                   <div className="relative">
                     {currentProfile?.rol === 'administrador' ? (
                       <>
@@ -739,29 +749,31 @@ export function RemissionsTable({ statusFilter, onStatusSummaryChange, onCountsC
                         <Input
                           type="search"
                           placeholder="Buscar por paciente o ID..."
-                          className="w-full h-9 rounded-lg bg-background pl-9"
+                          className="w-full rounded-xl bg-white border-2 border-zinc-100 focus-visible:ring-amber-400 focus-visible:border-amber-400 pl-9 h-10 shadow-sm transition-all font-semibold"
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
                         />
                       </>
                     ) : (
-                      <div className="font-bold w-full px-2">Paciente</div>
+                      <div className="font-black text-[11px] w-full text-zinc-900 uppercase tracking-widest px-2">PACIENTE</div>
                     )}
                   </div>
             </TableHead>
-            <TableHead style={{ width: "520px" }}>Estudio</TableHead>
-            <TableHead style={{ width: "170px" }} className="text-left">
-                <div className="flex items-center gap-2">
+            <TableHead className="px-2 align-middle" style={{ width: "auto" }}>
+                <div className="font-black text-[11px] text-zinc-900 uppercase tracking-widest">ESTUDIO</div>
+            </TableHead>
+            <TableHead style={{ width: "170px" }} className="text-left font-black text-[11px] text-zinc-900 uppercase tracking-widest px-2">
+                <div className="flex items-center gap-2 pr-6">
                     <DateRangePicker 
                         date={dateRange}
                         setDate={setDateRange}
                         align="start"
-                        triggerClassName="font-bold px-2 h-9 w-full"
+                        triggerClassName="font-black text-[11px] px-3 uppercase tracking-widest text-zinc-900 bg-transparent border-transparent shadow-none hover:bg-zinc-100 hover:border-zinc-200 h-9 w-full rounded-xl"
                         showMonths={1}
                     />
                 </div>
             </TableHead>
-            <TableHead style={{ width: '40px' }} className="text-right"></TableHead>
+            <TableHead style={{ width: '40px' }} className="text-right px-2"></TableHead>
           </TableRow>
         </TableHeader>
       <TableBody>
@@ -774,7 +786,7 @@ export function RemissionsTable({ statusFilter, onStatusSummaryChange, onCountsC
             : rem.createdAt?.seconds
               ? new Date(rem.createdAt.seconds * 1000)
               : null;
-          const createdAtLabel = createdAtDate ? format(createdAtDate, "dd/MM Â· HH:mm") : null;
+          const createdAtLabel = createdAtDate ? format(createdAtDate, "dd/MM, HH:mm") : null;
 
           const isInactive = (rem.status as string) === "Vencido";
           return (
@@ -783,24 +795,26 @@ export function RemissionsTable({ statusFilter, onStatusSummaryChange, onCountsC
               data-state={isInactive ? 'inactive' : 'active'}
               className="data-[state=inactive]:opacity-60 border-b border-zinc-100 bg-white hover:bg-zinc-50 last:border-0"
             >
-              <TableCell className="p-1">
+              <TableCell className="p-2">
                 <div className="w-full h-full flex flex-col items-center justify-center">
                   <StatusButton currentStatus={rem.status} remissionId={rem.id} />
                 </div>
               </TableCell>
-              <TableCell className="p-2 align-top">
-                <div className="space-y-0.5">
-                  <div className="flex items-center justify-between text-sm font-bold uppercase text-foreground">
+              <TableCell className="p-2 align-top relative">
+                <div className="flex flex-col space-y-0">
+                  <div className="h-5 flex items-center justify-between">
                     {patientLink ? (
                       <Link href={patientLink} className="flex-1 truncate hover:underline pr-2">
-                        {rem.patient.fullName}
+                        <span className="font-black text-sm uppercase text-zinc-900 tracking-wide leading-none">{rem.patient.fullName}</span>
                       </Link>
                     ) : (
-                      <span className="flex-1 truncate pr-2">{rem.patient.fullName}</span>
+                      <span className="font-black text-sm uppercase text-zinc-900 tracking-wide leading-none flex-1 truncate pr-2">{rem.patient.fullName}</span>
                     )}
-                    <Badge variant="outline" className={cn("whitespace-nowrap px-1 py-0.5 bg-muted/50 h-auto flex items-center gap-1 border-zinc-200")}>
+                    <div className={cn(
+                        "w-[56px] h-[22px] rounded-lg border border-zinc-200 bg-white shadow-sm flex items-center justify-center font-black text-[10px] uppercase tracking-tighter shrink-0"
+                    )}>
                         <RemissionServiceDialog remission={rem}>
-                            <span className="font-mono font-bold cursor-pointer hover:underline px-1 border-r border-zinc-200">
+                            <span className="font-mono font-bold cursor-pointer hover:underline text-[10px] leading-none">
                                 {abbreviateSubService(rem.subService)}
                             </span>
                         </RemissionServiceDialog>
@@ -808,86 +822,126 @@ export function RemissionsTable({ statusFilter, onStatusSummaryChange, onCountsC
                             remission={rem} 
                             canEdit={currentProfile?.rol === 'administrador' || currentProfile?.rol === 'adminisonista'} 
                         />
-                    </Badge>
+                    </div>
                   </div>
-                  <div className="text-xs text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1">
-                    <span className="flex items-center gap-1">
-                      <Fingerprint className="h-3 w-3" />
-                      {rem.patient.id || '--'}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <CalendarDays className="h-3 w-3" />
-                      {rem.patient.birthDate || '--'}
-                    </span>
-                    {rem.patient.birthDate && (
-                        <span className="font-medium">{getAge(rem.patient.birthDate)} Años</span>
-                    )}
-                  </div>
-                  <div className="text-xs text-muted-foreground flex items-center gap-1 pt-0.5">
-                    <Building className="h-3 w-3 shrink-0" />
-                    <span className="truncate font-semibold">{formatEntityName(rem.patient.entidad)}</span>
+                  <div className="flex flex-col space-y-0">
+                      <div className="h-4 flex items-center text-xs text-muted-foreground gap-x-3 flex-wrap">
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <div className="h-1 w-1 rounded-full bg-zinc-300 shrink-0" />
+                          <span className="leading-none"><span className="font-semibold">ID:</span> {rem.patient.id || '--'}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <div className="h-1 w-1 rounded-full bg-zinc-300 shrink-0" />
+                          <span className="leading-none"><span className="font-semibold">FN:</span> {rem.patient.birthDate || '--'} {(rem.patient.birthDate && getAge(rem.patient.birthDate) !== '') ? `- ${getAge(rem.patient.birthDate)} AÑOS` : ''}</span>
+                        </div>
+                      </div>
+                      <div className="h-4 flex items-center text-xs text-muted-foreground gap-1.5 flex-nowrap">
+                        <div className="h-1 w-1 rounded-full bg-zinc-300 shrink-0" />
+                        <span className="truncate leading-none"><span className="font-semibold">ENTIDAD:</span> {formatEntityName(rem.patient.entidad)}</span>
+                      </div>
                   </div>
                 </div>
               </TableCell>
               <TableCell className="p-2 align-top">
-                <div className="flex items-start gap-2">
-                    <div className="w-[80px] h-full flex flex-col items-center justify-center p-2 rounded-md bg-muted font-bold text-center border text-[11px] min-h-[50px]">
-                      {primaryStudy ? (primaryStudy.modality || rem.service) : (rem.service || 'N/A')}
+                <div className='flex gap-3 items-start'>
+                  <div className="h-5 flex items-center shrink-0">
+                     <div className={cn(
+                        "w-[56px] h-[22px] rounded-lg border shadow-sm flex items-center justify-center font-black text-[10px] uppercase tracking-wider shrink-0",
+                        (() => {
+                            const mod = (primaryStudy ? (primaryStudy.modality || rem.service) : (rem.service || 'N/A'))?.toString().toUpperCase();
+                            switch (mod) {
+                                case 'TAC': return "bg-emerald-50 text-emerald-700 border-emerald-200";
+                                case 'RX': return "bg-blue-50 text-blue-700 border-blue-200";
+                                case 'ECO': return "bg-red-50 text-red-700 border-red-200";
+                                case 'MAMO': return "bg-amber-50 text-amber-700 border-amber-200";
+                                case 'DENSITOMETRIA': return "bg-rose-50 text-rose-700 border-rose-200";
+                                case 'RMN': return "bg-yellow-50 text-yellow-700 border-yellow-200";
+                                default: return "bg-zinc-100 text-zinc-600 border-zinc-200";
+                            }
+                        })()
+                    )}>
+                        {primaryStudy ? (primaryStudy.modality || rem.service) : (rem.service || 'N/A')}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start gap-2 mb-1">
-                        <p className="font-bold text-foreground text-sm leading-tight truncate" title={primaryStudy?.nombre}>
-                          {primaryStudy?.nombre || 'Remisión Médica'}
+                  </div>
+                    <div className="flex-1 min-w-0 pr-2 flex flex-col space-y-0">
+                      <div className="h-5 flex items-center">
+                        <p className="font-black text-zinc-900 text-sm uppercase tracking-wide leading-none truncate" title={primaryStudy?.nombre?.toUpperCase()}>
+                          {primaryStudy?.nombre?.toUpperCase() || 'REMISIÓN MÉDICA'}
                         </p>
                       </div>
-                      <div className="text-xs font-semibold text-slate-600 mb-1 flex items-center gap-2 max-w-full">
+                      
+                      {(() => {
+                          const obs = getObservationNote(rem);
+                          if (!obs) return null;
+                          return (
+                            <div className="h-4 flex items-center gap-x-3 flex-wrap text-xs text-muted-foreground">
+                                <div className="flex items-center gap-1.5 max-w-[280px] shrink-0 min-w-0" title={obs}>
+                                    <div className="h-1 w-1 rounded-full bg-zinc-300 shrink-0" />
+                                    <span className="truncate leading-none"><span className="font-semibold">OBS:</span> {obs.toUpperCase()}</span>
+                                </div>
+                            </div>
+                          );
+                      })()}
+
+                      <div className="h-4 flex items-center gap-x-3 text-xs text-muted-foreground flex-wrap">
                         {primaryStudy?.cups && (
-                          <span className="whitespace-nowrap">CUPS: {primaryStudy.cups}</span>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <div className="h-1 w-1 rounded-full bg-zinc-300" />
+                            <span className="leading-none"><span className="font-semibold">CUPS:</span> {primaryStudy.cups}</span>
+                          </div>
                         )}
-                        {primaryStudy?.cups && <span className="text-muted-foreground">/</span>}
-                        <div className="text-muted-foreground flex items-center gap-1.5 truncate">
-                            {(() => {
+                        {(() => {
                             let code = '--';
                             let description = '';
                             if (Array.isArray(rem.diagnosis)) {
                                 code = rem.diagnosis[0]?.code || '--';
                                 description = rem.diagnosis[0]?.description || '';
                             } else if (rem.diagnosis) {
-                                code = rem.diagnosis.code || '--';
-                                description = rem.diagnosis.description || '';
+                                code = (rem.diagnosis as any).code || '--';
+                                description = (rem.diagnosis as any).description || '';
                             }
-                            return (
-                                <>
-                                <Stethoscope className="h-3 w-3 flex-shrink-0" />
-                                <span className="truncate" title={`${code}: ${description}`}>
-                                    {code}: {description}
-                                </span>
-                                </>
-                            );
-                            })()}
-                        </div>
+                            if (code !== '--') {
+                                return (
+                                  <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                                    <div className="h-1 w-1 rounded-full bg-zinc-300" />
+                                    <span className="truncate leading-none" title={`${code}: ${description.toUpperCase()}`}>
+                                      <span className="font-semibold">CIE 10:</span> {code} - {description.toUpperCase()}
+                                    </span>
+                                  </div>
+                                );
+                            }
+                            return null;
+                        })()}
                       </div>
                     </div>
                 </div>
               </TableCell>
-              <TableCell className="p-2 text-xs font-medium align-top text-left">
-                  <div className="flex flex-col items-start gap-0.5 text-muted-foreground">
-                      {rem.requestDate && (
-                          <div>Orden: {(() => { const d = toDateValue(rem.requestDate); return d ? format(d, "dd/MM/yyyy") : ''; })()}</div>
-                      )}
-                      {createdAtDate && (
-                          <div className={cn(
-                              rem.status === 'Pendiente' || rem.status === 'Pendiente Aut' 
-                              ? "text-red-500 font-bold" 
-                              : ""
-                          )}>
-                              Pend: {createdAtLabel}
+              <TableCell className="p-2 align-top text-left">
+                  <div className="flex flex-col space-y-0">
+                      {rem.pendienteAutAt || rem.createdAt ? (
+                          <div className="h-4 flex items-center gap-1.5 text-xs text-red-500 font-bold">
+                              <div className="h-1 w-1 rounded-full shrink-0 bg-red-400" />
+                              <span className="leading-none"><span className="font-semibold inline-block w-[50px] text-red-600">P. AUT:</span> {(() => { const d = toDateValue(rem.pendienteAutAt || rem.createdAt); return d ? format(d, "dd/MM, HH:mm") : '--'; })()}</span>
                           </div>
-                      )}
+                      ) : null }
+
+                      {rem.programadoAt ? (
+                          <div className="h-4 flex items-center gap-1.5 text-xs text-indigo-500 font-bold">
+                              <div className="h-1 w-1 rounded-full shrink-0 bg-indigo-400" />
+                              <span className="leading-none"><span className="font-semibold inline-block w-[50px] text-indigo-600">PROGR:</span> {(() => { const d = toDateValue(rem.programadoAt); return d ? format(d, "dd/MM, HH:mm") : '--'; })()}</span>
+                          </div>
+                      ) : null }
+
+                      {rem.informadoAt ? (
+                          <div className="h-4 flex items-center gap-1.5 text-xs text-emerald-500 font-bold">
+                              <div className="h-1 w-1 rounded-full shrink-0 bg-emerald-400" />
+                              <span className="leading-none"><span className="font-semibold inline-block w-[50px] text-emerald-600">INFOR:</span> {(() => { const d = toDateValue(rem.informadoAt); return d ? format(d, "dd/MM, HH:mm") : '--'; })()}</span>
+                          </div>
+                      ) : null }
                   </div>
               </TableCell>
 
-              <TableCell className="p-2 text-right align-top">
+              <TableCell className="p-2 text-right align-top relative">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="h-7 w-7 p-0">
