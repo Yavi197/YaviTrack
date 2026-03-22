@@ -275,6 +275,10 @@ export const QualityReportCategories = [
     'Estudio no realizado',
     'Atención al paciente',
     'Tiempos de espera',
+    'Equipo médico',
+    'Medio de contraste',
+    'Reacción adversa',
+    'Falla terapéutica',
 ] as const;
 export type QualityReportCategory = typeof QualityReportCategories[number];
 
