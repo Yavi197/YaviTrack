@@ -167,7 +167,7 @@ export function QualityReportDialog({ open, onOpenChange, userProfile }: Quality
       modalities: QualityReportAreas.map((area) => ({ value: area, label: area })),
       roles: QualityReportInvolvedRoles.map((role) => ({ value: role, label: role })),
     }),
-    []
+    [filteredReportTypes]
   );
 
   const watchedType = form.watch("reportType");

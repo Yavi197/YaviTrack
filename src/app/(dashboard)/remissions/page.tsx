@@ -5,7 +5,7 @@ import { useCallback, useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RemissionsTable } from "./RemissionsTable";
 import type { Remission, RemissionStatus } from "@/lib/types";
-import { Mail, FileText, Edit, Trash2, AlertTriangle, CheckCircle, CalendarCheck, Send, Clock3, Fingerprint, CalendarDays, Building, Stethoscope, Search, Loader2, MoreHorizontal, ShieldAlert, Paperclip } from "lucide-react";
+import { Mail, FileText, Edit, Trash2, AlertTriangle, CheckCircle, CalendarCheck, Send, Clock3, Fingerprint, CalendarDays, Building, Stethoscope, Search, Loader2, MoreHorizontal, ShieldAlert, Paperclip, Check, ClipboardList, CheckCircle2, Hourglass } from "lucide-react";
 import { ModalityIcon } from '@/components/icons/modality-icon';
 import { EditStudyDialog } from "@/components/app/edit-study-dialog";
 import { StudyDialog } from "@/components/app/study-dialog";
@@ -33,7 +33,7 @@ function FilterPopover({ title, options, activeValue, onFilterToggle, countsMap 
                   <button className={cn("flex items-center gap-2 p-2 rounded-2xl border-2 bg-white/80 backdrop-blur-sm text-center transition-all duration-300 w-full justify-between h-14", "hover:border-amber-500 hover:bg-amber-50 hover:-translate-y-1 hover:shadow-lg", activeValue !== 'ALL' ? "border-amber-600 shadow-lg shadow-amber-50" : "border-zinc-100")}>
                       <div className="flex items-center gap-3">
                         <div className={cn("p-1.5 rounded-xl transition-colors", activeValue === 'ALL' ? "bg-zinc-100 text-zinc-400" : "bg-amber-100 text-amber-600")}>
-                           <ModalityIcon className="h-5 w-5" />
+                           <ModalityIcon modality={activeValue === 'ALL' ? 'TODOS' : activeValue} className="h-5 w-5" />
                         </div>
                         <span className="font-black text-[11px] tracking-tight uppercase">{activeValue === 'ALL' ? 'TODOS' : activeValue}</span>
                       </div>
