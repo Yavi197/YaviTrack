@@ -5,7 +5,7 @@ import { type OrderDataSchema } from "./schemas/extract-order-schema";
 import { z } from "zod";
 
 
-export const UserRoles = ["administrador", "enfermero", "tecnologo", "transcriptora", "adminisonista"] as const;
+export const UserRoles = ["administrador", "enfermero", "tecnologo", "transcriptora", "admisionista"] as const;
 export type UserRole = typeof UserRoles[number];
 
 export const Modalities = ["TAC", "RX", "ECO", "MAMO", "DENSITOMETRIA", "RMN"] as const;
@@ -264,6 +264,8 @@ export const QualityReportTypes = [
     'Problema con un estudio',
     'Queja',
     'Sugerencia',
+    'Evento Adverso',
+    'Farmacovigilancia',
 ] as const;
 export type QualityReportType = typeof QualityReportTypes[number];
 

@@ -32,7 +32,7 @@ export function MessagingDrawer() {
     const recipientRoles: ('tecnologo' | 'transcriptora')[] = ['tecnologo', 'transcriptora'];
     
     const senderRoles = useMemo(() => {
-       return UserRoles.filter(role => ['enfermero', 'administrador', 'adminisonista', 'tecnologo', 'transcriptora'].includes(role));
+       return UserRoles.filter(role => ['enfermero', 'administrador', 'admisionista', 'tecnologo', 'transcriptora'].includes(role));
     }, []);
 
     const receiverRoles = useMemo(() => {

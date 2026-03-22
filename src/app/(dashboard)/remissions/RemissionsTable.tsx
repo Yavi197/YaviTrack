@@ -163,6 +163,8 @@ const remissionStatusStyles: Record<string, { icon: React.ComponentType<{ classN
 
 // Componente para cambiar el estado manualmente
 function StatusButton({ currentStatus, remissionId }: { currentStatus: string, remissionId: string }) {
+  const { currentProfile } = useAuth();
+  const isAdmin = currentProfile?.rol === 'administrador';
   const allowed = [
     "Pendiente Aut",
     "Cupo Solicitado",
@@ -198,6 +200,7 @@ function StatusButton({ currentStatus, remissionId }: { currentStatus: string, r
   const [statusLoading, setStatusLoading] = useState(false);
   const [statusError, setStatusError] = useState<string | null>(null);
   const handleSelect = async (status: string) => {
+    if (!isAdmin) return;
     setSelected(status);
     setOpen(false);
     setStatusLoading(true);
@@ -272,10 +275,10 @@ function StatusButton({ currentStatus, remissionId }: { currentStatus: string, r
             className={cn(
                 "relative flex w-full max-w-[120px] min-h-[58px] mx-auto flex-col items-center justify-center rounded-xl px-1 py-2 text-[9.5px] font-black uppercase tracking-widest shadow-sm transition text-center leading-[1.1]",
                 visual.style,
-                statusLoading && "opacity-50 cursor-not-allowed"
+                (statusLoading || !isAdmin) && "opacity-50 cursor-not-allowed"
             )}
-            disabled={statusLoading}
-            title={date ? `Actualizado ${date}` : undefined}
+            disabled={statusLoading || !isAdmin}
+            title={!isAdmin ? "Solo el administrador puede cambiar el estado" : (date ? `Actualizado ${date}` : undefined)}
           >
             <Icon className="h-3.5 w-3.5" />
             <span className="whitespace-normal">{formatStatus(visual.label)}</span>
@@ -313,6 +316,7 @@ function StatusButton({ currentStatus, remissionId }: { currentStatus: string, r
 function RemissionBedNumberInput({ remission, canEdit }: { remission: Remission; canEdit: boolean }) {
   const [isEditing, setIsEditing] = useState(false);
   const [bed, setBed] = useState(remission.bedNumber || '');
+  const { currentProfile } = useAuth();
   const { toast } = useToast();
 
   const handleBedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -324,7 +328,7 @@ function RemissionBedNumberInput({ remission, canEdit }: { remission: Remission;
       setIsEditing(false);
       if (bed !== (remission.bedNumber || '')) {
           try {
-              const res = await updateRemissionBedNumberAction(remission.id, bed);
+              const res = await updateRemissionBedNumberAction(remission.id, bed, currentProfile);
               if (res.success) {
                   toast({ title: "Cama actualizada" });
               } else {
@@ -824,7 +828,7 @@ export function RemissionsTable({ statusFilter, onStatusSummaryChange, onCountsC
                         </RemissionServiceDialog>
                         <RemissionBedNumberInput 
                             remission={rem} 
-                            canEdit={currentProfile?.rol === 'administrador' || currentProfile?.rol === 'adminisonista'} 
+                            canEdit={currentProfile?.rol === 'administrador' || currentProfile?.rol === 'admisionista'} 
                         />
                     </div>
                   </div>

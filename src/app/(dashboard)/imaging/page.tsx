@@ -73,13 +73,13 @@ const serviceDisplayNames: Record<GeneralService | 'TODOS', string> = {
 
 
 const modalityIcons: Record<Modality | 'TODOS', React.ElementType> = {
-    ECO: () => <ModalityIcon className="h-6 w-6 text-muted-foreground" />,
-    RX: () => <ModalityIcon className="h-6 w-6 text-muted-foreground" />,
-    TAC: () => <ModalityIcon className="h-6 w-6 text-muted-foreground" />,
-    RMN: () => <ModalityIcon className="h-6 w-6 text-muted-foreground" />,
+    ECO: (props) => <ModalityIcon modality="ECO" {...props} />,
+    RX: (props) => <ModalityIcon modality="RX" {...props} />,
+    TAC: (props) => <ModalityIcon modality="TAC" {...props} />,
+    RMN: (props) => <ModalityIcon modality="RMN" {...props} />,
     MAMO: () => <svg />,
     DENSITOMETRIA: () => <svg />,
-    TODOS: () => <ModalityIcon className="h-6 w-6 text-muted-foreground" />,
+    TODOS: (props) => <ModalityIcon modality="TODOS" {...props} />,
 };
 
 const modalityDisplayNames: Record<Modality | 'TODOS', string> = {
@@ -197,13 +197,13 @@ function UnifiedControlPanel({
     
     const canCreateRequest = useMemo(() => {
         if (!currentProfile) return false;
-        const allowedRoles: UserProfile['rol'][] = ['administrador', 'adminisonista', 'enfermero', 'tecnologo', 'transcriptora'];
+        const allowedRoles: UserProfile['rol'][] = ['administrador', 'admisionista', 'enfermero', 'tecnologo', 'transcriptora'];
         return allowedRoles.includes(currentProfile.rol);
     }, [currentProfile]);
 
     const canEnterId = useMemo(() => {
         if (!currentProfile) return false;
-        const allowedRoles: UserProfile['rol'][] = ['administrador', 'adminisonista', 'tecnologo', 'transcriptora'];
+        const allowedRoles: UserProfile['rol'][] = ['administrador', 'admisionista', 'tecnologo', 'transcriptora', 'enfermero'];
         return allowedRoles.includes(currentProfile.rol);
     }, [currentProfile]);
     
@@ -213,20 +213,17 @@ function UnifiedControlPanel({
     }
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (currentProfile?.rol === 'enfermero') {
-        if (e.key === 'Enter') e.preventDefault(); return;
-      }
       if (e.key === 'Enter' && newPatientId) { 
-        onManualRequest(newPatientId); setNewPatientId(''); 
+        onManualRequest(newPatientId); 
+        setNewPatientId(''); 
       }
-    }
+    };
 
     const handleIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (currentProfile?.rol === 'enfermero') return;
         setNewPatientId(e.target.value.replace(/[^0-9]/g, ''));
     }
     
-    const isServiceFilterDisabled = currentProfile?.rol === 'adminisonista';
+    const isServiceFilterDisabled = currentProfile?.rol === 'admisionista';
 
     const FilterPopover = ({ title, type, options, activeValue, iconMap, nameMap, disabled = false }: { title:string, type: 'service' | 'modality', options: readonly any[], activeValue: string, iconMap: any, nameMap?: any, disabled?: boolean }) => (
       <div>
@@ -490,7 +487,7 @@ function DailySummaryWidget({ dutyUsers, allUsers, onStatusChange, onStatusFilte
             }
         };
 
-        const IconToUse = isRx ? ModalityIcon : Activity;
+        const IconToUse = isRx ? (props: any) => <ModalityIcon modality="RX" {...props} /> : (props: any) => <ModalityIcon modality="ECO" {...props} />;
 
         return (
             <button
@@ -535,7 +532,7 @@ function DailySummaryWidget({ dutyUsers, allUsers, onStatusChange, onStatusFilte
         return (
           <div className="flex items-center gap-2">
             <div className="bg-amber-400 text-amber-950 p-1.5 rounded-full shadow-sm shadow-amber-200">
-              <ModalityIcon className="h-4 w-4" />
+              <ModalityIcon modality="RX" className="h-4 w-4" />
             </div>
             <span className="text-zinc-500 font-bold uppercase tracking-widest text-[11px]">RAYOS X: </span>
             {canInteract ? (
@@ -552,7 +549,7 @@ function DailySummaryWidget({ dutyUsers, allUsers, onStatusChange, onStatusFilte
       return (
         <div className="flex items-center gap-2">
             <div className="bg-zinc-100 text-zinc-500 p-1.5 rounded-full">
-              <User className="h-4 w-4" />
+              <ModalityIcon modality="ECO" className="h-4 w-4" />
             </div>
           <span className="text-zinc-500 font-bold uppercase tracking-widest text-[11px]">ECO: </span>
           {canInteract ? (
@@ -697,7 +694,7 @@ export default function DashboardPage() {
     if (rol === 'tecnologo') { filters.modality = 'RX'; } 
     else if (rol === 'transcriptora') { filters.modality = 'ECO'; } 
     else if (rol === 'enfermero' && GeneralServices.includes(servicioAsignado as any)) { filters.service = servicioAsignado as GeneralService; } 
-    else if (rol === 'adminisonista') { filters.service = 'C.EXT'; }
+    else if (rol === 'admisionista') { filters.service = 'C.EXT'; }
     return filters;
   }, []);
   
@@ -1082,7 +1079,7 @@ export default function DashboardPage() {
   }, [studiesInDateRange, currentProfile, activeFilters]);
   
   const toggleFilter = useCallback((type: 'service' | 'modality', value: string) => {
-    if (currentProfile?.rol === 'adminisonista' && type === 'service') { return; }
+    if (currentProfile?.rol === 'admisionista' && type === 'service') { return; }
     setActiveFilters(prev => ({ ...prev, [type]: value, status: [] }));
   }, [currentProfile]);
   

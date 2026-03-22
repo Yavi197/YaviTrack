@@ -14,5 +14,5 @@ export const tutorialData: Record<UserRole, TutorialStep[]> = {
     tecnologo: [],
     transcriptora: [],
     administrador: [],
-    adminisonista: []
+    admisionista: []
 };

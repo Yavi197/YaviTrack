@@ -1080,7 +1080,7 @@ Condición de Salida: El procedimiento concluye sin novedades. La paciente se re
 
 function TurnNumberInput({ study, isAdmin, canAssignTurn }: { study: Study; isAdmin: boolean; canAssignTurn: boolean; }) {
     const [turn, setTurn] = React.useState(study.turnNumber || '');
-    const [isEditing, setIsEditing] = React.useState(!study.turnNumber && canAssignTurn);
+    const [isEditing, setIsEditing] = React.useState(false);
     const { toast } = useToast();
 
     const handleTurnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1120,7 +1120,6 @@ function TurnNumberInput({ study, isAdmin, canAssignTurn }: { study: Study; isAd
                 onKeyDown={handleKeyDown}
                 onBlur={() => !study.turnNumber && setIsEditing(canAssignTurn)}
                 className="font-mono font-bold h-auto w-10 px-1 py-0 text-center bg-background text-[10px] leading-none"
-                autoFocus
                 onClick={(e) => e.stopPropagation()}
             />
         );
@@ -1203,7 +1202,6 @@ function BedNumberInput({ study, canEdit }: { study: Study; canEdit: boolean; })
                 onKeyDown={handleKeyDown}
                 onBlur={handleBlur}
                 className="font-mono font-bold h-auto w-16 px-1 py-0 text-center bg-background text-[10px] leading-none"
-                autoFocus
                 onClick={(e) => e.stopPropagation()}
                 placeholder="CAMA"
             />
@@ -1264,8 +1262,9 @@ export function StudyTable({
   const isConsultations = pathname?.includes('/consultations') ?? false;
   const isPatientProfile = pathname?.startsWith('/patients/') ?? false;
   const isAdmin = userProfile?.rol === 'administrador';
-  const isAdmission = userProfile?.rol === 'adminisonista';
-  const canManageDocuments = isAdmin || isAdmission;
+  const isAdmission = userProfile?.rol === 'admisionista';
+  const isTechnologist = userProfile?.rol === 'tecnologo';
+  const canManageDocuments = isAdmin || isAdmission || isTechnologist;
 
   const getModalityDisplay = (study: StudyWithCompletedBy) => {
     const singleStudy = study.studies[0];
@@ -1379,7 +1378,7 @@ export function StudyTable({
   };
   
  const handleDeleteStudy = async (studyId: string) => {
-    const result = await deleteStudyAction(studyId);
+    const result = await deleteStudyAction(studyId, userProfile);
     if (result.success) {
       toast({ title: 'Estudio Eliminado', description: 'La solicitud ha sido eliminada permanentemente.' });
     } else {
@@ -1400,6 +1399,11 @@ export function StudyTable({
 
   const handleDocumentOpen = (studyId: string, docType: string) => {
     window.open(`/documents/${studyId}/${docType}`, '_blank');
+  };
+
+  const handleKitContrastado = (studyId: string) => {
+    handleDocumentOpen(studyId, 'consent');
+    handleDocumentOpen(studyId, 'checklist');
   };
 
   const getEmailForEntidad = (entidad: string): string => {
@@ -1456,26 +1460,27 @@ export function StudyTable({
     const isNurse = rol === 'enfermero';
     const isTech = rol === 'tecnologo';
 
-    const canEdit = isAdmin || (rol === 'adminisonista' && status === 'Pendiente');
-    const canCancel = (rol === 'tecnologo' || isAdmin || rol === 'transcriptora' || rol === 'adminisonista') && status === 'Pendiente';
+    const canEdit = isAdmin;
+    const canCancel = (isAdmin || rol === 'tecnologo' || rol === 'transcriptora' || rol === 'admisionista') && status === 'Pendiente';
     const canDelete = isAdmin;
-    const canRevert = (isAdmin || isTech) && status !== 'Pendiente';
+    const canRevert = isAdmin && status !== 'Pendiente';
     const canContrast = (isAdmin || isNurse) && (studyModality === 'RX' || studyModality === 'TAC');
     const canAttachReport = (rol === 'transcriptora' || isAdmin) && status === 'Completado';
     const canViewReport = status === 'Leído' && !!(study.reportUrl || study.reportText);
-    const canAssignTurn = rol === 'adminisonista' && study.service === 'C.EXT' && !study.turnNumber;
-    const canCall = study.service === 'C.EXT' && study.status === 'Pendiente' && !!study.turnNumber && (rol === 'tecnologo' || rol === 'adminisonista' || isAdmin);
+    const canAssignTurn = rol === 'admisionista' && study.service === 'C.EXT' && !study.turnNumber;
+    const canCall = study.service === 'C.EXT' && study.status === 'Pendiente' && !!study.turnNumber && (rol === 'tecnologo' || rol === 'admisionista' || isAdmin);
     const canEditBed = (isNurse || isAdmin) && study.service !== 'C.EXT';
     const canCreateNursingNote = (isNurse || isAdmin) && !isConsultations && study.status === 'Completado' && study.contrastType === 'IV';
 
 
     let canQuickChange = false;
     if (status === 'Pendiente') {
-        if (rol === 'tecnologo' && studyModality === 'ECO') { // Tech completes ECO now
+        if (rol === 'transcriptora' && (studyModality === 'ECO' || !Modalities.includes(studyModality as any))) {
             canQuickChange = true;
-        } else if (rol === 'transcriptora' && (studyModality === 'ECO' || !Modalities.includes(studyModality as any))) { // Transcriptor can complete ECO and Consultations
+        } else if (rol === 'tecnologo' && studyModality !== 'ECO' && Modalities.includes(studyModality as any)) {
             canQuickChange = true;
-        } else if (isAdmin && studyModality !== 'RX' && studyModality !== 'TAC' && !isConsultations) {
+        } else if (isAdmin && !isConsultations) {
+            // Admin can complete any imaging study
             canQuickChange = true;
         }
     } else if (status === 'Completado') {
@@ -1738,21 +1743,21 @@ export function StudyTable({
                         <div className='flex gap-3 items-start'>
                              <div className="h-5 flex items-center">
                                  <div className={cn(
-                                    "w-[72px] h-[26px] rounded-lg border shadow-sm flex items-center justify-center gap-1.5 font-black text-[10px] uppercase tracking-wider shrink-0",
+                                    "w-[72px] h-[26px] rounded-lg border shadow-sm flex items-center justify-center gap-1.5 font-black text-[10px] uppercase tracking-wider shrink-0 bg-white",
                                     (() => {
                                         const mod = study.studies[0]?.modality?.toUpperCase();
                                         switch (mod) {
-                                            case 'TAC': return "bg-emerald-500/90 text-white border-emerald-600 shadow-emerald-100";
-                                            case 'RX': return "bg-blue-500/90 text-white border-blue-600 shadow-blue-100";
-                                            case 'ECO': return "bg-rose-500/90 text-white border-rose-600 shadow-rose-100";
-                                            case 'MAMO': return "bg-pink-400/90 text-white border-pink-500 shadow-pink-100";
-                                            case 'DENSITOMETRIA': return "bg-indigo-500/90 text-white border-indigo-600 shadow-indigo-100";
-                                            case 'RMN': return "bg-amber-500/90 text-white border-amber-600 shadow-amber-100";
-                                            default: return "bg-zinc-500/90 text-white border-zinc-600 shadow-zinc-100";
+                                            case 'TAC': return "text-emerald-600 border-emerald-200 shadow-emerald-50";
+                                            case 'RX': return "text-blue-600 border-blue-200 shadow-blue-50";
+                                            case 'ECO': return "text-rose-600 border-rose-200 shadow-rose-50";
+                                            case 'MAMO': return "text-pink-500 border-pink-200 shadow-pink-50";
+                                            case 'DENSITOMETRIA': return "text-indigo-600 border-indigo-200 shadow-indigo-50";
+                                            case 'RMN': return "text-amber-600 border-amber-200 shadow-amber-50";
+                                            default: return "text-zinc-600 border-zinc-200 shadow-zinc-50";
                                         }
                                     })()
                                  )}>
-                                    <ModalityIcon className="h-3.5 w-3.5" />
+                                    <ModalityIcon modality={study.studies[0]?.modality} className="h-3.5 w-3.5 text-black" />
                                     {study.studies[0]?.modality}
                                 </div>
                              </div>
@@ -1882,31 +1887,58 @@ export function StudyTable({
                                 </DropdownMenuSubTrigger>
                                 <DropdownMenuPortal>
                                   <DropdownMenuSubContent>
-                                      <DropdownMenuItem onClick={() => handleRequestAuthorization(study)}>
-                                          <Mail className="mr-2 h-4 w-4" />
-                                          <span>Solicitar a EPS</span>
-                                      </DropdownMenuItem>
-                                      <DropdownMenuSeparator />
-                                      <DropdownMenuItem onClick={() => handleDocumentOpen(study.id, 'consent')}>
-                                          <FileHeart className="mr-2 h-4 w-4" />
-                                          <span>Consentimiento Informado</span>
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem onClick={() => handleDocumentOpen(study.id, 'checklist')}>
-                                          <FileCheck className="mr-2 h-4 w-4" />
-                                          <span>Lista de Chequeo</span>
-                                      </DropdownMenuItem>
-                                       <DropdownMenuItem onClick={() => handleDocumentOpen(study.id, 'authorization')}>
-                                          <FilePlus2 className="mr-2 h-4 w-4" />
-                                          <span>Autorización Servicios</span>
-                                      </DropdownMenuItem>
+                                      {/* Group 1: Clinical/Primary */}
+                                      {!isAdmission && (
+                                        <>
+                                          <DropdownMenuItem onClick={() => handleDocumentOpen(study.id, 'consent')}>
+                                              <FileHeart className="mr-2 h-4 w-4" />
+                                              <span>Consentimiento Informado</span>
+                                          </DropdownMenuItem>
+                                          <DropdownMenuItem onClick={() => handleDocumentOpen(study.id, 'checklist')}>
+                                              <FileCheck className="mr-2 h-4 w-4" />
+                                              <span>Lista de Chequeo</span>
+                                          </DropdownMenuItem>
+                                        </>
+                                      )}
+                                      
                                       <DropdownMenuItem onClick={() => handleDocumentOpen(study.id, 'survey')}>
                                           <FileQuestion className="mr-2 h-4 w-4" />
                                           <span>Encuesta de Satisfacción</span>
                                       </DropdownMenuItem>
+
+                                      {/* Kit Contrastado between groups */}
+                                      {isAdmin && (
+                                        <>
+                                          <DropdownMenuSeparator />
+                                          <DropdownMenuItem onClick={() => handleKitContrastado(study.id)}>
+                                              <SyringeIcon className="mr-2 h-4 w-4" />
+                                              <span>Kit Contrastado</span>
+                                          </DropdownMenuItem>
+                                        </>
+                                      )}
+
+                                      {/* Group 2: External/Administrative */}
+                                      <DropdownMenuSeparator />
+                                      {isAdmin && (
+                                        <DropdownMenuItem onClick={() => handleRequestAuthorization(study)}>
+                                            <Mail className="mr-2 h-4 w-4" />
+                                            <span>Solicitar a EPS</span>
+                                        </DropdownMenuItem>
+                                      )}
+
+                                      {!isAdmission && !isTechnologist && (
+                                        <DropdownMenuItem onClick={() => handleDocumentOpen(study.id, 'authorization')}>
+                                            <FilePlus2 className="mr-2 h-4 w-4" />
+                                            <span>Autorización Propia</span>
+                                        </DropdownMenuItem>
+                                      )}
+
+                                      {!isTechnologist && (
                                         <DropdownMenuItem onClick={() => handleDocumentOpen(study.id, 'imaging-order')}>
                                           <Clipboard className="mr-2 h-4 w-4" />
                                           <span>Orden Imágenes Diagnósticas</span>
                                         </DropdownMenuItem>
+                                      )}
                                   </DropdownMenuSubContent>
                                 </DropdownMenuPortal>
                               </DropdownMenuSub>

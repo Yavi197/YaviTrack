@@ -360,6 +360,16 @@ export async function createStudyAction(
         return { success: false, error: "User profile not available." };
     }
 
+    // Role-based restriction for Remissions and Consultations
+    const serviceString = options.service as string;
+    const assignedServiceString = userProfile.servicioAsignado as string;
+    const isRestrictedModule = serviceString === 'REMISIONES' || serviceString === 'CONSULTAS' || 
+                              (!options.service && (assignedServiceString === 'REMISIONES' || assignedServiceString === 'CONSULTAS'));
+    
+    if (isRestrictedModule && userProfile.rol !== 'administrador') {
+        return { success: false, error: "Solo el administrador puede crear solicitudes en este módulo." };
+    }
+
     try {
         const studiesToCreate = data.studies;
 
@@ -615,6 +625,19 @@ export async function updateStudyStatusAction(
         return { success: false, error: "User profile not available." };
     }
 
+    // Security Audit: Only admin can revert to Pendiente
+    if (status === 'Pendiente' && userProfile.rol !== 'administrador') {
+        return { success: false, error: "Solo el administrador puede revertir un estudio a pendiente." };
+    }
+
+    // Security Audit: Cancellation restrictions
+    if (status === 'Cancelado') {
+        const allowedToCancel = ['administrador', 'tecnologo', 'admisionista', 'transcriptora'];
+        if (!allowedToCancel.includes(userProfile.rol)) {
+            return { success: false, error: "No tiene permisos para cancelar estudios." };
+        }
+    }
+
     const studyRef = doc(db, 'studies', studyId);
     console.log("[ACTION LOG] updateStudyStatusAction called for study", studyId, "to status", status);
 
@@ -690,7 +713,7 @@ export async function updateStudyStatusAction(
                 updateData.consumedSupplies = deleteField();
             }
 
-            if ((userProfile.rol === 'administrador' || userProfile.rol === 'tecnologo') && status === 'Pendiente') {
+            if (userProfile.rol === 'administrador' && status === 'Pendiente') {
                 updateData.completionDate = deleteField();
                 updateData.readingDate = deleteField();
                 updateData.kV = deleteField();
@@ -835,14 +858,17 @@ export async function cancelStudyAction(studyId: string, reason: string, userPro
     return updateStudyStatusAction(studyId, 'Cancelado', userProfile, undefined, undefined, reason);
 }
 
-export async function deleteStudyAction(studyId: string) {
+export async function deleteStudyAction(studyId: string, userProfile: UserProfile | null) {
+    if (!userProfile || userProfile.rol !== 'administrador') {
+        return { success: false, error: "Solo el administrador puede eliminar estudios." };
+    }
     try {
         const studyRef = doc(db, 'studies', studyId);
         await deleteDoc(studyRef);
         return { success: true };
     } catch (error: any) {
         console.error("Error deleting study:", error);
-        return { success: false, error: "Failed to delete study." };
+        return { success: false, error: "No se pudo eliminar el estudio." };
     }
 }
 
@@ -1707,6 +1733,10 @@ export async function createRemissionAction(data: RemissionRequest): Promise<{ s
         return { success: false, error: 'Usuario no autenticado.' };
     }
 
+    if (userProfile.rol !== 'administrador') {
+        return { success: false, error: "Solo el administrador puede crear solicitudes de remisión." };
+    }
+
     try {
         const typedStudyData = studyData as Study;
         const studyId = typedStudyData.id;
@@ -2044,8 +2074,11 @@ export async function scheduleRemissionAppointmentAction(remissionId: string, ap
     }
 }
 
-export async function updateRemissionBedNumberAction(remissionId: string, bedNumber: string): Promise<{ success: boolean; error?: string }> {
+export async function updateRemissionBedNumberAction(remissionId: string, bedNumber: string, userProfile: UserProfile | null): Promise<{ success: boolean; error?: string }> {
     if (!remissionId) return { success: false, error: "ID de remisión faltante" };
+    if (!userProfile || userProfile.rol !== 'administrador') {
+        return { success: false, error: "Solo el administrador puede editar el número de cama." };
+    }
     try {
         const remissionRef = doc(db, 'remissions', remissionId);
         await updateDoc(remissionRef, {

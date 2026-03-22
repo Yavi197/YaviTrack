@@ -63,7 +63,7 @@ export function ImpersonationDialog({ open, onOpenChange }: ImpersonationDialogP
     }, [watchedRol, form]);
 
     const availableServices = useMemo(() => {
-        if (watchedRol === 'enfermero' || watchedRol === 'adminisonista') {
+        if (watchedRol === 'enfermero' || watchedRol === 'admisionista') {
             return [...GeneralServices];
         }
         return [];

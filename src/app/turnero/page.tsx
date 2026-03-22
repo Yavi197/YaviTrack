@@ -228,7 +228,7 @@ function TurneroPageContent() {
     
     const canRequestSilence = useMemo(() => {
         if (!currentProfile) return false;
-        return ['administrador', 'adminisonista'].includes(currentProfile.rol);
+        return ['administrador', 'admisionista'].includes(currentProfile.rol);
     }, [currentProfile]);
 
     useEffect(() => {

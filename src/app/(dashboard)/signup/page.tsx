@@ -20,7 +20,7 @@ import { UserRole, GeneralServices, SubServiceAreas, Modalities } from "@/lib/ty
 import { AppLogoIcon } from "@/components/icons/app-logo-icon";
 import { ArrowLeft } from "lucide-react";
 
-const roles: UserRole[] = ["administrador", "enfermero", "tecnologo", "transcriptora", "adminisonista"];
+const roles: UserRole[] = ["administrador", "enfermero", "tecnologo", "transcriptora", "admisionista"];
 
 const signupSchema = z.object({
   nombre: z.string().min(3, "El nombre debe tener al menos 3 caracteres."),
@@ -56,7 +56,7 @@ export default function SignupPage() {
     if (watchedRol === 'tecnologo' || watchedRol === 'transcriptora') {
       return [...Modalities];
     }
-    if (watchedRol === 'enfermero' || watchedRol === 'adminisonista') {
+    if (watchedRol === 'enfermero' || watchedRol === 'admisionista') {
       return [...GeneralServices];
     }
     if (watchedRol === 'administrador') {

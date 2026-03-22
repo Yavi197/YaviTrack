@@ -5,7 +5,7 @@ import { useCallback, useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RemissionsTable } from "./RemissionsTable";
 import type { Remission, RemissionStatus } from "@/lib/types";
-import { CalendarCheck, CheckCircle2, ClipboardList, Hourglass, Loader2, Paperclip, Search, Check } from "lucide-react";
+import { Mail, FileText, Edit, Trash2, AlertTriangle, CheckCircle, CalendarCheck, Send, Clock3, Fingerprint, CalendarDays, Building, Stethoscope, Search, Loader2, MoreHorizontal, ShieldAlert, Paperclip } from "lucide-react";
 import { ModalityIcon } from '@/components/icons/modality-icon';
 import { EditStudyDialog } from "@/components/app/edit-study-dialog";
 import { StudyDialog } from "@/components/app/study-dialog";
@@ -101,6 +101,8 @@ function UnifiedControlPanel({
     handlePaste: (e: React.ClipboardEvent<HTMLInputElement>) => void;
     aiLoading?: boolean;
 }) {
+    const { currentProfile } = useAuth();
+    const isAdmin = currentProfile?.rol === 'administrador';
 
     return (
         <Card className="shadow-2xl border-none h-full flex flex-col rounded-[2rem] overflow-hidden bg-white/50 backdrop-blur-xl">
@@ -130,8 +132,13 @@ function UnifiedControlPanel({
                 </div>
             </CardHeader>
             <CardContent className="flex flex-col gap-3 p-4 pt-1 flex-grow">
-                <div className={cn("relative flex flex-col items-center justify-center w-full border-2 border-dashed border-zinc-200 rounded-[1rem] transition-all py-2 px-2 min-h-[60px] bg-zinc-50/50 backdrop-blur-md hover:border-amber-400 hover:bg-white", aiLoading && "cursor-not-allowed")}>
-                    {aiLoading ? (
+                <div className={cn("relative flex flex-col items-center justify-center w-full border-2 border-dashed border-zinc-200 rounded-[1rem] transition-all py-2 px-2 min-h-[60px] bg-zinc-50/50 backdrop-blur-md", isAdmin && "hover:border-amber-400 hover:bg-white", (aiLoading || !isAdmin) && "cursor-not-allowed opacity-80")}>
+                    {!isAdmin ? (
+                        <div className="flex items-center gap-2 py-4 px-2 text-zinc-400 text-[10px] font-black uppercase tracking-widest">
+                            <ShieldAlert className="h-4 w-4" />
+                            <span>Creación reservada a Administrador</span>
+                        </div>
+                    ) : aiLoading ? (
                         <div className="flex flex-col items-center justify-center text-center h-full w-full absolute inset-0 bg-white/95 backdrop-blur-sm z-10 rounded-[1.5rem]">
                             <Loader2 className="h-10 w-10 text-amber-600 animate-spin" />
                             <p className="mt-3 text-[10px] font-black uppercase tracking-widest text-zinc-600">Procesando Solicitud...</p>

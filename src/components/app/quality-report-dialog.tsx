@@ -139,13 +139,31 @@ export function QualityReportDialog({ open, onOpenChange, userProfile }: Quality
       "Problema con un estudio": ["Calidad de imagen", "Estudio incompleto", "Estudio no realizado"],
       Queja: ["Atención al paciente", "Tiempos de espera"],
       Sugerencia: ["Atención al paciente", "Calidad de imagen", "Tiempos de espera"],
+      "Evento Adverso": ["Atención al paciente", "Calidad de imagen", "Tiempos de espera", "Equipo médico", "Medio de contraste"],
+      Farmacovigilancia: ["Medio de contraste", "Reacción adversa", "Falla terapéutica"],
     }),
     []
   );
 
+  const filteredReportTypes = useMemo(() => {
+    if (!userProfile) return [];
+    
+    // Admin, Tecnólogo and Transcriptora can see everything
+    if (["administrador", "tecnologo", "transcriptora"].includes(userProfile.rol)) {
+        return QualityReportTypes;
+    }
+    
+    // Others (Admissionist, Nurse) can only see the first 3
+    return QualityReportTypes.filter(type => 
+        type === 'Problema con un estudio' || 
+        type === 'Queja' || 
+        type === 'Sugerencia'
+    );
+  }, [userProfile]);
+
   const selectItems = useMemo(
     () => ({
-      reportTypes: QualityReportTypes.map((type) => ({ value: type, label: type })),
+      reportTypes: filteredReportTypes.map((type) => ({ value: type, label: type })),
       modalities: QualityReportAreas.map((area) => ({ value: area, label: area })),
       roles: QualityReportInvolvedRoles.map((role) => ({ value: role, label: role })),
     }),

@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils';
 import { StudyDialog } from '@/components/app/study-dialog';
 import { EditStudyDialog } from '@/components/app/edit-study-dialog';
 import { StudyTable } from '@/components/app/study-table';
-import { Search, UploadCloud, Loader2, Paperclip, Check, AlertCircle, Eye, LifeBuoy, AlertTriangle, Stethoscope, User, Send } from 'lucide-react';
+import { Search, UploadCloud, Loader2, Paperclip, Check, AlertCircle, Eye, LifeBuoy, AlertTriangle, Stethoscope, User, Send, ShieldAlert } from 'lucide-react';
 import type { DateRange } from "react-day-picker";
 import { createStudyAction, searchStudiesAction, sendConsultationSummaryAction } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
@@ -131,15 +131,11 @@ function UnifiedControlPanel({
     };
     
     const canCreateRequest = useMemo(() => {
-        if (!currentProfile) return false;
-        const allowedRoles: UserProfile['rol'][] = ['administrador', 'adminisonista', 'enfermero', 'tecnologo', 'transcriptora'];
-        return allowedRoles.includes(currentProfile.rol);
+        return currentProfile?.rol === 'administrador';
     }, [currentProfile]);
 
     const canEnterId = useMemo(() => {
-        if (!currentProfile) return false;
-        const allowedRoles: UserProfile['rol'][] = ['administrador', 'adminisonista', 'tecnologo', 'transcriptora'];
-        return allowedRoles.includes(currentProfile.rol);
+        return currentProfile?.rol === 'administrador';
     }, [currentProfile]);
     
     const getPlaceholderText = () => {
@@ -161,7 +157,7 @@ function UnifiedControlPanel({
         setNewPatientId(e.target.value.replace(/[^0-9]/g, ''));
     }
     
-    const isServiceFilterDisabled = currentProfile?.rol === 'adminisonista' && currentProfile?.rol !== 'administrador';
+    const isServiceFilterDisabled = currentProfile?.rol === 'admisionista' && currentProfile?.rol !== 'administrador';
 
     const FilterPopover = ({ title, type, options, activeValue, iconMap, nameMap, disabled = false }: { title:string, type: 'service' | 'specialty', options: readonly any[], activeValue: string, iconMap: any, nameMap?: any, disabled?: boolean }) => (
       <div>
@@ -255,7 +251,12 @@ function UnifiedControlPanel({
                     onDragLeave={canCreateRequest ? handleDragLeave : undefined}
                     onDragOver={canCreateRequest ? handleDragOver : undefined}
                     className={cn("relative flex flex-col items-center justify-center w-full border-2 border-dashed rounded-[1rem] transition-all py-2 px-2 min-h-[60px]", dragging ? "border-amber-500 bg-amber-500/10 shadow-2xl shadow-amber-200" : "bg-zinc-50/50 border-zinc-200 hover:border-amber-400 hover:bg-white", aiLoading ? "cursor-not-allowed" : "", !canCreateRequest && "opacity-50 pointer-events-none")}>
-                    {aiLoading ? (
+                    {!canCreateRequest ? (
+                        <div className="flex items-center gap-2 py-4 px-2 text-zinc-400 text-[10px] font-black uppercase tracking-widest">
+                            <ShieldAlert className="h-4 w-4" />
+                            <span>Operación reservada a Administrador</span>
+                        </div>
+                    ) : aiLoading ? (
                         <div className="flex flex-col items-center justify-center text-center h-full w-full absolute inset-0 bg-white/95 backdrop-blur-sm z-10 rounded-[1.5rem]">
                             <Loader2 className="h-10 w-10 text-amber-600 animate-spin" /><p className="mt-3 text-[10px] font-black uppercase tracking-widest text-zinc-600">Procesando Solicitud...</p>
                         </div>
@@ -367,7 +368,7 @@ export default function ConsultationsDashboardPage() {
     if (!profile) return filters;
     if (profile.rol === 'enfermero' && GeneralServices.includes(profile.servicioAsignado as any)) {
       filters.service = profile.servicioAsignado as GeneralService;
-    } else if (profile.rol === 'adminisonista') {
+    } else if (profile.rol === 'admisionista') {
       filters.service = 'C.EXT';
     }
     return filters;
@@ -652,7 +653,7 @@ export default function ConsultationsDashboardPage() {
   }, [studiesInDateRange, currentProfile, activeFilters]);
   
   const toggleFilter = useCallback((type: 'service' | 'specialty', value: string) => {
-    if (currentProfile?.rol === 'adminisonista' && type === 'service') { return; }
+    if (currentProfile?.rol === 'admisionista' && type === 'service') { return; }
     setActiveFilters(prev => ({ ...prev, [type]: value, status: [] }));
   }, [currentProfile]);
 

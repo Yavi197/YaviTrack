@@ -302,7 +302,7 @@ export default function AppHeader() {
                   </Button>
                 )}
 
-                <AdverseEventReporter onQualityReport={() => setIsQualityDialogOpen(true)} />
+                {userProfile?.rol === 'administrador' && <AdverseEventReporter onQualityReport={() => setIsQualityDialogOpen(true)} />}
               </div>
               
               <Separator orientation="vertical" className="h-8" />
