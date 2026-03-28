@@ -2004,7 +2004,7 @@ export function StudyTable({
                               </AlertDialogTrigger>
                               <AlertDialogContent>
                                 <AlertDialogHeader>
-                                  <AlertDialogTitle>Â¿Revertir estudio?</AlertDialogTitle>
+                                  <AlertDialogTitle>¿Revertir estudio?</AlertDialogTitle>
                                   <AlertDialogDescription>
                                     Esta acción cambiará el estado a &quot;Pendiente&quot; y borrará las asociadas.
                                   </AlertDialogDescription>
@@ -2089,7 +2089,7 @@ export function StudyTable({
                               </AlertDialogTrigger>
                               <AlertDialogContent>
                                 <AlertDialogHeader>
-                                  <AlertDialogTitle>Â¿Estás seguro?</AlertDialogTitle>
+                                  <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
                                   <AlertDialogDescription>
                                     Esta acción es permanente y no se puede deshacer. La solicitud se eliminará de
                                     la base de datos.

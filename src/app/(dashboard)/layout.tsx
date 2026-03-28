@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useAuth } from "@/context/auth-context";
+import { useAuth, AuthLoader } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import AppHeader from "@/components/app/app-header";
@@ -21,11 +21,7 @@ export default function DashboardLayout({
   }, [user, loading, router]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-xl text-gray-600">Cargando...</div>
-      </div>
-    );
+    return <AuthLoader>{null}</AuthLoader>;
   }
 
   return (

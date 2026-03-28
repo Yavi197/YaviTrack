@@ -229,11 +229,47 @@ export const AuthLoader = ({ children }: { children: ReactNode }) => {
   const { loading } = useAuth();
   if (loading) {
     return (
-      <div className="flex h-screen w-screen items-center justify-center">
-        <div className="flex flex-col items-center gap-4 text-center">
-            <AppLogoIcon className="h-16 w-16 text-primary animate-pulse" />
-            <p className="text-muted-foreground">Cargando Medi-Track...</p>
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-zinc-50/80 dark:bg-zinc-950/80 backdrop-blur-xl">
+        <div className="relative flex flex-col items-center justify-center px-16 py-12 rounded-[2.5rem] bg-white/60 dark:bg-black/60 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] border border-white/50 dark:border-zinc-800/50 backdrop-blur-2xl overflow-hidden">
+             
+           {/* Animated Background Gradients / Glows */}
+           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 bg-amber-400/20 rounded-full blur-[40px] opacity-60 animate-pulse duration-[3000ms]" />
+           <div className="absolute bottom-[-20%] right-[-10%] w-32 h-32 bg-sky-400/20 rounded-full blur-[30px] opacity-40 animate-pulse duration-[4000ms]" />
+
+           {/* Logo Area */}
+           <div className="relative flex items-center justify-center mb-8">
+               <div className="absolute inset-0 bg-amber-300 dark:bg-amber-900 rounded-full blur-2xl opacity-20 animate-[spin_4s_linear_infinite]" />
+               <AppLogoIcon className="relative h-24 w-24 text-zinc-900 dark:text-white drop-shadow-2xl animate-[bounce_2s_infinite]" />
+           </div>
+           
+           {/* Typography Area */}
+           <div className="flex flex-col items-center space-y-3 relative z-10">
+               <h2 className="text-3xl font-black tracking-tighter bg-gradient-to-br from-zinc-900 to-zinc-500 dark:from-white dark:to-zinc-500 bg-clip-text text-transparent">
+                  Med-iTrack
+               </h2>
+               <div className="flex items-center gap-2.5 bg-zinc-100/50 dark:bg-zinc-900/50 px-4 py-2 rounded-full border border-zinc-200/50 dark:border-zinc-800/50">
+                   <div className="flex gap-1 items-center">
+                       <div className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-[bounce_1s_infinite]" style={{ animationDelay: '0ms' }} />
+                       <div className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-[bounce_1s_infinite]" style={{ animationDelay: '150ms' }} />
+                       <div className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-[bounce_1s_infinite]" style={{ animationDelay: '300ms' }} />
+                   </div>
+                   <span className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500 dark:text-zinc-400 ml-1">
+                     Cargando
+                   </span>
+               </div>
+           </div>
+
+           {/* Progress Line Sweep Effect */}
+           <div className="absolute bottom-0 left-0 h-1.5 w-full overflow-hidden bg-zinc-200/20 dark:bg-zinc-800/20">
+              <div className="h-full bg-gradient-to-r from-transparent via-amber-400 to-transparent w-1/2 animate-[pulse_2s_ease-in-out_infinite] translate-x-[-100%]" style={{ animationName: 'slide' }} />
+           </div>
         </div>
+        <style dangerouslySetInnerHTML={{__html: `
+          @keyframes slide {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(200%); }
+          }
+        `}} />
       </div>
     );
   }

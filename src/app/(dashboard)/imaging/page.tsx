@@ -22,7 +22,7 @@ import { EditStudyDialog } from '@/components/app/edit-study-dialog';
 import { StudyTable } from '@/components/app/study-table';
 import { Search, UploadCloud, Loader2, ShieldPlus, FileClock, FileCheck2, Paperclip, Check, AlertCircle, LogOut, LogIn, UserCheck, UserX, Activity, ListChecks, Hourglass, LogOutIcon, Eye, Syringe, User, LifeBuoy, Beaker, AlertTriangle, X, ChevronsUp, ChevronsDown } from 'lucide-react';
 import type { DateRange } from "react-day-picker";
-import { createStudyAction, updateUserOperationalStatusAction, setStudyContrastAction, searchStudiesAction, setActiveOperatorAction } from '@/app/actions';
+import { createStudyAction, updateUserOperationalStatusAction, setStudyContrastAction, searchStudiesAction, setActiveOperatorAction, createRemissionAction } from '@/app/actions';
 import { handleServerActionError } from '@/lib/client-safe-action';
 import { useToast } from '@/hooks/use-toast';
 import { HospitalIcon } from '@/components/icons/hospital-icon';
@@ -890,30 +890,11 @@ export default function DashboardPage() {
                 setPendingOrderData(result);
                 setInitialRemissionFile(file); // Keep file for potential RMN remission
 
-                if (result.studies.length > 1) {
-                    setSelectStudiesOpen(true);
-                } else if (result.studies[0]?.modality === 'RMN') {
+                if (result.studies[0]?.modality === 'RMN' && result.studies.length === 1) {
                     setRmnChoiceOpen(true);
                     setPendingRmnData(result);
                 } else {
-                    const userRole = currentProfile?.rol;
-                    const extractedService = result.service as GeneralService | undefined;
-                    
-                    // Logic to minimize steps:
-                    // If we have an extracted service, we can skip the manual service selection dialog
-                    if (extractedService && (userRole === 'tecnologo' || userRole === 'transcriptora')) {
-                        if (result.requiresCreatinine) { 
-                            setCreatininePromptOpen(true); 
-                        } else { 
-                            await handleCreateStudy(result, { service: extractedService }); 
-                        }
-                    } else if (userRole === 'tecnologo' || userRole === 'transcriptora') { 
-                        setServiceSelectionOpen(true); 
-                    } else if (result.requiresCreatinine) { 
-                        setCreatininePromptOpen(true); 
-                    } else { 
-                        await handleCreateStudy(result); 
-                    }
+                    setSelectStudiesOpen(true);
                 }
             } catch (error: any) {
                 console.error("AI Extraction Error:", error);
@@ -946,27 +927,85 @@ export default function DashboardPage() {
       }
     };
     
-    const handleSelectedStudiesSubmit = async (selectedStudies: OrderData['studies']) => {
+    const handleSelectedStudiesSubmit = async (processedData: OrderData, targetModule: 'imagenes' | 'consultas' | 'remisiones' = 'imagenes') => {
         if (pendingOrderData) {
-            const newOrderData = { ...pendingOrderData, studies: selectedStudies };
-            const containsRmn = selectedStudies.some(s => s.modality === 'RMN');
+            const creatinineValue = (processedData as any).creatinineValue;
+
+            if (targetModule === 'remisiones') {
+                 const tempStudyId = `temp_${Date.now()}`;
+                 const studyForRemission: any = {
+                    id: tempStudyId,
+                    patient: processedData.patient || { fullName: 'Paciente desconocido', id: `unknown_${Date.now()}` },
+                    studies: processedData.studies || [],
+                    diagnosis: processedData.diagnosis || [],
+                    orderingPhysician: processedData.orderingPhysician || null,
+                    service: processedData.service || 'C.EXT',
+                    subService: processedData.subService || 'AMB',
+                    bedNumber: processedData.bedNumber || '',
+                    requiresCreatinine: processedData.requiresCreatinine || false,
+                    bajoSedacion: processedData.bajoSedacion || false,
+                    creatinine: creatinineValue,
+                    requestDate: Timestamp.now(),
+                 };
+                 
+                 toast({ title: 'Procesando...', description: 'Creando la remisión...' });
+                 const createResult = await createRemissionAction({ 
+                    studyData: studyForRemission, 
+                    remissionData: { 
+                      ordenMedicaUrl: '',
+                      notaCargoUrl: '',
+                      evolucionUrl: ''
+                    }, 
+                    userProfile: currentProfile!,
+                    service: processedData.service as GeneralService,
+                    subService: processedData.subService as any,
+                    requiresContrast: processedData.requiresCreatinine,
+                    bajoSedacion: processedData.bajoSedacion,
+                    creatinine: creatinineValue,
+                  });
+                  setPendingOrderData(null);
+                  setSelectStudiesOpen(false);
+                  if (createResult.success) {
+                    toast({ title: 'Remisión Creada Exitosamente', description: 'La remisión ha sido registrada correctamente.' });
+                  } else {
+                    toast({ variant: 'destructive', title: 'Error en Creación', description: createResult.error || 'No se pudo crear la remisión.' });
+                  }
+                  return;
+            }
+
+            if (targetModule === 'consultas') {
+                setSelectStudiesOpen(false);
+                setPendingOrderData(processedData);
+                await handleCreateStudy(processedData, { 
+                    service: 'CONSULTAS' as any, // Bypass strict typing for modules
+                    subService: processedData.subService as SubServiceArea,
+                    bedNumber: processedData.bedNumber,
+                    bajoSedacion: processedData.bajoSedacion,
+                    creatinine: creatinineValue
+                });
+                return;
+            }
+
+            // Default 'imagenes' flow
+            const containsRmn = processedData.studies.some(s => s.modality === 'RMN');
 
             if (containsRmn) {
-                setPendingRmnData(newOrderData); // Keep data for next step
+                setPendingRmnData(processedData); // Keep data for next step
+                setSelectStudiesOpen(false);
                 setRmnChoiceOpen(true);
             } else {
-                setPendingOrderData(newOrderData);
-                const userRole = currentProfile?.rol;
-                if (userRole === 'tecnologo' || userRole === 'transcriptora') {
-                    setServiceSelectionOpen(true);
-                } else if (newOrderData.requiresCreatinine) {
-                    setCreatininePromptOpen(true);
-                } else {
-                    await handleCreateStudy(newOrderData);
-                }
+                setSelectStudiesOpen(false);
+                setPendingOrderData(processedData);
+                
+                await handleCreateStudy(processedData, { 
+                    service: processedData.service as GeneralService,
+                    subService: processedData.subService as SubServiceArea,
+                    bedNumber: processedData.bedNumber,
+                    bajoSedacion: processedData.bajoSedacion,
+                    creatinine: creatinineValue
+                });
             }
         }
-        setSelectStudiesOpen(false);
     };
 
     const handleRmnChoice = async (choice: 'order' | 'remission') => {
@@ -984,15 +1023,8 @@ export default function DashboardPage() {
         if (rmnStudy) {
             const rmnOrderData = { ...pendingRmnData, studies: [rmnStudy] };
             if (choice === 'order') {
-                const userRole = currentProfile?.rol;
                 setPendingOrderData(rmnOrderData);
-                if (userRole === 'tecnologo' || userRole === 'transcriptora') {
-                    setServiceSelectionOpen(true);
-                } else if (rmnOrderData.requiresCreatinine) {
-                    setCreatininePromptOpen(true);
-                } else {
-                    await handleCreateStudy(rmnOrderData);
-                }
+                setSelectStudiesOpen(true);
             } else if (choice === 'remission') {
                 const tempStudyForRemission: Study = {
                     ...(rmnOrderData as Study),
@@ -1164,6 +1196,7 @@ export default function DashboardPage() {
             open={selectStudiesOpen}
             onOpenChange={setSelectStudiesOpen}
             orderData={pendingOrderData}
+            userProfile={currentProfile}
             onConfirm={handleSelectedStudiesSubmit}
             onCancel={() => setPendingOrderData(null)}
       />

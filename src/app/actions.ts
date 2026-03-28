@@ -342,6 +342,8 @@ type CreateStudyOptions = {
     creatinine?: number;
     service?: GeneralService;
     subService?: SubServiceArea;
+    bedNumber?: string;
+    bajoSedacion?: boolean;
     skipDuplicateCheck?: boolean;
 };
 
@@ -427,11 +429,13 @@ export async function createStudyAction(
                 diagnosis: data.diagnosis,
                 studies: [singleStudy], 
                 service,
-                subService,
+                subService: options.subService || subService,
                 status: "Pendiente",
                 requestDate: serverTimestamp() as Timestamp,
                 admissionNumber: data.admissionNumber || 'INGRESO MANUAL',
                 referenceNumber: data.referenceNumber || undefined,
+                bedNumber: options.bedNumber || data.bedNumber || undefined,
+                bajoSedacion: options.bajoSedacion ?? data.bajoSedacion ?? false,
             };
 
             if (data.orderDate) {
@@ -1724,17 +1728,18 @@ type RemissionRequest = {
     subService?: SubServiceArea;
     requiresContrast?: boolean;
     bajoSedacion?: boolean;
+    creatinine?: number;
 };
 
 
 export async function createRemissionAction(data: RemissionRequest): Promise<{ success: boolean; error?: string; firestoreSuccess?: boolean }> {
-    const { studyData, remissionData, userProfile, service, subService, requiresContrast = false, bajoSedacion = false } = data;
+    const { studyData, remissionData, userProfile, service, subService, requiresContrast = false, bajoSedacion = false, creatinine } = data;
     if (!userProfile) {
         return { success: false, error: 'Usuario no autenticado.' };
     }
 
-    if (userProfile.rol !== 'administrador') {
-        return { success: false, error: "Solo el administrador puede crear solicitudes de remisión." };
+    if (userProfile.rol !== 'administrador' && userProfile.rol !== 'admisionista') {
+        return { success: false, error: "No tienes permisos para crear solicitudes de remisión." };
     }
 
     try {
@@ -1782,10 +1787,15 @@ export async function createRemissionAction(data: RemissionRequest): Promise<{ s
             remissionFiles.informeUrl = remissionData.informeUrl;
         }
         
+        const now = new Date();
+        const formattedDate = format(now, "dd/MM/yyyy HH:mm");
+
         const remissionDocument = {
             ...studyPayload,
             requiereContraste: requiresContrast,
             bajoSedacion,
+            creatinine: creatinine || null,
+            bedNumber: typedStudyData.bedNumber || '',
             remissionFileUrls: remissionFiles,
             specialist: resolvedSpecialist,
             medicalRecord: resolvedMedicalRecord,
@@ -1793,10 +1803,11 @@ export async function createRemissionAction(data: RemissionRequest): Promise<{ s
             createdAt: timestamp,
             updatedAt: timestamp,
             pendienteAutAt: timestamp,
+            statusDate: formattedDate,
             createdBy: {
                 uid: userProfile.uid,
                 name: userProfile.nombre,
-                email: userProfile.email
+                role: userProfile.rol
             },
             status: "Pendiente Aut"
         };
@@ -1813,9 +1824,10 @@ export async function createRemissionAction(data: RemissionRequest): Promise<{ s
             specialist: resolvedSpecialist,
             medicalRecord: resolvedMedicalRecord,
             observaciones: resolvedObservaciones,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            pendienteAutAt: new Date(),
+            createdAt: now,
+            updatedAt: now,
+            pendienteAutAt: now,
+            statusDate: formattedDate,
             createdBy: {
                 uid: userProfile.uid,
                 name: userProfile.nombre,

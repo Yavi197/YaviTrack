@@ -43,10 +43,13 @@ export const OrderDataSchema = z.object({
     description: z.string().describe("Descripción textual del diagnóstico o la razón clínica del estudio.")
   }),
   service: z.enum(['URG', 'HOSP', 'UCI', 'C.EXT']).optional().describe("Servicio de origen del paciente (URGENCIAS, HOSPITALIZACIÓN, UCI, C. EXTERNA)."),
+  subService: z.string().optional().describe("Subservicio o área específica dentro del servicio."),
+  bedNumber: z.string().optional().describe("Número de cama si el paciente está hospitalizado."),
   orderDate: z.string().optional().describe("Fecha en que se emitió la orden médica, si está disponible en la orden. Formato DD/MM/AAAA."),
   admissionNumber: z.string().optional().describe("Número de admisión o atención del paciente, si está disponible en la orden."),
   referenceNumber: z.string().optional().describe("Número de referencia o 'Ref' de la orden, si está disponible."),
   requiresCreatinine: z.boolean().optional().describe("Set to true if any study details indicate IV contrast is needed."),
+  bajoSedacion: z.boolean().optional().describe("Set to true if the study requires sedation."),
 });
 
 export type ExtractOrderInput = z.infer<typeof ExtractOrderInputSchema>;
