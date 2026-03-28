@@ -142,6 +142,7 @@ export type Study = {
     reportUrl?: string;
     turnNumber?: string;
     bedNumber?: string;
+    bajoSedacion?: boolean;
     assignedSpecialistId?: string;
 };
 
