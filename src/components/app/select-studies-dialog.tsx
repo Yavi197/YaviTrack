@@ -62,7 +62,7 @@ export function SelectStudiesDialog({ open, onOpenChange, orderData, userProfile
   const isAdmissionist = userProfile?.rol === 'admisionista';
   const isNurse = userProfile?.rol === 'enfermero';
 
-  const form = useForm<FormData>({
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       selectedStudies: [],
