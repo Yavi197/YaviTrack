@@ -555,7 +555,7 @@ export default function ConsultationsDashboardPage() {
         })();
     };
 
-    const handleCreateStudy = async (data: OrderData, options?: { service?: GeneralService, subService?: SubServiceArea, skipDuplicateCheck?: boolean }) => {
+    const handleCreateStudy = async (data: OrderData, options?: { creatinine?: number, service?: GeneralService, subService?: SubServiceArea, skipDuplicateCheck?: boolean, bedNumber?: string, bajoSedacion?: boolean }) => {
         if (!currentProfile) return;
         toast({ title: 'Procesando...', description: 'Creando las solicitudes...' });
         const creationResult = await createStudyAction(data, currentProfile, options);
