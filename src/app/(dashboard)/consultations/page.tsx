@@ -765,6 +765,7 @@ export default function ConsultationsDashboardPage() {
             open={selectStudiesOpen}
             onOpenChange={setSelectStudiesOpen}
             orderData={pendingOrderData}
+            userProfile={currentProfile || null}
             onConfirm={handleSelectedStudiesSubmit}
             onCancel={() => setPendingOrderData(null)}
         />
