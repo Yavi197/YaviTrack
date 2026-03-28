@@ -110,7 +110,7 @@ export function SelectStudiesDialog({ open, onOpenChange, orderData, userProfile
     }
   }, [watchService, form, isAdmissionist, isNurse]);
 
-  const onSubmit = (data: FormData) => {
+  const onSubmit = (data: z.infer<typeof formSchema>) => {
     setLoading(true);
     if (!orderData) return;
 
