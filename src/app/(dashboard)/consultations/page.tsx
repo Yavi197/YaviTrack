@@ -575,16 +575,15 @@ export default function ConsultationsDashboardPage() {
         setDuplicateWarningOpen(false); setPendingDuplicateData(null); setDuplicateStudyInfo(null);
     };
     
-    const handleSelectedStudiesSubmit = async (selectedStudies: OrderData['studies']) => {
+    const handleSelectedStudiesSubmit = async (processedData: OrderData, targetModule: 'imagenes' | 'consultas' | 'remisiones' = 'consultas') => {
         if (pendingOrderData) {
-            const newOrderData = { ...pendingOrderData, studies: selectedStudies };
-            setPendingOrderData(newOrderData); // Update pending data with selection
+            setPendingOrderData(processedData); // Update pending data with selection
             
             const userRole = currentProfile?.rol;
             if (userRole === 'tecnologo' || userRole === 'transcriptora') {
                 setServiceSelectionOpen(true);
             } else {
-                await handleCreateStudy(newOrderData);
+                await handleCreateStudy(processedData);
             }
         }
         setSelectStudiesOpen(false);
