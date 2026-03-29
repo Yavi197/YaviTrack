@@ -33,7 +33,7 @@ const REMISSIONS_SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID_REMISSIONS;
 const INVENTORY_SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID_INVENTORY;
 const QUALITY_REPORTS_SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID_QUALITY_REPORTS;
 
-export async function extractOrderDataAction(input: { medicalOrderDataUri: string, orderType?: string }) {
+export async function extractOrderDataAction(input: { medicalOrderDataUri: string, orderType?: 'ADES' | 'EMEDICO' }) {
     try {
         const result = await extractOrderFlow(input);
         return { success: true, data: result };
