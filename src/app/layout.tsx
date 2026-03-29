@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Plus_Jakarta_Sans, Space_Grotesk } from 'next/font/google';
 import { ServiceWorkerReset } from '@/components/app/service-worker-reset';
 
-const APP_NAME = "Medi-Track";
+const APP_NAME = "Med-iTrack";
 const APP_DESCRIPTION = "Sistema de gestión y seguimiento para solicitudes de estudios de diagnóstico por imágenes.";
 
 export const metadata: Metadata = {

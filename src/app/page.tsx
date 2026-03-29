@@ -87,8 +87,10 @@ function ModuleSelectionContent() {
                         <AppLogoIcon className="h-7 w-7" />
                     </div>
                     <div>
-                        <h1 className="text-xl font-black tracking-normal text-zinc-900 leading-none">Medi-Track</h1>
-                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em] leading-none mt-1">Intelligence Hub</p>
+                        <span className="text-2xl font-black text-zinc-900">
+                            Med-<span className="text-amber-500 lowercase mr-[0.05em]">i</span>Track
+                        </span>
+                        <p className="text-[10px] font-bold text-zinc-400 tracking-[0.2em] leading-none mt-1">Intelligence Hub</p>
                     </div>
                 </Link>
 
@@ -172,10 +174,24 @@ function ModuleSelectionContent() {
     );
 }
 
-export default function ModuleSelectionPage() {
+import { LandingContent } from "@/components/landing/landing-content";
+
+function UnifiedRootContent() {
+    const { user, loading } = useAuth();
+    
+    if (loading) return null;
+    
+    if (!user) {
+        return <LandingContent />;
+    }
+    
+    return <ModuleSelectionContent />;
+}
+
+export default function RootPage() {
     return (
         <AuthLoader>
-            <ModuleSelectionContent />
+            <UnifiedRootContent />
         </AuthLoader>
     );
 }

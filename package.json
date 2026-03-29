@@ -46,6 +46,7 @@
     "events": "^3.3.0",
     "exceljs": "^4.4.0",
     "firebase": "10.12.2",
+    "framer-motion": "^12.38.0",
     "genkit": "^1.0.0",
     "google-auth-library": "^9.11.0",
     "googleapis": "^140.0.0",

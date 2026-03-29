@@ -244,9 +244,9 @@ export const AuthLoader = ({ children }: { children: ReactNode }) => {
            
            {/* Typography Area */}
            <div className="flex flex-col items-center space-y-3 relative z-10">
-               <h2 className="text-3xl font-black tracking-tighter bg-gradient-to-br from-zinc-900 to-zinc-500 dark:from-white dark:to-zinc-500 bg-clip-text text-transparent">
-                  Med-iTrack
-               </h2>
+                <h2 className="text-3xl font-black tracking-normal dark:text-white text-zinc-900">
+                   Med-<span className="text-amber-500 lowercase mr-[0.05em]">i</span>Track
+                </h2>
                <div className="flex items-center gap-2.5 bg-zinc-100/50 dark:bg-zinc-900/50 px-4 py-2 rounded-full border border-zinc-200/50 dark:border-zinc-800/50">
                    <div className="flex gap-1 items-center">
                        <div className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-[bounce_1s_infinite]" style={{ animationDelay: '0ms' }} />
