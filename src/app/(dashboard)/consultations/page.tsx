@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { cn } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { StudyDialog } from '@/components/app/study-dialog';
 import { EditStudyDialog } from '@/components/app/edit-study-dialog';
 import { StudyTable } from '@/components/app/study-table';
@@ -31,6 +32,9 @@ import { OperatorSelectionDialog } from '@/components/app/operator-selection-dia
 import { useShiftChangeReminder } from '@/hooks/use-shift-change-reminder';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { SelectStudiesDialog } from '@/components/app/select-studies-dialog';
+import { ServiceSelectionDialog } from '@/components/app/service-selection-dialog';
+import { DuplicateStudyDialog } from '@/components/app/duplicate-study-dialog';
+import { NotifyDialog } from '@/components/app/notify-dialog';
 
 const ALL_FILTER = "TODOS";
 const ALL_SERVICES: (GeneralService | typeof ALL_FILTER)[] = [ALL_FILTER, ...[...GeneralServices].sort()];
