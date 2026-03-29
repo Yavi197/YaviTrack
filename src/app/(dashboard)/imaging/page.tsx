@@ -22,7 +22,7 @@ import { EditStudyDialog } from '@/components/app/edit-study-dialog';
 import { StudyTable } from '@/components/app/study-table';
 import { Search, UploadCloud, Loader2, ShieldPlus, FileClock, FileCheck2, Paperclip, Check, AlertCircle, LogOut, LogIn, UserCheck, UserX, Activity, ListChecks, Hourglass, LogOutIcon, Eye, Syringe, User, LifeBuoy, Beaker, AlertTriangle, X, ChevronsUp, ChevronsDown } from 'lucide-react';
 import type { DateRange } from "react-day-picker";
-import { createStudyAction, updateUserOperationalStatusAction, setStudyContrastAction, searchStudiesAction, setActiveOperatorAction, createRemissionAction } from '@/app/actions';
+import { createStudyAction, updateUserOperationalStatusAction, setStudyContrastAction, searchStudiesAction, setActiveOperatorAction, createRemissionAction, extractOrderDataAction } from '@/app/actions';
 import { handleServerActionError } from '@/lib/client-safe-action';
 import { useToast } from '@/hooks/use-toast';
 import { HospitalIcon } from '@/components/icons/hospital-icon';
@@ -40,7 +40,6 @@ import { ServiceSelectionDialog } from '@/components/app/service-selection-dialo
 import { ModalityIcon } from '@/components/icons/modality-icon';
 import { ViewModeSwitch } from '@/components/app/view-mode-switch';
 import { SelectStudiesDialog } from '@/components/app/select-studies-dialog';
-import { extractOrderData } from '@/ai/flows/extract-order-flow';
 import { RmnChoiceDialog } from '@/components/app/rmn-choice-dialog';
 import { RemissionRequestDialog } from '@/components/app/remission-request-dialog';
 import { ShiftHandoverDialog } from '@/components/app/shift-handover-dialog';
@@ -881,7 +880,12 @@ export default function DashboardPage() {
                 // Convert file to data URI
                 const { fileToDataUri } = await import('@/lib/pdf-to-image');
                 const dataUri = await fileToDataUri(file);
-                const result = await extractOrderData({ medicalOrderDataUri: dataUri, orderType: orderType });
+                const resultAction = await extractOrderDataAction({ medicalOrderDataUri: dataUri, orderType: orderType });
+                
+                if (!resultAction.success || !resultAction.data) {
+                    throw new Error(resultAction.error || 'No se pudieron extraer los datos.');
+                }
+                const result = resultAction.data;
 
                 if (!result || result.studies.length === 0) {
                      throw new Error( 'No se encontraron estudios válidos en la orden.');

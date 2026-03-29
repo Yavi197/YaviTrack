@@ -2,7 +2,8 @@
 'use server';
 
 import 'dotenv/config';
-import { extractOrderData } from "@/ai/flows/extract-order-flow";
+import { extractOrderData as extractOrderFlow } from "@/ai/flows/extract-order-flow";
+import { extractConsultationData as extractConsultationFlow } from "@/ai/flows/extract-consultation-flow";
 import { extractReportText as extractReportTextFlow } from "@/ai/flows/extract-report-text-flow";
 import { generateSilenceRequestAudio as generateSilenceRequestAudioFlow, generateTurnCallAudio as generateTurnCallAudioFlow } from "@/ai/flows/tts-flow";
 import { transcribeAudio as transcribeAudioFlow, type TranscribeInput } from "@/ai/flows/stt-flow";
@@ -32,9 +33,19 @@ const REMISSIONS_SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID_REMISSIONS;
 const INVENTORY_SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID_INVENTORY;
 const QUALITY_REPORTS_SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID_QUALITY_REPORTS;
 
-export async function extractStudyDataAction(input: { medicalOrderDataUri: string }) {
+export async function extractOrderDataAction(input: { medicalOrderDataUri: string, orderType?: string }) {
     try {
-        const result = await extractOrderData(input);
+        const result = await extractOrderFlow(input);
+        return { success: true, data: result };
+    } catch(error: any) {
+        console.error("AI extraction error:", error);
+        return { success: false, error: error.message || "Failed to extract data from the document." };
+    }
+}
+
+export async function extractConsultationDataAction(input: { medicalOrderDataUri: string }) {
+    try {
+        const result = await extractConsultationFlow(input);
         return { success: true, data: result };
     } catch(error: any) {
         console.error("AI extraction error:", error);

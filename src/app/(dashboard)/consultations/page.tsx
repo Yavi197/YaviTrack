@@ -21,16 +21,7 @@ import { EditStudyDialog } from '@/components/app/edit-study-dialog';
 import { StudyTable } from '@/components/app/study-table';
 import { Search, UploadCloud, Loader2, Paperclip, Check, AlertCircle, Eye, LifeBuoy, AlertTriangle, Stethoscope, User, Send, ShieldAlert } from 'lucide-react';
 import type { DateRange } from "react-day-picker";
-import { createStudyAction, searchStudiesAction, sendConsultationSummaryAction } from '@/app/actions';
-import { useToast } from '@/hooks/use-toast';
-import { HospitalIcon } from '@/components/icons/hospital-icon';
-import { UciIcon } from '@/components/icons/uci-icon';
-import { CextIcon } from '@/components/icons/cext-icon';
-import { ShieldPlus, Hourglass, ListChecks, LogOutIcon, FileClock, FileCheck2 } from 'lucide-react';
-import { OperatorSelectionDialog } from '@/components/app/operator-selection-dialog';
-import { useShiftChangeReminder } from '@/hooks/use-shift-change-reminder';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { extractConsultationData } from '@/ai/flows/extract-consultation-flow';
+import { createStudyAction, searchStudiesAction, sendConsultationSummaryAction, extractConsultationDataAction } from '@/app/actions';
 import { ServiceSelectionDialog } from '@/components/app/service-selection-dialog';
 import { DuplicateStudyDialog } from '@/components/app/duplicate-study-dialog';
 import { ModalityIcon } from '@/components/icons/modality-icon';
@@ -526,7 +517,12 @@ export default function ConsultationsDashboardPage() {
             try {
                 const { fileToDataUri } = await import('@/lib/pdf-to-image');
                 const dataUri = await fileToDataUri(file);
-                const result = await extractConsultationData({ medicalOrderDataUri: dataUri });
+                const resultAction = await extractConsultationDataAction({ medicalOrderDataUri: dataUri });
+                
+                if (!resultAction.success || !resultAction.data) {
+                    throw new Error(resultAction.error || 'No se pudieron extraer los datos.');
+                }
+                const result = resultAction.data;
                 
                 if (!result?.studies || result.studies.length === 0) {
                     throw new Error('No se encontraron estudios válidos en la orden.');
