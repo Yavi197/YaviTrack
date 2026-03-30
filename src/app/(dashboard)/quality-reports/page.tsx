@@ -282,7 +282,7 @@ export default function QualityReportsPage() {
     total: reports.length,
     pending: reports.filter(r => r.status === 'Pendiente').length,
     inProcess: reports.filter(r => r.status === 'En Proceso').length,
-    closed: reports.filter(r => r.status === 'Cerrado / Solucionado' || r.status === 'Cerrado').length,
+    closed: reports.filter(r => r.status === 'Cerrado / Solucionado').length,
     critical: reports.filter(r => r.priority === 'P1 · Crítica').length,
     byCategory: reports.reduce<Record<string, number>>((acc, r) => {
       acc[r.category] = (acc[r.category] || 0) + 1;
