@@ -131,6 +131,8 @@ export default function SpecialistsPage() {
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingSpecialist, setEditingSpecialist] = useState<Specialist | null>(null);
+  const [isNotifyOpen, setIsNotifyOpen] = useState(false);
+  const [notifySpecialty, setNotifySpecialty] = useState<string>('');
 
   const normalizeString = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
@@ -240,9 +242,18 @@ export default function SpecialistsPage() {
             </div>
             <div className="p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
               {Object.entries(pendingCountsBySpecialty).filter(([,c]) => c > 0).map(([specialty, count]) => (
-                <div key={specialty} className="flex items-center justify-between bg-amber-50 rounded-xl px-4 py-3 border border-amber-100">
-                  <p className="text-xs font-bold text-amber-800 truncate">{specialty}</p>
-                  <span className="text-xs font-black text-amber-600 bg-amber-200/60 rounded-full px-2 py-0.5 ml-2 shrink-0">{count}</span>
+                <div key={specialty} className="flex items-center justify-between bg-amber-50 rounded-xl px-4 py-3 border border-amber-100 group">
+                  <div className="flex flex-col">
+                    <p className="text-xs font-black text-amber-800 truncate uppercase tracking-tight">{specialty}</p>
+                    <span className="text-[10px] font-bold text-amber-600">{count} interconsultas</span>
+                  </div>
+                  <Button 
+                    size="sm"
+                    onClick={() => { setNotifySpecialty(specialty); setIsNotifyOpen(true); }}
+                    className="h-8 w-8 rounded-lg bg-green-600 hover:bg-green-700 text-white p-0 shadow-sm transition-all active:scale-90"
+                  >
+                    <Send className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
               ))}
             </div>
@@ -310,7 +321,13 @@ export default function SpecialistsPage() {
           )}
         </div>
 
-        <NotifyDialog specialists={specialists} onSend={handleSendSummaries} />
+        <NotifyDialog 
+          open={isNotifyOpen} 
+          onOpenChange={setIsNotifyOpen} 
+          specialty={notifySpecialty}
+          specialists={specialists.filter(s => s.specialty === notifySpecialty)} 
+          onSend={handleSendSummaries} 
+        />
       </div>
 
       <SpecialistDialog
