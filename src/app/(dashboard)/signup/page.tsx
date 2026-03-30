@@ -1,24 +1,20 @@
-
 "use client";
 
 import { useState, useMemo } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { signupUserAction } from "@/app/actions";
 import { UserRole, GeneralServices, SubServiceAreas, Modalities } from "@/lib/types";
 import { AppLogoIcon } from "@/components/icons/app-logo-icon";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, UserPlus, Loader2 } from "lucide-react";
+import Link from "next/link";
 
 const roles: UserRole[] = ["administrador", "enfermero", "tecnologo", "transcriptora", "admisionista"];
 
@@ -33,6 +29,24 @@ const signupSchema = z.object({
 
 type SignupFormData = z.infer<typeof signupSchema>;
 
+function StyledSelect({ placeholder, value, onValueChange, items, disabled }: {
+  placeholder: string; value: string; onValueChange: (v: string) => void;
+  items: { value: string; label: string }[]; disabled?: boolean;
+}) {
+  return (
+    <Select onValueChange={onValueChange} value={value} disabled={disabled}>
+      <SelectTrigger className="h-12 bg-zinc-50 border-transparent focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 rounded-xl font-medium text-zinc-900 transition-all">
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
+      <SelectContent>
+        {items.map((item) => (
+          <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
 export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
@@ -40,28 +54,16 @@ export default function SignupPage() {
 
   const form = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
-    defaultValues: {
-      nombre: "",
-      email: "",
-      password: "",
-      servicioAsignado: "",
-      subServicioAsignado: "",
-    }
+    defaultValues: { nombre: "", email: "", password: "", servicioAsignado: "", subServicioAsignado: "" },
   });
 
   const watchedRol = form.watch("rol");
   const watchedService = form.watch("servicioAsignado");
-  
+
   const availableServices = useMemo(() => {
-    if (watchedRol === 'tecnologo' || watchedRol === 'transcriptora') {
-      return [...Modalities];
-    }
-    if (watchedRol === 'enfermero' || watchedRol === 'admisionista') {
-      return [...GeneralServices];
-    }
-    if (watchedRol === 'administrador') {
-      return ["General", ...GeneralServices, ...Modalities];
-    }
+    if (watchedRol === 'tecnologo' || watchedRol === 'transcriptora') return [...Modalities];
+    if (watchedRol === 'enfermero' || watchedRol === 'admisionista') return [...GeneralServices];
+    if (watchedRol === 'administrador') return ["General", ...GeneralServices, ...Modalities];
     return [];
   }, [watchedRol]);
 
@@ -71,22 +73,14 @@ export default function SignupPage() {
     setLoading(true);
     const result = await signupUserAction(data);
     if (result.success) {
-      toast({
-        title: "Usuario Creado",
-        description: "El nuevo usuario ha sido registrado exitosamente.",
-      });
+      toast({ title: "Usuario Creado", description: "El nuevo usuario ha sido registrado exitosamente." });
       router.push("/");
     } else {
-      toast({
-        variant: "destructive",
-        title: "Error en el registro",
-        description: result.error || "Ocurrió un error inesperado.",
-      });
+      toast({ variant: "destructive", title: "Error en el registro", description: result.error || "Ocurrió un error inesperado." });
     }
     setLoading(false);
   };
-  
-  // Reset service when role changes
+
   const onRoleChange = (value: string) => {
     form.setValue('rol', value as UserRole);
     form.setValue('servicioAsignado', '');
@@ -94,40 +88,141 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="container mx-auto py-6">
-      <Card className="w-full max-w-2xl mx-auto">
-        <CardHeader className="text-center">
-            <div className="flex justify-center items-center mb-4">
-                <AppLogoIcon className="h-12 w-12 text-primary" />
-            </div>
-          <CardTitle className="text-3xl font-headline">Crear Nuevo Usuario</CardTitle>
-          <CardDescription>
-            Completa los datos para registrar un nuevo usuario en Medi-Track.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+    <div className="max-w-2xl mx-auto py-10">
+      {/* Header */}
+      <div className="mb-8">
+        <Link href="/" className="inline-flex items-center gap-2 text-zinc-400 hover:text-zinc-900 font-bold uppercase tracking-widest text-[10px] transition-colors group mb-6">
+          <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+          Volver
+        </Link>
+        <div className="flex items-center gap-4 mt-2">
+          <div className="p-3 bg-zinc-50 rounded-2xl border border-zinc-100 shadow-sm">
+            <AppLogoIcon className="h-10 w-10" />
+          </div>
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Administración · Usuarios</p>
+            <h1 className="text-2xl font-black text-zinc-900 tracking-tight">Crear Nuevo Usuario</h1>
+          </div>
+        </div>
+      </div>
+
+      {/* Form Card */}
+      <div className="bg-white border border-zinc-100 rounded-3xl shadow-sm overflow-hidden">
+        <div className="px-8 py-3 bg-zinc-900">
+          <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Completa todos los campos requeridos</p>
+        </div>
+        <div className="p-8">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField control={form.control} name="nombre" render={({ field }) => ( <FormItem><FormLabel>Nombre Completo</FormLabel><FormControl><Input placeholder="Nombre del usuario" {...field} /></FormControl><FormMessage /></FormItem> )}/>
-                <FormField control={form.control} name="email" render={({ field }) => ( <FormItem><FormLabel>Correo Electrónico</FormLabel><FormControl><Input placeholder="usuario@email.com" {...field} /></FormControl><FormMessage /></FormItem> )}/>
-                <FormField control={form.control} name="password" render={({ field }) => ( <FormItem><FormLabel>Contraseña</FormLabel><FormControl><Input type="password" placeholder="Mínimo 6 caracteres" {...field} /></FormControl><FormMessage /></FormItem> )}/>
-                <FormField control={form.control} name="rol" render={({ field }) => ( <FormItem><FormLabel>Rol</FormLabel><Select onValueChange={onRoleChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Selecciona un rol" /></SelectTrigger></FormControl><SelectContent>{roles.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem> )}/>
-                
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FormField control={form.control} name="nombre" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-bold text-zinc-600">Nombre Completo</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Nombre del usuario" {...field}
+                        className="h-12 bg-zinc-50 border-transparent focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 rounded-xl"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+
+                <FormField control={form.control} name="email" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-bold text-zinc-600">Correo Electrónico</FormLabel>
+                    <FormControl>
+                      <Input placeholder="usuario@email.com" {...field}
+                        className="h-12 bg-zinc-50 border-transparent focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 rounded-xl"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              </div>
+
+              <FormField control={form.control} name="password" render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-xs font-bold text-zinc-600">Contraseña</FormLabel>
+                  <FormControl>
+                    <Input type="password" placeholder="Mínimo 6 caracteres" {...field}
+                      className="h-12 bg-zinc-50 border-transparent focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 rounded-xl"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FormField control={form.control} name="rol" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-bold text-zinc-600">Rol</FormLabel>
+                    <FormControl>
+                      <StyledSelect
+                        placeholder="Selecciona un rol"
+                        value={field.value ?? ""}
+                        onValueChange={onRoleChange}
+                        items={roles.map(r => ({ value: r, label: r }))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+
                 {watchedRol && availableServices.length > 0 && (
-                  <FormField control={form.control} name="servicioAsignado" render={({ field }) => ( <FormItem><FormLabel>Servicio Asignado</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Selecciona un servicio" /></SelectTrigger></FormControl><SelectContent>{availableServices.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem> )}/>
+                  <FormField control={form.control} name="servicioAsignado" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs font-bold text-zinc-600">Servicio Asignado</FormLabel>
+                      <FormControl>
+                        <StyledSelect
+                          placeholder="Selecciona un servicio"
+                          value={field.value ?? ""}
+                          onValueChange={field.onChange}
+                          items={availableServices.map(s => ({ value: s, label: s }))}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
                 )}
+              </div>
 
-                {isGeneralService && (
-                  <FormField control={form.control} name="subServicioAsignado" render={({ field }) => ( <FormItem><FormLabel>Sub-Servicio Asignado</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Selecciona un sub-servicio" /></SelectTrigger></FormControl><SelectContent>{SubServiceAreas[watchedService as keyof typeof SubServiceAreas].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem> )}/>
-                )}
+              {isGeneralService && (
+                <FormField control={form.control} name="subServicioAsignado" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-bold text-zinc-600">Sub-Servicio Asignado</FormLabel>
+                    <FormControl>
+                      <StyledSelect
+                        placeholder="Selecciona un sub-servicio"
+                        value={field.value ?? ""}
+                        onValueChange={field.onChange}
+                        items={SubServiceAreas[watchedService as keyof typeof SubServiceAreas].map(s => ({ value: s, label: s }))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              )}
 
-                <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? "Creando usuario..." : "Crear Usuario"}
+              <div className="pt-2">
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full h-13 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white font-black uppercase tracking-tight shadow-xl transition-all active:scale-95"
+                >
+                  {loading ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      Crear Usuario <UserPlus className="h-5 w-5" />
+                    </div>
+                  )}
                 </Button>
+              </div>
             </form>
           </Form>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

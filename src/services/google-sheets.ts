@@ -20,16 +20,19 @@ const QUALITY_REPORTS_SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID_QUALITY_REPOR
 const QUALITY_REPORT_HEADERS = [
     'Fecha creación',
     'Estado',
-    'Tipo',
     'Categoría',
-    'Modalidad',
+    'Subcategoría',
+    'Prioridad',
+    'Turno',
+    'Impacto',
+    'Área / Modalidad',
     'Rol involucrado',
-    'Tecnólogo',
-    'Otro personal',
+    'Personal',
     'Paciente',
-    'ID paciente',
-    'Referencia',
+    'ID Paciente',
+    'Historia Clínica',
     'Descripción',
+    'Acción Inmediata',
     'Reportado por',
     'Rol reportante',
     'ID Reporte',
@@ -301,16 +304,19 @@ export async function appendQualityReportToSheet(report: QualityReport & { id?: 
         const row = [
             formatBogotaDate(createdAtDate),
             report.status,
-            report.reportType,
             report.category,
+            (report as any).subcategory || '',
+            (report as any).priority || '',
+            (report as any).shift || '',
+            (report as any).impact || '',
             report.modality,
             report.involvedRole,
-            report.involvedUserName || '',
-            report.otherPersonName || '',
+            report.involvedUserName || report.otherPersonName || '',
             report.patientName || '',
-            report.patientId || '',
             report.referenceId || '',
+            report.patientId || '',
             cleanDescription,
+            (report as any).immediateAction || '',
             report.reportedBy?.name || '',
             report.reportedBy?.role || '',
             report.id || '',
@@ -326,6 +332,81 @@ export async function appendQualityReportToSheet(report: QualityReport & { id?: 
         );
     } catch (error: any) {
         console.error('[Google Sheets Error] No se pudo exportar el reporte de calidad:', error?.message || error);
+    }
+}
+
+/**
+ * Busca un reporte de calidad por su ID en todas las hojas mensuales
+ * y actualiza la columna Estado + registra el cambio con fecha.
+ */
+export async function updateQualityReportStatusInSheet(
+    reportId: string,
+    newStatus: string,
+    updatedByName?: string,
+) {
+    if (!QUALITY_REPORTS_SPREADSHEET_ID) {
+        console.warn('[Google Sheets Warning] GOOGLE_SHEET_ID_QUALITY_REPORTS no está definido.');
+        return;
+    }
+
+    const sheets = await getSheetsClient();
+    if (!sheets) {
+        console.warn('[Google Sheets Warning] Cliente de Sheets no disponible.');
+        return;
+    }
+
+    try {
+        // Get all sheet names in the spreadsheet
+        const spreadsheet = await sheets.spreadsheets.get({ spreadsheetId: QUALITY_REPORTS_SPREADSHEET_ID });
+        const sheetNames = spreadsheet.data.sheets?.map(s => s.properties?.title || '').filter(Boolean) || [];
+
+        const idColumnIndex = QUALITY_REPORT_HEADERS.indexOf('ID Reporte');   // last col
+        const statusColumnIndex = QUALITY_REPORT_HEADERS.indexOf('Estado');    // col B (index 1)
+        const statusColumnLetter = getColumnLetter(statusColumnIndex + 1);
+        const idColumnLetter = getColumnLetter(idColumnIndex + 1);
+
+        for (const sheetName of sheetNames) {
+            const range = buildSheetRange(sheetName, QUALITY_REPORT_HEADERS.length);
+            let rows: string[][];
+            try {
+                const res = await sheets.spreadsheets.values.get({
+                    spreadsheetId: QUALITY_REPORTS_SPREADSHEET_ID,
+                    range,
+                });
+                rows = (res.data.values || []) as string[][];
+            } catch {
+                continue; // Sheet may not have data yet
+            }
+
+            // Find the row with the matching ID (skip header row at index 0)
+            const rowIndex = rows.findIndex((row, i) => i > 0 && row[idColumnIndex] === reportId);
+
+            if (rowIndex === -1) continue; // Not in this sheet, try next
+
+            // rowIndex is 0-based, but Sheets rows are 1-based and have a header, so +1 for header
+            const sheetRow = rowIndex + 1; // 1-based index for Sheets API
+
+            const updatedAt = formatBogotaDate(new Date());
+            const statusValue = updatedByName
+                ? `${newStatus} (${updatedByName} · ${updatedAt})`
+                : `${newStatus} (${updatedAt})`;
+
+            await queueSheetsWrite(() =>
+                sheets.spreadsheets.values.update({
+                    spreadsheetId: QUALITY_REPORTS_SPREADSHEET_ID!,
+                    range: `${sheetName}!${statusColumnLetter}${sheetRow}`,
+                    valueInputOption: 'RAW',
+                    requestBody: { values: [[statusValue]] },
+                })
+            );
+
+            console.log(`[Google Sheets] Quality report ${reportId} status updated to "${newStatus}" in sheet "${sheetName}" row ${sheetRow}.`);
+            return; // Found and updated — no need to search further
+        }
+
+        console.warn(`[Google Sheets Warning] No se encontró el reporte ${reportId} en ninguna hoja. El estado no fue actualizado en Sheets.`);
+    } catch (error: any) {
+        console.error('[Google Sheets Error] No se pudo actualizar el estado del reporte:', error?.message || error);
     }
 }
 

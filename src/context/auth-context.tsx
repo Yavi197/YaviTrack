@@ -233,8 +233,8 @@ export const AuthLoader = ({ children }: { children: ReactNode }) => {
         <div className="relative flex flex-col items-center justify-center px-16 py-12 rounded-[2.5rem] bg-white/60 dark:bg-black/60 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] border border-white/50 dark:border-zinc-800/50 backdrop-blur-2xl overflow-hidden">
              
            {/* Animated Background Gradients / Glows */}
-           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 bg-amber-400/20 rounded-full blur-[40px] opacity-60 animate-pulse duration-[3000ms]" />
-           <div className="absolute bottom-[-20%] right-[-10%] w-32 h-32 bg-sky-400/20 rounded-full blur-[30px] opacity-40 animate-pulse duration-[4000ms]" />
+           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 bg-amber-400/20 rounded-full blur-[40px] opacity-60 animate-pulse [animation-duration:3000ms]" />
+           <div className="absolute bottom-[-20%] right-[-10%] w-32 h-32 bg-sky-400/20 rounded-full blur-[30px] opacity-40 animate-pulse [animation-duration:4000ms]" />
 
            {/* Logo Area */}
            <div className="relative flex items-center justify-center mb-8">

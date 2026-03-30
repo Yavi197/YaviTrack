@@ -936,45 +936,55 @@ export default function DashboardPage() {
             const creatinineValue = (processedData as any).creatinineValue;
 
             if (targetModule === 'remisiones') {
-                 const tempStudyId = `temp_${Date.now()}`;
-                 const studyForRemission: any = {
-                    id: tempStudyId,
-                    patient: processedData.patient || { fullName: 'Paciente desconocido', id: `unknown_${Date.now()}` },
-                    studies: processedData.studies || [],
-                    diagnosis: processedData.diagnosis || [],
-                    orderingPhysician: processedData.orderingPhysician || null,
-                    service: processedData.service || 'C.EXT',
-                    subService: processedData.subService || 'AMB',
-                    bedNumber: processedData.bedNumber || '',
-                    requiresCreatinine: processedData.requiresCreatinine || false,
-                    bajoSedacion: processedData.bajoSedacion || false,
-                    creatinine: creatinineValue,
-                    requestDate: Timestamp.now(),
-                 };
+                 toast({ title: 'Procesando...', description: `Creando ${processedData.studies.length} remisiones...` });
                  
-                 toast({ title: 'Procesando...', description: 'Creando la remisión...' });
-                 const createResult = await createRemissionAction({ 
-                    studyData: studyForRemission, 
-                    remissionData: { 
-                      ordenMedicaUrl: '',
-                      notaCargoUrl: '',
-                      evolucionUrl: ''
-                    }, 
-                    userProfile: currentProfile!,
-                    service: processedData.service as GeneralService,
-                    subService: processedData.subService as any,
-                    requiresContrast: processedData.requiresCreatinine,
-                    bajoSedacion: processedData.bajoSedacion,
-                    creatinine: creatinineValue,
-                  });
-                  setPendingOrderData(null);
-                  setSelectStudiesOpen(false);
-                  if (createResult.success) {
-                    toast({ title: 'Remisión Creada Exitosamente', description: 'La remisión ha sido registrada correctamente.' });
-                  } else {
-                    toast({ variant: 'destructive', title: 'Error en Creación', description: createResult.error || 'No se pudo crear la remisión.' });
-                  }
-                  return;
+                 // Split into multiple individual remissions
+                 const promises = processedData.studies.map(async (oneStudy, index) => {
+                     const tempStudyId = `temp_${Date.now()}_${index}`;
+                     const studyForRemission: any = {
+                        id: tempStudyId,
+                        patient: processedData.patient || { fullName: 'Paciente desconocido', id: `unknown_${Date.now()}` },
+                        studies: [oneStudy], // Single study here
+                        diagnosis: processedData.diagnosis || [],
+                        orderingPhysician: processedData.orderingPhysician || null,
+                        service: processedData.service || 'C.EXT',
+                        subService: processedData.subService || 'AMB',
+                        bedNumber: processedData.bedNumber || '',
+                        requiresCreatinine: processedData.requiresCreatinine || false,
+                        bajoSedacion: processedData.bajoSedacion || false,
+                        creatinine: creatinineValue,
+                        requestDate: Timestamp.now(),
+                     };
+
+                     return createRemissionAction({ 
+                        studyData: studyForRemission, 
+                        remissionData: { 
+                          ordenMedicaUrl: '',
+                          notaCargoUrl: '',
+                          evolucionUrl: ''
+                        }, 
+                        userProfile: currentProfile!,
+                        service: processedData.service as GeneralService,
+                        subService: processedData.subService as any,
+                        requiresContrast: processedData.requiresCreatinine,
+                        bajoSedacion: processedData.bajoSedacion,
+                        creatinine: creatinineValue,
+                      });
+                 });
+
+                 const results = await Promise.all(promises);
+                 const allSuccess = results.every(r => r.success);
+                 
+                 setPendingOrderData(null);
+                 setSelectStudiesOpen(false);
+
+                 if (allSuccess) {
+                   toast({ title: 'Remisiones Creadas', description: `${processedData.studies.length} remisiones registradas individualmente.` });
+                 } else {
+                   const errorCount = results.filter(r => !r.success).length;
+                   toast({ variant: 'destructive', title: 'Error Parcial', description: `Se crearon algunas remisiones, pero ${errorCount} fallaron.` });
+                 }
+                 return;
             }
 
             if (targetModule === 'consultas') {

@@ -12,7 +12,7 @@ import type { Study, UserProfile, OrderData, StudyStatus, GeneralService, SubSer
 import { addDoc, collection, doc, serverTimestamp, updateDoc, setDoc, deleteDoc, deleteField, getDocs, query, where, Timestamp, getDoc, arrayUnion, arrayRemove, orderBy, runTransaction, increment, writeBatch, or, limit } from "firebase/firestore";
 import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import { z } from "zod";
-import { CalendarModalities, GeneralServices, InventoryCategories, Modalities, ShiftTypes, SubServiceAreas, QualityReportTypes, QualityReportCategories, QualityReportInvolvedRoles, QualityReportAreas } from "@/lib/types";
+import { CalendarModalities, GeneralServices, InventoryCategories, Modalities, ShiftTypes, SubServiceAreas, QualityReportTypes, QualityReportCategories, QualityReportSubcategories, QualityReportPriorities, QualityReportShifts, QualityReportImpacts, QualityReportInvolvedRoles, QualityReportAreas } from "@/lib/types";
 import { format, differenceInYears, startOfDay, endOfDay, subHours, parse } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
 import { getAuth, sendPasswordResetEmail as firebaseSendPasswordResetEmail, signInWithCustomToken } from "firebase/auth";
@@ -21,7 +21,7 @@ import { firebaseConfig } from '@/lib/firebaseConfig';
 import { PDFDocument, rgb, StandardFonts, PageSizes } from 'pdf-lib';
 import fs from 'fs/promises';
 import path from 'path';
-import { appendOrderToSheet, appendOrUpdateRemissionSheet, appendInventoryEntriesToSheet, appendQualityReportToSheet, deleteRowsByColumnValues } from '@/services/google-sheets';
+import { appendOrderToSheet, appendOrUpdateRemissionSheet, appendInventoryEntriesToSheet, appendQualityReportToSheet, updateQualityReportStatusInSheet, deleteRowsByColumnValues } from '@/services/google-sheets';
 import { EXPORT_COLUMNS, REMISSION_EXPORT_COLUMNS, INVENTORY_EXPORT_COLUMNS } from '@/services/export-columns';
 import { exportStudiesToExcel } from '@/services/excel-export';
 import { sendWhatsAppMessage } from '@/services/twilio';
@@ -205,8 +205,11 @@ export async function deleteCalendarShiftAction(input: z.infer<typeof deleteCale
 
 
 const qualityReportInputSchema = z.object({
-    reportType: z.enum(QualityReportTypes),
     category: z.enum(QualityReportCategories),
+    subcategory: z.string().min(1),
+    priority: z.enum(QualityReportPriorities),
+    shift: z.enum(QualityReportShifts),
+    impact: z.enum(QualityReportImpacts).optional(),
     modality: z.enum(QualityReportAreas),
     involvedRole: z.enum(QualityReportInvolvedRoles),
     involvedUserId: z.string().trim().max(120).optional(),
@@ -216,6 +219,7 @@ const qualityReportInputSchema = z.object({
     patientId: z.string().trim().max(80).optional(),
     patientName: z.string().trim().max(120).optional(),
     description: z.string().trim().min(10, 'Describe brevemente la novedad.').max(2000),
+    immediateAction: z.string().trim().max(500).optional(),
 }).superRefine((data, ctx) => {
     if (data.involvedRole === 'Tecnólogo') {
         if (!data.involvedUserId) {
@@ -275,6 +279,42 @@ export async function submitQualityReportAction(
     } catch (error: any) {
         console.error('[Quality Report] Error creating report:', error);
         return { success: false, error: error.message || 'No se pudo registrar la novedad.' };
+    }
+}
+
+export async function updateQualityReportStatusAction(
+    reportId: string,
+    newStatus: string,
+    resolutionNote?: string,
+    userProfile?: UserProfile | null,
+) {
+    if (!userProfile || userProfile.rol !== 'administrador') {
+        return { success: false, error: 'Solo administradores pueden cambiar el estado de un reporte.' };
+    }
+    if (!reportId) return { success: false, error: 'ID de reporte requerido.' };
+
+    try {
+        const reportRef = doc(db, 'qualityReports', reportId);
+        const updateData: Record<string, any> = {
+            status: newStatus,
+            updatedAt: Timestamp.fromDate(new Date()),
+            updatedBy: {
+                uid: userProfile.uid,
+                name: userProfile.nombre,
+            },
+        };
+        if (resolutionNote?.trim()) {
+            updateData.resolutionNote = resolutionNote.trim();
+        }
+        await updateDoc(reportRef, updateData);
+        // Sync status change to Google Sheets (fire-and-forget — don't block the response)
+        updateQualityReportStatusInSheet(reportId, newStatus, userProfile.nombre).catch(err =>
+            console.error('[Quality Report] Error syncing status to Sheets:', err)
+        );
+        return { success: true };
+    } catch (error: any) {
+        console.error('[Quality Report] Error updating status:', error);
+        return { success: false, error: error.message || 'No se pudo actualizar el estado.' };
     }
 }
 

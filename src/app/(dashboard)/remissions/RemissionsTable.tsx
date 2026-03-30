@@ -500,16 +500,18 @@ function RemissionAuthorizationActions({ remission, enabled, onEdit }: { remissi
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   const buildMailSubject = () => {
-    const studyName = primaryStudy?.nombre || 'ESTUDIO';
-    return `SOLICITUD DE| ${studyName} | ${patient.fullName} DOCUMENTO DEL PACIENTE`;
+    const studyNames = remission.studies?.map(s => s.nombre).join(' + ') || 'ESTUDIOS';
+    return `SOLICITUD DE| ${studyNames} | ${patient.fullName} DOCUMENTO DEL PACIENTE`;
   };
 
   const buildMailBody = () => {
     const entity = patient.entidad || 'CAJACOPI EPS S.A.S.';
     const diagnosisCode = primaryDiagnosis?.code || '--';
     const diagnosisDesc = primaryDiagnosis?.description || '--';
-    const cups = primaryStudy?.cups || '--';
-    const studyName = primaryStudy?.nombre || '--';
+    
+    // Join all studies and CUPS
+    const studiesList = remission.studies?.map(s => `- ${s.nombre} (CUPS: ${s.cups})`).join('\n') || '--';
+    
     const physician = remission.orderingPhysician?.name || 'No especificado';
     const physicianReg = remission.orderingPhysician?.register || 'No especificado';
 
@@ -527,10 +529,9 @@ function RemissionAuthorizationActions({ remission, enabled, onEdit }: { remissi
     body += `EDAD: ${patientAge || '--'} AÁ‘OS\n`;
     body += `ENTIDAD: ${entity}\n`;
     body += `${separator}\n`;
-    body += `DATOS DEL ESTUDIO\n`;
+    body += `DATOS DE LOS ESTUDIOS\n`;
     body += `${separator}\n`;
-    body += `ESTUDIO: ${studyName}\n`;
-    body += `CÁ“DIGO CUPS: ${cups}\n`;
+    body += `${studiesList}\n`;
     body += `DIAGNÁ“STICO: ${diagnosisCode} - ${diagnosisDesc}\n`;
     body += `OBSERVACIONES: ${observationText}\n`;
     body += `${separator}\n`;
@@ -874,8 +875,9 @@ export function RemissionsTable({ statusFilter, onStatusSummaryChange, onCountsC
                   </div>
                     <div className="flex-1 min-w-0 pr-2 flex flex-col space-y-0">
                       <div className="h-5 flex items-center">
-                        <p className="font-black text-zinc-900 text-sm uppercase tracking-wide leading-none truncate" title={primaryStudy?.nombre?.toUpperCase()}>
-                          {primaryStudy?.nombre?.toUpperCase() || 'REMISIÓN MÉDICA'}
+                        <p className="font-black text-zinc-900 text-sm uppercase tracking-wide leading-none truncate" 
+                           title={rem.studies?.map(s => s.nombre).join(' + ').toUpperCase()}>
+                          {rem.studies?.map(s => s.nombre).join(' + ').toUpperCase() || 'REMISIÓN MÉDICA'}
                         </p>
                       </div>
                       
@@ -893,10 +895,12 @@ export function RemissionsTable({ statusFilter, onStatusSummaryChange, onCountsC
                       })()}
 
                       <div className="h-4 flex items-center gap-x-3 text-xs text-muted-foreground flex-wrap">
-                        {primaryStudy?.cups && (
+                        {rem.studies && rem.studies.length > 0 && (
                           <div className="flex items-center gap-1.5 shrink-0">
                             <div className="h-1 w-1 rounded-full bg-zinc-300" />
-                            <span className="leading-none"><span className="font-semibold">CUPS:</span> {primaryStudy.cups}</span>
+                            <span className="leading-none">
+                              <span className="font-semibold">CUPS:</span> {rem.studies.map(s => s.cups).join(', ')}
+                            </span>
                           </div>
                         )}
                         {(() => {

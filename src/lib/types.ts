@@ -261,6 +261,93 @@ export type Specialist = {
     phoneNumber: string;
 };
 
+// ── Clasificación principal ────────────────────────────────────────────────
+export const QualityReportCategories = [
+    'Asistencial',
+    'Técnica / Equipos',
+    'Infraestructura',
+    'Administrativa',
+    'Talento Humano',
+] as const;
+export type QualityReportCategory = typeof QualityReportCategories[number];
+
+// ── Sub-categorías dependientes ────────────────────────────────────────────
+export const QualityReportSubcategories: Record<QualityReportCategory, readonly string[]> = {
+    'Asistencial': [
+        'Identificación',
+        'Preparación',
+        'Seguridad del Paciente',
+        'Consentimiento',
+        'Oportunidad',
+    ],
+    'Técnica / Equipos': [
+        'Hardware (Equipo)',
+        'Software (RIS/PACS)',
+        'Insumos',
+        'Calibración',
+    ],
+    'Infraestructura': [
+        'Fluido Eléctrico / Climatización',
+        'Plomería / Aseo',
+        'Seguridad Física',
+    ],
+    'Administrativa': [
+        'Autorizaciones',
+        'Agendamiento',
+        'Documentación',
+        'Facturación',
+    ],
+    'Talento Humano': [
+        'Ausentismo',
+        'Capacitación',
+        'Relevo de Turno',
+    ],
+};
+
+// ── Estado ─────────────────────────────────────────────────────────────────
+export const QualityReportStatuses = [
+    'Pendiente',
+    'En Proceso',
+    'Escalado',
+    'Cerrado / Solucionado',
+] as const;
+export type QualityReportStatus = typeof QualityReportStatuses[number];
+
+// ── Prioridad ──────────────────────────────────────────────────────────────
+export const QualityReportPriorities = [
+    'P1 · Crítica',
+    'P2 · Alta',
+    'P3 · Media',
+    'P4 · Baja / Informativa',
+] as const;
+export type QualityReportPriority = typeof QualityReportPriorities[number];
+
+// ── Turno ──────────────────────────────────────────────────────────────────
+export const QualityReportShifts = [
+    'Mañana',
+    'Tarde',
+    'Noche',
+    'Fin de Semana / Festivo',
+] as const;
+export type QualityReportShift = typeof QualityReportShifts[number];
+
+// ── Impacto (auditoría) ────────────────────────────────────────────────────
+export const QualityReportImpacts = [
+    'Incidente',
+    'Evento Adverso',
+    'Falla de Seguridad',
+] as const;
+export type QualityReportImpact = typeof QualityReportImpacts[number];
+
+// ── Área / Modalidad ───────────────────────────────────────────────────────
+export const QualityReportAreas = ['RX', 'TAC', 'ECO', 'MAMO', 'RMN', 'General'] as const;
+export type QualityReportArea = typeof QualityReportAreas[number];
+
+// ── Roles involucrados ─────────────────────────────────────────────────────
+export const QualityReportInvolvedRoles = ['Tecnólogo', 'Transcriptora', 'Otro', 'N/A'] as const;
+export type QualityReportInvolvedRole = typeof QualityReportInvolvedRoles[number];
+
+// ── Tipo de reporte (legacy, mantenemos para compatibilidad) ───────────────
 export const QualityReportTypes = [
     'Problema con un estudio',
     'Queja',
@@ -270,40 +357,24 @@ export const QualityReportTypes = [
 ] as const;
 export type QualityReportType = typeof QualityReportTypes[number];
 
-export const QualityReportCategories = [
-    'Calidad de imagen',
-    'Estudio incompleto',
-    'Estudio no realizado',
-    'Atención al paciente',
-    'Tiempos de espera',
-    'Equipo médico',
-    'Medio de contraste',
-    'Reacción adversa',
-    'Falla terapéutica',
-] as const;
-export type QualityReportCategory = typeof QualityReportCategories[number];
-
-export const QualityReportAreas = ['RX', 'TAC', 'ECO'] as const;
-export type QualityReportArea = typeof QualityReportAreas[number];
-
-export const QualityReportInvolvedRoles = ['Tecnólogo', 'Transcriptora', 'Otro', 'N/A'] as const;
-export type QualityReportInvolvedRole = typeof QualityReportInvolvedRoles[number];
-
-export type QualityReportStatus = 'Pendiente' | 'En revisión' | 'Cerrado';
-
+// ── Tipo principal ─────────────────────────────────────────────────────────
 export type QualityReport = {
     id: string;
-    reportType: QualityReportType;
     category: QualityReportCategory;
+    subcategory?: string;
+    priority: QualityReportPriority;
+    shift: QualityReportShift;
+    impact?: QualityReportImpact;
     modality: QualityReportArea;
     involvedRole: QualityReportInvolvedRole;
     involvedUserId?: string;
     involvedUserName?: string;
     otherPersonName?: string;
-    referenceId?: string;
-    patientId?: string;
+    referenceId?: string;    // Cédula / ID del paciente (ingresada en el form)
+    patientId?: string;      // Historia clínica / ID interno
     patientName?: string;
     description: string;
+    immediateAction?: string; // Acción inmediata tomada
     status: QualityReportStatus;
     reportedBy: {
         uid: string;
@@ -312,4 +383,8 @@ export type QualityReport = {
     };
     createdAt: Timestamp;
     updatedAt?: Timestamp;
+    // Campos legacy (compatibilidad con reportes anteriores)
+    reportType?: QualityReportType;
+    category_legacy?: string;
 };
+
