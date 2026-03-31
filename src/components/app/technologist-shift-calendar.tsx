@@ -1,19 +1,9 @@
 "use client";
 import { cn } from "@/lib/utils";
 
-import { type CalendarModality, type ShiftType } from "@/lib/types";
+import { type CalendarModality, type ShiftType, type CalendarShiftAssignment } from "@/lib/types";
 import { memo } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-
-export type CalendarShiftAssignment = {
-    id: string;
-    shiftType: ShiftType;
-    modality: CalendarModality;
-    personLabel?: string;
-    note?: string;
-    sortIndex?: number;
-    role?: string;
-};
 
 export type TechnologistShiftCalendarProps = {
     year: number;

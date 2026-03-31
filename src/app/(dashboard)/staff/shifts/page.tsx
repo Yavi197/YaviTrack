@@ -11,9 +11,9 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { TechnologistShiftCalendar, CALENDAR_MODALITY_COLORS } from '@/components/app/technologist-shift-calendar';
-import { StaffShiftMatrix, type MatrixShiftAssignment } from '@/components/app/staff-shift-matrix';
+import { StaffShiftMatrix } from '@/components/app/staff-shift-matrix';
 import { db } from '@/lib/firebase';
-import { CalendarModalities, type CalendarModality, type ShiftAssignableRole, type ShiftType, ShiftTypes, type TechnologistShift, type UserProfile } from '@/lib/types';
+import { CalendarModalities, type CalendarModality, type ShiftAssignableRole, type ShiftType, ShiftTypes, type TechnologistShift, type UserProfile, type CalendarShiftAssignment, type MatrixShiftAssignment } from '@/lib/types';
 import { deleteCalendarShiftAction, generateTechnologistShiftsAction, upsertCalendarShiftAction, syncStaffShiftsToSheetAction } from '@/app/actions';
 import { ChevronLeft, ChevronRight, Loader2, Calendar as CalendarIcon, CloudUpload, LayoutGrid, Table } from 'lucide-react';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
@@ -279,7 +279,7 @@ export default function TechnologistShiftPage() {
         });
 
         return map;
-    }, [monthShifts, personDisplayOrder, staffNameById]);
+    }, [monthShifts, personDisplayOrder, staffNameById, staffRoleById]);
 
     const matrixAssignmentsMap = useMemo(() => {
         const map: Record<string, MatrixShiftAssignment[]> = {};

@@ -14,6 +14,44 @@ export type Modality = typeof Modalities[number];
 export const ShiftTypes = ['CORRIDO', 'NOCHE', 'POSTURNO', 'LIBRE', 'MANANA_TARDE', 'MANANA', 'VACACIONES', 'LICENCIA', 'CALAMIDAD', 'PERMISO'] as const;
 export type ShiftType = typeof ShiftTypes[number];
 
+export type CalendarShiftAssignment = {
+    id: string;
+    shiftType: ShiftType;
+    modality: CalendarModality;
+    personLabel?: string;
+    note?: string;
+    sortIndex?: number;
+    role?: string;
+};
+
+export type MatrixShiftAssignment = {
+    id: string;
+    shiftType: ShiftType;
+    modality: CalendarModality;
+    personLabel?: string;
+    personId: string;
+    note?: string;
+};
+
+export type CalendarShiftAssignment = {
+    id: string;
+    shiftType: ShiftType;
+    modality: CalendarModality;
+    personLabel?: string;
+    note?: string;
+    sortIndex?: number;
+    role?: string;
+};
+
+export type MatrixShiftAssignment = {
+    id: string;
+    shiftType: ShiftType;
+    modality: CalendarModality;
+    personLabel?: string;
+    personId: string;
+    note?: string;
+};
+
 export const CalendarModalities = ['RX', 'ECO', 'TAC'] as const;
 export type CalendarModality = typeof CalendarModalities[number];
 export type ShiftAssignableRole = 'tecnologo' | 'transcriptora';

@@ -1,17 +1,8 @@
 "use client";
 import { cn } from "@/lib/utils";
-import { type CalendarModality, type ShiftType, type UserProfile } from "@/lib/types";
+import { type CalendarModality, type ShiftType, type UserProfile, type MatrixShiftAssignment } from "@/lib/types";
 import React, { memo, useMemo } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-
-export type MatrixShiftAssignment = {
-    id: string;
-    shiftType: ShiftType;
-    modality: CalendarModality;
-    personLabel?: string;
-    personId: string;
-    note?: string;
-};
 
 type StaffShiftMatrixProps = {
     year: number;
