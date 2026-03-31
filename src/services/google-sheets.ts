@@ -1139,7 +1139,7 @@ export async function syncStaffShiftsToSheet(shifts: TechnologistShift[], monthN
                     case 'LICENCIA': code = 'Lic'; hoursValue = 0; break;
                     case 'CALAMIDAD': code = 'Cal'; hoursValue = 0; break;
                     case 'PERMISO': code = 'Per'; hoursValue = 0; break;
-                    default: code = shift.shiftType.substring(0, 1); hoursValue = 0;
+                    default: code = (shift.shiftType as string).substring(0, 1); hoursValue = 0;
                 }
 
                 updateRequests.push({
