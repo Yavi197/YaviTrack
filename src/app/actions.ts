@@ -21,13 +21,13 @@ import { firebaseConfig } from '@/lib/firebaseConfig';
 import { PDFDocument, rgb, StandardFonts, PageSizes } from 'pdf-lib';
 import fs from 'fs/promises';
 import path from 'path';
-import { appendOrderToSheet, appendOrUpdateRemissionSheet, appendInventoryEntriesToSheet, appendQualityReportToSheet, updateQualityReportStatusInSheet, deleteRowsByColumnValues } from '@/services/google-sheets';
+import { appendOrderToSheet, appendOrUpdateRemissionSheet, appendInventoryEntriesToSheet, appendQualityReportToSheet, updateQualityReportStatusInSheet, deleteRowsByColumnValues, syncStaffShiftsToSheet } from '@/services/google-sheets';
 import { EXPORT_COLUMNS, REMISSION_EXPORT_COLUMNS, INVENTORY_EXPORT_COLUMNS } from '@/services/export-columns';
 import { exportStudiesToExcel } from '@/services/excel-export';
 import { sendWhatsAppMessage } from '@/services/twilio';
 import { google } from 'googleapis';
 import { sheets_v4 } from 'googleapis';
-import { generateTechnologistMonthlyShifts, getShiftTimingForDate } from '@/lib/technologist-shift-generator';
+import { generateTechnologistShiftsInRange, getShiftTimingForDate } from '@/lib/technologist-shift-generator';
 const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
 const REMISSIONS_SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID_REMISSIONS;
 const INVENTORY_SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID_INVENTORY;
@@ -55,8 +55,8 @@ export async function extractConsultationDataAction(input: { medicalOrderDataUri
 
 const technologistShiftInputSchema = z.object({
     technologistId: z.string().min(1, 'technologistId is required'),
-    year: z.number().int().min(2020).max(2100),
-    month: z.number().int().min(1).max(12),
+    startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     startSequenceIndex: z.number().int().min(0).max(3).default(0),
     holidays: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional(),
     notesByDate: z.record(z.string().regex(/^\d{4}-\d{2}-\d{2}$/), z.string()).optional(),
@@ -68,6 +68,7 @@ const technologistShiftInputSchema = z.object({
     })).optional(),
     assignedUserName: z.string().min(1).optional(),
     assignedRole: z.enum(['tecnologo', 'transcriptora'] as const).optional(),
+    baseModality: z.enum(CalendarModalities).default('RX'),
 });
 
 export async function generateTechnologistShiftsAction(input: z.infer<typeof technologistShiftInputSchema>) {
@@ -77,14 +78,15 @@ export async function generateTechnologistShiftsAction(input: z.infer<typeof tec
     }
 
     try {
-        const shifts = generateTechnologistMonthlyShifts({
+        const shifts = generateTechnologistShiftsInRange({
             technologistId: params.data.technologistId,
-            year: params.data.year,
-            month: params.data.month,
+            startDate: params.data.startDate,
+            endDate: params.data.endDate,
             startSequenceIndex: params.data.startSequenceIndex,
             holidays: params.data.holidays,
             notesByDate: params.data.notesByDate,
             manualOverrides: params.data.manualOverrides,
+            baseModality: params.data.baseModality,
         });
 
         if (!shifts.length) {
@@ -2717,3 +2719,10 @@ const getMonthlySheetLabel = (date?: Date | null) => {
     const baseDate = date ?? new Date();
     return MONTH_SHEET_LABELS[baseDate.getMonth()] || 'MES';
 };
+export async function syncStaffShiftsToSheetAction(shifts: TechnologistShift[], monthName: string, year: number) {
+    try {
+        return await syncStaffShiftsToSheet(shifts, monthName, year);
+    } catch (error: any) {
+        return { success: false, error: error.message };
+    }
+}

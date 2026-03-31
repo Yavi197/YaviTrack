@@ -2,7 +2,7 @@
 'use server';
 
 import { google, sheets_v4 } from 'googleapis';
-import { Study, StudyWithCompletedBy, OrderData, QualityReport, Remission } from '@/lib/types';
+import { Study, StudyWithCompletedBy, OrderData, QualityReport, Remission, TechnologistShift } from '@/lib/types';
 import { formatInTimeZone } from 'date-fns-tz';
 import { EXPORT_COLUMNS, REMISSION_EXPORT_COLUMNS, INVENTORY_EXPORT_COLUMNS } from './export-columns';
 import { differenceInYears } from 'date-fns';
@@ -17,6 +17,7 @@ const MODALITY_SPREADSHEET_OVERRIDES: Record<string, string | undefined> = {
 const MONTHLY_MODALITY_SHEETS = new Set(['RX', 'ECO', 'TAC']);
 const INVENTORY_SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID_INVENTORY;
 const QUALITY_REPORTS_SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID_QUALITY_REPORTS;
+const STAFF_SHIFTS_SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID_STAFF_SHIFTS;
 const QUALITY_REPORT_HEADERS = [
     'Fecha creación',
     'Estado',
@@ -1040,3 +1041,131 @@ export async function softDeleteRemissionSheet(remission: Remission): Promise<vo
     }
 }
     
+export async function syncStaffShiftsToSheet(shifts: TechnologistShift[], monthName: string, year: number) {
+    if (!STAFF_SHIFTS_SPREADSHEET_ID) {
+        console.warn('[Google Sheets Warning] GOOGLE_SHEET_ID_STAFF_SHIFTS no está definido.');
+        return { success: false, error: 'ID de hoja de turnos no configurado.' };
+    }
+
+    const sheets = await getSheetsClient();
+    if (!sheets) return { success: false, error: 'No se pudo conectar con Drive.' };
+
+    try {
+        const fullMonthName = monthName.toUpperCase(); // MARZO
+        const shortMonthName = monthName.substring(0, 3).toUpperCase(); // MAR
+        
+        // 1. Obtener lista de hojas para asegurar que escribimos en la correcta
+        const spreadsheet = await sheets.spreadsheets.get({ spreadsheetId: STAFF_SHIFTS_SPREADSHEET_ID });
+        const sheetTitles = spreadsheet.data.sheets?.map(s => s.properties?.title || '') || [];
+        
+        // Prioridad: Exacto (MARZO) -> Corto (MAR) -> Contiene (MARZO 2026) -> Primero disponible
+        let targetSheet = sheetTitles.find(t => t.toUpperCase() === fullMonthName) || 
+                          sheetTitles.find(t => t.toUpperCase() === shortMonthName) ||
+                          sheetTitles.find(t => t.toUpperCase().includes(fullMonthName)) ||
+                          sheetTitles[0];
+
+        if (!targetSheet) return { success: false, error: 'No se encontró una pestaña válida en el Excel.' };
+
+        console.log(`[Google Sheets] Sincronizando en pestaña: "${targetSheet}"`);
+
+        const range = `${targetSheet}!A1:AJ60`; 
+        const response = await sheets.spreadsheets.values.get({
+            spreadsheetId: STAFF_SHIFTS_SPREADSHEET_ID,
+            range,
+        });
+
+        const rows = response.data.values || [];
+        if (rows.length === 0) return { success: false, error: 'Hoja de cálculo vacía.' };
+
+        const updateRequests: sheets_v4.Schema$ValueRange[] = [];
+        const shiftsByStaff = new Map<string, TechnologistShift[]>();
+        
+        // Log de lo que recibimos
+        console.log(`[Google Sheets] Recibidos ${shifts.length} turnos para procesar.`);
+
+        shifts.forEach(s => {
+            const name = s.assignedUserName;
+            if (!name) return;
+            if (!shiftsByStaff.has(name)) shiftsByStaff.set(name, []);
+            shiftsByStaff.get(name)!.push(s);
+        });
+
+        console.log(`[Google Sheets] Personal detectado en Med-iTrack: ${Array.from(shiftsByStaff.keys()).join(', ')}`);
+
+        for (const [staffName, staffShifts] of shiftsByStaff.entries()) {
+            const normalizedTarget = staffName.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+            
+            let staffRowIndex = -1;
+            console.log(`[Google Sheets] Buscando a "${staffName}" (normalizado: "${normalizedTarget}")`);
+
+            for (let i = 0; i < rows.length; i++) {
+                const cellA = rows[i]?.[0]; // A
+                if (!cellA) continue;
+
+                const normalizedCell = cellA.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+                
+                // Si el nombre de Med-iTrack está contenido en la celda o viceversa
+                if (normalizedCell.includes(normalizedTarget) || normalizedTarget.includes(normalizedCell)) {
+                    staffRowIndex = i;
+                    console.log(`[Google Sheets] ¡Encontrado! "${staffName}" en fila ${i + 1}`);
+                    break;
+                }
+            }
+
+            if (staffRowIndex === -1) {
+                console.warn(`[Google Sheets] ADVERTENCIA: No se pudo mapear a "${staffName}" en el Excel.`);
+                continue;
+            }
+
+            const shiftRowNumber = staffRowIndex + 1;
+            const hoursRowNumber = shiftRowNumber + 1;
+
+            for (const shift of staffShifts) {
+                const day = new Date(shift.date + 'T00:00:00').getDate();
+                const colIndex = 4 + (day - 1); // E=4
+                const colLetter = getColumnLetter(colIndex + 1);
+
+                let code = '';
+                let hoursValue: any = 0;
+
+                switch (shift.shiftType) {
+                    case 'CORRIDO': code = 'C'; hoursValue = 12; break;
+                    case 'NOCHE': code = 'N'; hoursValue = 12; break;
+                    case 'POSTURNO': code = 'P'; hoursValue = 0; break;
+                    case 'LIBRE': code = 'L'; hoursValue = 0; break;
+                    case 'MANANA': code = 'M'; hoursValue = 8; break;
+                    case 'MANANA_TARDE': code = 'M/T'; hoursValue = 8; break;
+                    case 'VACACIONES': code = 'V'; hoursValue = 0; break;
+                    case 'LICENCIA': code = 'Lic'; hoursValue = 0; break;
+                    case 'CALAMIDAD': code = 'Cal'; hoursValue = 0; break;
+                    case 'PERMISO': code = 'Per'; hoursValue = 0; break;
+                    default: code = shift.shiftType.substring(0, 1); hoursValue = 0;
+                }
+
+                updateRequests.push({
+                    range: `${targetSheet}!${colLetter}${shiftRowNumber}`,
+                    values: [[code]]
+                });
+                updateRequests.push({
+                    range: `${targetSheet}!${colLetter}${hoursRowNumber}`,
+                    values: [[hoursValue]]
+                });
+            }
+        }
+
+        if (updateRequests.length > 0) {
+            await sheets.spreadsheets.values.batchUpdate({
+                spreadsheetId: STAFF_SHIFTS_SPREADSHEET_ID,
+                requestBody: {
+                    valueInputOption: 'USER_ENTERED',
+                    data: updateRequests
+                }
+            });
+        }
+
+        return { success: true, count: shifts.length };
+    } catch (error: any) {
+        console.error('[Google Sheets Error] Sync:', error);
+        return { success: false, error: error.message };
+    }
+}

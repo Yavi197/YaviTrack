@@ -11,11 +11,17 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { TechnologistShiftCalendar, CALENDAR_MODALITY_COLORS } from '@/components/app/technologist-shift-calendar';
-import { type CalendarShiftAssignment } from '@/components/app/technologist-shift-calendar';
-import { useToast } from '@/hooks/use-toast';
+import { StaffShiftMatrix, type MatrixShiftAssignment } from '@/components/app/staff-shift-matrix';
 import { db } from '@/lib/firebase';
-import { CalendarModalities, type CalendarModality, type ShiftAssignableRole, type ShiftType, ShiftTypes, type TechnologistShift } from '@/lib/types';
-import { deleteCalendarShiftAction, generateTechnologistShiftsAction, upsertCalendarShiftAction } from '@/app/actions';
+import { CalendarModalities, type CalendarModality, type ShiftAssignableRole, type ShiftType, ShiftTypes, type TechnologistShift, type UserProfile } from '@/lib/types';
+import { deleteCalendarShiftAction, generateTechnologistShiftsAction, upsertCalendarShiftAction, syncStaffShiftsToSheetAction } from '@/app/actions';
+import { ChevronLeft, ChevronRight, Loader2, Calendar as CalendarIcon, CloudUpload, LayoutGrid, Table } from 'lucide-react';
+import { DateRangePicker } from '@/components/ui/date-range-picker';
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { type DateRange } from 'react-day-picker';
+import { format, startOfDay, endOfDay } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 const months = [
     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -78,9 +84,13 @@ export default function TechnologistShiftPage() {
 
     // Generador automático (aún disponible para plantillas rápidas)
     const [technologistId, setTechnologistId] = useState('');
-    const [offset, setOffset] = useState(0);
+    const [startSequenceIndex, setStartSequenceIndex] = useState(0);
     const [notes, setNotes] = useState('');
     const [loadingGeneration, setLoadingGeneration] = useState(false);
+    const [generationModality, setGenerationModality] = useState<CalendarModality>('RX');
+    const [generationDateRange, setGenerationDateRange] = useState<DateRange | undefined>(undefined);
+    const [syncingToDrive, setSyncingToDrive] = useState(false);
+    const [viewMode, setViewMode] = useState<'calendar' | 'matrix'>('matrix');
 
     // Festivos visuales
     const [customHolidayDates, setCustomHolidayDates] = useState<Set<string>>(() => new Set<string>());
@@ -164,7 +174,7 @@ export default function TechnologistShiftPage() {
     const [deletingShift, setDeletingShift] = useState(false);
 
     useEffect(() => {
-        const rolesFilter: ShiftAssignableRole[] = ['tecnologo', 'transcriptora'];
+        const rolesFilter: string[] = ['tecnologo', 'transcriptora', 'enfermero'];
         const staffQuery = query(
             collection(db, 'users'),
             where('rol', 'in', rolesFilter)
@@ -189,6 +199,14 @@ export default function TechnologistShiftPage() {
 
         return () => unsubscribe();
     }, [toast]);
+
+    const staffRoleById = useMemo(() => {
+        const map = new Map<string, string>();
+        staffOptions.forEach((staff) => {
+            map.set(staff.uid, staff.rol);
+        });
+        return map;
+    }, [staffOptions]);
 
     useEffect(() => {
         if (technologistId && !technologistOptions.find((staff) => staff.uid === technologistId)) {
@@ -236,6 +254,10 @@ export default function TechnologistShiftPage() {
                 || resolvedUserId
                 || 'Sin nombre';
             const personKey = resolvedUserId || personLabel;
+            const role = (resolvedUserId ? staffRoleById.get(resolvedUserId) : undefined)
+                || (shift.assignedRole as string)
+                || 'tecnologo';
+
             const entry: CalendarShiftAssignment = {
                 id: shift.id,
                 shiftType: shift.shiftType,
@@ -243,6 +265,7 @@ export default function TechnologistShiftPage() {
                 personLabel,
                 note: shift.notes,
                 sortIndex: personKey ? personDisplayOrder.get(personKey) ?? personDisplayOrder.size : personDisplayOrder.size,
+                role,
             };
             if (!acc[shift.date]) {
                 acc[shift.date] = [];
@@ -257,6 +280,27 @@ export default function TechnologistShiftPage() {
 
         return map;
     }, [monthShifts, personDisplayOrder, staffNameById]);
+
+    const matrixAssignmentsMap = useMemo(() => {
+        const map: Record<string, MatrixShiftAssignment[]> = {};
+        monthShifts.forEach(shift => {
+            if (!shift.date || !shift.id) return;
+            const resId = shift.assignedUserId || shift.technologistId;
+            if (!resId) return;
+
+            if (!map[shift.date]) map[shift.date] = [];
+            
+            map[shift.date].push({
+                id: shift.id,
+                shiftType: shift.shiftType,
+                modality: (shift.modality as CalendarModality) ?? 'RX',
+                personId: resId,
+                personLabel: shift.assignedUserName || staffNameById.get(resId),
+                note: shift.notes
+            });
+        });
+        return map;
+    }, [monthShifts, staffNameById]);
 
     const selectedDayAssignments = useMemo(() => {
         if (!selectedDate) return [];
@@ -385,14 +429,21 @@ export default function TechnologistShiftPage() {
     };
 
     const handleGenerate = async () => {
-        if (!selectedTechnologist) {
-            toast({ variant: 'destructive', title: 'Falta tecnólogo', description: 'Selecciona el tecnólogo al que deseas asignar la secuencia.' });
+        const selectedTech = technologistOptions.find(s => s.uid === technologistId);
+        if (!selectedTech) {
+            toast({ variant: 'destructive', title: 'Falta información', description: 'Selecciona al tecnólogo para asignar la secuencia.' });
             return;
         }
+
+        if (!generationDateRange?.from || !generationDateRange?.to) {
+            toast({ variant: 'destructive', title: 'Falta rango', description: 'Selecciona un rango de fechas para generar los turnos.' });
+            return;
+        }
+
         setLoadingGeneration(true);
         try {
-            const holidayList = Array.from(holidayDatesSet);
-            const notesByDate = notes
+            const holidayDatesList = Array.from(holidayDatesSet);
+            const notesByDateMap = notes
                 .split('\n')
                 .map(line => line.trim())
                 .filter(Boolean)
@@ -405,26 +456,79 @@ export default function TechnologistShiftPage() {
                 }, {});
 
             const result = await generateTechnologistShiftsAction({
-                technologistId: selectedTechnologist.uid,
-                year,
-                month,
-                startSequenceIndex: Number(offset) || 0,
-                holidays: holidayList,
-                notesByDate,
-                assignedUserName: selectedTechnologist.nombre,
-                assignedRole: selectedTechnologist.rol,
+                technologistId: selectedTech.uid,
+                startDate: format(generationDateRange.from, 'yyyy-MM-dd'),
+                endDate: format(generationDateRange.to, 'yyyy-MM-dd'),
+                startSequenceIndex,
+                holidays: holidayDatesList,
+                notesByDate: notesByDateMap,
+                assignedUserName: selectedTech.nombre,
+                assignedRole: selectedTech.rol,
+                baseModality: generationModality,
             });
 
             if (result.success) {
-                toast({ title: 'Turnos generados', description: `Se generaron ${result.inserted} turnos para ${months[month - 1]} ${year}.` });
+                toast({ title: 'Secuencia Aplicada', description: `Se configuraron ${result.inserted} turnos en el rango seleccionado.` });
             } else {
-                toast({ variant: 'destructive', title: 'Error', description: result.error || 'No se pudieron crear los turnos.' });
+                toast({ variant: 'destructive', title: 'Error', description: result.error || 'No se pudo aplicar la secuencia.' });
             }
         } catch (error: any) {
             toast({ variant: 'destructive', title: 'Error', description: error.message });
         } finally {
             setLoadingGeneration(false);
         }
+    };
+
+    const handleSyncToDrive = async () => {
+        if (monthShifts.length === 0) {
+            toast({ variant: 'destructive', title: 'No hay datos', description: 'No hay turnos registrados en este mes para sincronizar.' });
+            return;
+        }
+
+        setSyncingToDrive(true);
+        try {
+            const currentMonthName = months[month - 1];
+            // Asegurarnos de que todos los turnos tengan el nombre resuelto del personal
+            const enrichedShifts = monthShifts.map(s => ({
+                ...s,
+                assignedUserName: s.assignedUserName || staffNameById.get(s.assignedUserId || s.technologistId) || 'Desconocido'
+            }));
+
+            const result = await syncStaffShiftsToSheetAction(enrichedShifts, currentMonthName, year);
+            if (result.success) {
+                toast({ title: 'Sincronización exitosa', description: `Se han actualizado los turnos en el Excel de Drive.` });
+            } else {
+                toast({ variant: 'destructive', title: 'Error de sincronización', description: result.error });
+            }
+        } catch (error: any) {
+            toast({ variant: 'destructive', title: 'Error', description: error.message });
+        } finally {
+            setSyncingToDrive(false);
+        }
+    };
+
+    const nextMonth = () => {
+        if (month === 12) {
+            setMonth(1);
+            setYear(year + 1);
+        } else {
+            setMonth(month + 1);
+        }
+    };
+
+    const prevMonth = () => {
+        if (month === 1) {
+            setMonth(12);
+            setYear(year - 1);
+        } else {
+            setMonth(month - 1);
+        }
+    };
+
+    const goToToday = () => {
+        const today = new Date();
+        setYear(today.getFullYear());
+        setMonth(today.getMonth() + 1);
     };
 
     const monthLabel = `${months[month - 1]} ${year}`;
@@ -440,29 +544,61 @@ export default function TechnologistShiftPage() {
                     </p>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    <div className="grid gap-4 md:grid-cols-3">
-                        <div className="grid gap-2">
-                            <Label>Año</Label>
-                            <Input type="number" value={year} onChange={(event) => setYear(Number(event.target.value))} />
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                        <div className="flex items-center gap-2">
+                            <Button variant="outline" size="sm" onClick={goToToday} className="font-bold text-xs uppercase tracking-widest rounded-xl px-4">
+                                Hoy
+                            </Button>
+                            <div className="flex items-center bg-zinc-100 rounded-xl p-1 shrink-0">
+                                <Button variant="ghost" size="icon" onClick={prevMonth} className="h-8 w-8 rounded-lg hover:bg-white hover:shadow-sm">
+                                    <ChevronLeft className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="icon" onClick={nextMonth} className="h-8 w-8 rounded-lg hover:bg-white hover:shadow-sm">
+                                    <ChevronRight className="h-4 w-4" />
+                                </Button>
+                            </div>
+                            <h2 className="text-xl font-black text-zinc-900 ml-2 uppercase tracking-tight">{monthLabel}</h2>
                         </div>
-                        <div className="grid gap-2">
-                            <Label>Mes</Label>
-                            <Select value={String(month)} onValueChange={(value) => setMonth(Number(value))}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Selecciona mes" />
+
+                        <div className="flex items-center gap-2">
+                             <Select value={String(month)} onValueChange={(value) => setMonth(Number(value))}>
+                                <SelectTrigger className="w-[140px] h-10 border-0 bg-zinc-100 rounded-xl font-bold text-xs uppercase hover:bg-zinc-200 transition-all">
+                                    <SelectValue placeholder="Mes" />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent className="rounded-xl border-0 shadow-2xl">
                                     {months.map((label, index) => (
-                                        <SelectItem key={label} value={String(index + 1)}>
-                                            {label}
-                                        </SelectItem>
+                                        <SelectItem key={label} value={String(index + 1)} className="text-xs font-bold uppercase">{label}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
-                        </div>
-                        <div className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">
-                            <p className="font-semibold text-foreground">{monthLabel}</p>
-                            <p>{shiftsLoading ? 'Cargando turnos del mes…' : `${monthShifts.length} turno(s) registrados.`}</p>
+                            <Input 
+                                type="number" 
+                                value={year} 
+                                onChange={(event) => setYear(Number(event.target.value))} 
+                                className="w-[100px] h-10 border-0 bg-zinc-100 rounded-xl font-bold text-xs text-center"
+                            />
+                            <Button
+                                variant="outline"
+                                onClick={handleSyncToDrive}
+                                disabled={syncingToDrive}
+                                className="h-10 border-zinc-100 shadow-sm font-black text-[10px] uppercase hover:bg-zinc-50 transition-all rounded-xl gap-2 active:scale-95"
+                            >
+                                {syncingToDrive ? <Loader2 className="h-3 w-3 animate-spin text-blue-600" /> : <CloudUpload className="h-3 w-3 text-blue-600" />}
+                                Sincronizar
+                            </Button>
+
+                            <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as any)} className="ml-2">
+                                <TabsList className="bg-zinc-100/80 rounded-xl p-1 h-10 border-0">
+                                    <TabsTrigger value="matrix" className="rounded-lg px-3 py-1 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                                        <Table className="h-4 w-4 mr-2 text-zinc-500" />
+                                        <span className="text-[10px] font-black uppercase">Matriz</span>
+                                    </TabsTrigger>
+                                    <TabsTrigger value="calendar" className="rounded-lg px-3 py-1 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                                        <LayoutGrid className="h-4 w-4 mr-2 text-zinc-500" />
+                                        <span className="text-[10px] font-black uppercase">Mes</span>
+                                    </TabsTrigger>
+                                </TabsList>
+                            </Tabs>
                         </div>
                     </div>
 
@@ -518,14 +654,56 @@ export default function TechnologistShiftPage() {
                         )}
                     </div>
 
-                    <TechnologistShiftCalendar
-                        year={year}
-                        month={month}
-                        assignments={assignmentsMap}
-                        onDayClick={handleDaySelect}
-                            onAssignmentClick={handleAssignmentClick}
-                            holidayDates={holidayDatesSet}
-                    />
+                    {viewMode === 'calendar' ? (
+                        <TechnologistShiftCalendar
+                            year={year}
+                            month={month}
+                            assignments={assignmentsMap}
+                            onDayClick={(date) => resetFormForDate(date)}
+                            onAssignmentClick={(id, date) => {
+                                const shift = monthShifts.find((s) => s.id === id);
+                                if (shift) {
+                                    setSelectedDate(date);
+                                    setSelectedShiftId(id);
+                                    setSelectedStaffId(shift.assignedUserId || shift.technologistId || '');
+                                    setSelectedModality((shift.modality as CalendarModality) ?? 'RX');
+                                    setSelectedShiftType(shift.shiftType);
+                                    setSelectedNote(shift.notes || '');
+                                    setIsDayDialogOpen(true);
+                                }
+                            }}
+                            holidayDates={customHolidayDates}
+                        />
+                    ) : (
+                        <StaffShiftMatrix 
+                            year={year}
+                            month={month}
+                            staff={staffOptions as any[]}
+                            assignments={matrixAssignmentsMap}
+                            onCellClick={(date, staffId, assignmentId) => {
+                                if (assignmentId) {
+                                    const shift = monthShifts.find((s) => s.id === assignmentId);
+                                    if (shift) {
+                                        setSelectedDate(date);
+                                        setSelectedShiftId(assignmentId);
+                                        setSelectedStaffId(staffId);
+                                        setSelectedModality((shift.modality as CalendarModality) ?? 'RX');
+                                        setSelectedShiftType(shift.shiftType);
+                                        setSelectedNote(shift.notes || '');
+                                        setIsDayDialogOpen(true);
+                                    }
+                                } else {
+                                    setSelectedDate(date);
+                                    setSelectedShiftId(null);
+                                    setSelectedStaffId(staffId);
+                                    setSelectedModality('RX');
+                                    setSelectedShiftType('CORRIDO');
+                                    setSelectedNote('');
+                                    setIsDayDialogOpen(true);
+                                }
+                            }}
+                        />
+                    )}
 
                     <div className="flex flex-wrap gap-4 text-sm">
                         {calendarModalities.map((modality) => (
@@ -543,130 +721,211 @@ export default function TechnologistShiftPage() {
                     <CardTitle>Generar secuencia automática (opcional)</CardTitle>
                     <p className="text-sm text-muted-foreground">Mantuvimos la herramienta de generación masiva para crear plantillas rápidas y luego ajustar en el calendario.</p>
                 </CardHeader>
-                <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    <div className="grid gap-2">
-                        <Label>Tecnólogo</Label>
-                        <Select value={technologistId} onValueChange={setTechnologistId} disabled={staffLoading}>
-                            <SelectTrigger>
-                                <SelectValue placeholder={staffLoading ? 'Cargando personal...' : 'Selecciona al tecnólogo'} />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {technologistOptions.map((staff) => (
-                                    <SelectItem key={staff.uid} value={staff.uid}>
-                                        {staff.nombre}
-                                    </SelectItem>
+                <CardContent className="space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="grid gap-2">
+                            <Label className="text-[10px] font-black uppercase text-zinc-500 ml-1">Personal Responsable</Label>
+                            <Select value={technologistId} onValueChange={setTechnologistId} disabled={staffLoading}>
+                                <SelectTrigger className="h-12 bg-white border-zinc-100 rounded-xl focus:ring-zinc-900 transition-all font-bold shadow-sm">
+                                    <SelectValue placeholder={staffLoading ? 'Cargando...' : 'Selecciona...'} />
+                                </SelectTrigger>
+                                <SelectContent className="rounded-xl border-zinc-100 shadow-2xl">
+                                    {technologistOptions.map((staff) => (
+                                        <SelectItem key={staff.uid} value={staff.uid} className="font-bold">
+                                            {staff.nombre}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="grid gap-2">
+                            <Label className="text-[10px] font-black uppercase text-zinc-500 ml-1">Modalidad de Equipos</Label>
+                            <Select value={generationModality} onValueChange={(v) => setGenerationModality(v as CalendarModality)}>
+                                <SelectTrigger className="h-12 bg-white border-zinc-100 rounded-xl focus:ring-zinc-900 transition-all font-bold shadow-sm">
+                                    <SelectValue placeholder="Modalidad..." />
+                                </SelectTrigger>
+                                <SelectContent className="rounded-xl border-zinc-100 shadow-2xl">
+                                    {calendarModalities.map((mod) => (
+                                        <SelectItem key={mod} value={mod} className="font-bold">{mod}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="grid gap-2">
+                            <Label className="text-[10px] font-black uppercase text-zinc-500 ml-1">Rango de Generación</Label>
+                            <div className="flex items-center gap-2 bg-white border border-zinc-100 rounded-xl px-3 h-12 shadow-sm">
+                                <CalendarIcon className="h-4 w-4 text-zinc-400 shrink-0" />
+                                <DateRangePicker 
+                                    date={generationDateRange} 
+                                    setDate={setGenerationDateRange} 
+                                    onApply={() => {}} 
+                                />
+                            </div>
+                        </div>
+                        <div className="grid gap-2">
+                            <Label className="text-[10px] font-black uppercase text-zinc-500 ml-1">Iniciar Ciclo con</Label>
+                            <div className="grid grid-cols-2 gap-1 bg-zinc-100 p-1 rounded-xl h-12">
+                                {['CORRIDO', 'NOCHE', 'POSTURNO', 'LIBRE'].map((type, index) => (
+                                    <button
+                                        key={type}
+                                        type="button"
+                                        onClick={() => setStartSequenceIndex(index)}
+                                        className={cn(
+                                            "rounded-lg text-[9px] font-black uppercase transition-all",
+                                            startSequenceIndex === index 
+                                                ? "bg-white text-zinc-900 shadow-sm" 
+                                                : "text-zinc-400 hover:text-zinc-600"
+                                        )}
+                                    >
+                                        {type === 'CORRIDO' ? 'C' : type === 'NOCHE' ? 'N' : type === 'POSTURNO' ? 'P' : 'L'}
+                                    </button>
                                 ))}
-                            </SelectContent>
-                        </Select>
+                            </div>
+                            <div className="flex justify-between px-1">
+                                {['Corrido', 'Noche', 'Pos', 'Libre'].map((label, i) => (
+                                    <span key={label} className={cn("text-[8px] font-bold uppercase", startSequenceIndex === i ? "text-zinc-900" : "text-zinc-300")}>{label}</span>
+                                ))}
+                            </div>
+                        </div>
                     </div>
-                    <div className="grid gap-2">
-                        <Label>Offset inicial (0-3)</Label>
-                        <Input type="number" min={0} max={3} value={offset} onChange={(event) => setOffset(Number(event.target.value))} />
-                        <p className="text-xs text-muted-foreground">0: Corrido · 1: Noche · 2: Posturno · 3: Libre</p>
-                    </div>
-                    <div className="grid gap-2 md:col-span-2 lg:col-span-3">
-                        <Label>Notas por fecha (YYYY-MM-DD: texto)</Label>
-                        <Textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="2025-01-15: cubrir turno RX" rows={3} />
-                    </div>
-                    <div className="md:col-span-2 lg:col-span-3">
-                        <Button onClick={handleGenerate} disabled={loadingGeneration} className="w-full md:w-auto">
-                            {loadingGeneration ? 'Generando...' : 'Generar turnos'}
+
+                    <div className="flex flex-col md:flex-row items-center gap-6 pt-4 border-t border-zinc-50">
+                        <div className="grid gap-2 flex-1 w-full">
+                            <Label className="text-[10px] font-black uppercase text-zinc-500 ml-1">Notas y Ajustes Rápidos (YYYY-MM-DD: texto)</Label>
+                            <Textarea 
+                                value={notes} 
+                                onChange={(event) => setNotes(event.target.value)} 
+                                placeholder="Ej: 2025-01-15: cubrir turno especial" 
+                                rows={1} 
+                                className="bg-zinc-50 border-zinc-100 rounded-xl resize-none focus:ring-zinc-900 transition-all font-medium min-h-[48px]"
+                            />
+                        </div>
+                        <Button 
+                            onClick={handleGenerate} 
+                            disabled={loadingGeneration} 
+                            className="w-full md:w-[240px] h-12 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white font-black uppercase tracking-widest shadow-xl shadow-zinc-200 transition-all active:scale-95 shrink-0"
+                        >
+                            {loadingGeneration ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                            {loadingGeneration ? 'Procesando...' : 'Aplicar Secuencia'}
                         </Button>
                     </div>
                 </CardContent>
             </Card>
 
             <Dialog open={isDayDialogOpen} onOpenChange={handleDialogOpenChange}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>{selectedDate ? `Turno para ${formatDialogDate(selectedDate)}` : 'Turno manual'}</DialogTitle>
-                        {selectedDate && selectedDayAssignments.length > 0 && (
-                            <div className="mt-2 rounded-lg border bg-muted/30 p-3">
-                                <p className="text-xs font-semibold uppercase text-muted-foreground">Turnos existentes</p>
-                                <div className="mt-2 flex flex-col gap-2">
+                <DialogContent className="p-0 border-0 rounded-2xl shadow-2xl overflow-hidden max-w-lg">
+                    <div className="bg-zinc-900 px-6 py-5">
+                      <DialogTitle className="text-white font-black text-lg">
+                        {selectedDate ? `Turno para ${formatDialogDate(selectedDate)}` : 'Gestionar Turno'}
+                      </DialogTitle>
+                      <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mt-1">Asigna personal y modalidad</p>
+                    </div>
+
+                    <div className="p-6 space-y-5">
+                        {selectedDate && selectedDayAssignments.length > 0 && !selectedShiftId && (
+                            <div className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50/50 p-4">
+                                <p className="text-[9px] font-black uppercase text-zinc-400 tracking-widest mb-3">Turnos ya registrados hoy</p>
+                                <div className="flex flex-col gap-2">
                                     {selectedDayAssignments.map((assignment) => (
                                         <button
                                             key={assignment.id}
                                             type="button"
-                                            className={`rounded-md border px-3 py-2 text-left text-sm transition hover:border-primary ${selectedShiftId === assignment.id ? 'border-primary bg-primary/5' : ''}`}
+                                            className="flex items-center justify-between bg-white border border-zinc-100 rounded-xl px-4 py-2.5 text-left transition-all hover:border-zinc-300 hover:shadow-sm"
                                             onClick={() => handleAssignmentClick(assignment.id)}
                                         >
-                                            <div className="flex items-center gap-2 text-xs font-semibold uppercase">
+                                            <div className="flex items-center gap-3">
                                                 <span className={`h-2 w-2 rounded-full ${CALENDAR_MODALITY_COLORS[assignment.modality].dot}`} />
-                                                <span>{assignment.shiftType}</span>
+                                                <div className="flex flex-col">
+                                                  <p className="text-[10px] font-black text-zinc-900 uppercase leading-none mb-1">{assignment.personLabel}</p>
+                                                  <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-tighter">{assignment.shiftType} · {assignment.modality}</p>
+                                                </div>
                                             </div>
-                                            <p className="text-sm font-medium">{assignment.personLabel ?? 'Sin asignar'}</p>
-                                            {assignment.note && <p className="text-xs text-muted-foreground">{assignment.note}</p>}
+                                            <ChevronRight className="h-3 w-3 text-zinc-300" />
                                         </button>
                                     ))}
                                 </div>
                             </div>
                         )}
-                    </DialogHeader>
                     <div className="grid gap-4 py-2">
                         <div className="grid gap-2">
-                            <Label>Responsable</Label>
+                            <Label className="text-[10px] font-black uppercase text-zinc-500 ml-1">Responsable</Label>
                             <Select value={selectedStaffId} onValueChange={setSelectedStaffId} disabled={staffLoading}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder={staffLoading ? 'Cargando personal...' : 'Selecciona a quién asignar'} />
+                                <SelectTrigger className="h-11 bg-zinc-50 border-0 rounded-xl focus:ring-zinc-900 transition-all font-bold">
+                                    <SelectValue placeholder={staffLoading ? 'Cargando...' : 'Selecciona a quién asignar'} />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent className="rounded-xl border-0 shadow-2xl">
                                     {staffOptions.map((staff) => (
-                                        <SelectItem key={staff.uid} value={staff.uid}>
-                                            {staff.nombre} · {staff.rol === 'tecnologo' ? 'Tecnólogo' : 'Transcriptora'}
+                                        <SelectItem key={staff.uid} value={staff.uid} className="font-bold">
+                                            {staff.nombre} · <span className="opacity-50 font-normal">{staff.rol === 'tecnologo' ? 'Tec' : 'Trs'}</span>
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         </div>
-                        <div className="grid gap-2">
-                            <Label>Modalidad</Label>
-                            <Select value={selectedModality} onValueChange={(value) => setSelectedModality(value as CalendarModality)}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Selecciona modalidad" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {calendarModalities.map((modality) => (
-                                        <SelectItem key={modality} value={modality}>
-                                            {modality}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="grid gap-2">
+                              <Label className="text-[10px] font-black uppercase text-zinc-500 ml-1">Modalidad</Label>
+                              <Select value={selectedModality} onValueChange={(value) => setSelectedModality(value as CalendarModality)}>
+                                  <SelectTrigger className="h-11 bg-zinc-50 border-0 rounded-xl focus:ring-zinc-900 transition-all font-bold">
+                                      <SelectValue placeholder="Modalidad" />
+                                  </SelectTrigger>
+                                  <SelectContent className="rounded-xl border-0 shadow-2xl">
+                                      {calendarModalities.map((modality) => (
+                                          <SelectItem key={modality} value={modality} className="font-bold">{modality}</SelectItem>
+                                      ))}
+                                  </SelectContent>
+                              </Select>
+                          </div>
+                          <div className="grid gap-2">
+                              <Label className="text-[10px] font-black uppercase text-zinc-500 ml-1">Tipo de turno</Label>
+                              <Select value={selectedShiftType} onValueChange={(value) => setSelectedShiftType(value as ShiftType)}>
+                                  <SelectTrigger className="h-11 bg-zinc-50 border-0 rounded-xl focus:ring-zinc-900 transition-all font-bold uppercase text-xs">
+                                      <SelectValue placeholder="Tipo de turno" />
+                                  </SelectTrigger>
+                                  <SelectContent className="rounded-xl border-0 shadow-2xl">
+                                      {ShiftTypes.map((type) => (
+                                          <SelectItem key={type} value={type} className="uppercase text-xs font-bold">{type}</SelectItem>
+                                      ))}
+                                  </SelectContent>
+                              </Select>
+                          </div>
                         </div>
+
                         <div className="grid gap-2">
-                            <Label>Tipo de turno</Label>
-                            <Select value={selectedShiftType} onValueChange={(value) => setSelectedShiftType(value as ShiftType)}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Selecciona tipo de turno" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {ShiftTypes.map((type) => (
-                                        <SelectItem key={type} value={type}>
-                                            {type}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Nota (opcional)</Label>
-                            <Textarea value={selectedNote} onChange={(event) => setSelectedNote(event.target.value)} placeholder="Cobertura especial, recordatorios, etc." rows={3} />
+                            <Label className="text-[10px] font-black uppercase text-zinc-500 ml-1">Nota (opcional)</Label>
+                            <Textarea 
+                                value={selectedNote} 
+                                onChange={(event) => setSelectedNote(event.target.value)} 
+                                placeholder="Cobertura especial, recordatorios, etc." 
+                                rows={2} 
+                                className="bg-zinc-50 border-0 rounded-xl resize-none focus:ring-zinc-900 transition-all"
+                            />
                         </div>
                     </div>
-                    <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-between">
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            disabled={!selectedShiftId || deletingShift}
-                            onClick={handleDeleteShift}
+                </div>
+
+                    <div className="px-6 pb-8 pt-2 flex flex-col gap-3">
+                        <Button 
+                            type="button" 
+                            onClick={handleSaveShift} 
+                            disabled={savingShift}
+                            className="h-12 rounded-xl bg-amber-400 hover:bg-amber-500 text-zinc-900 font-black uppercase tracking-widest shadow-lg shadow-amber-100 transition-all active:scale-95"
                         >
-                            {deletingShift ? 'Eliminando...' : 'Eliminar turno'}
+                            {savingShift ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar turno'}
                         </Button>
-                        <Button type="button" onClick={handleSaveShift} disabled={savingShift}>
-                            {savingShift ? 'Guardando...' : 'Guardar turno'}
-                        </Button>
-                    </DialogFooter>
+                        
+                        {selectedShiftId && (
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                disabled={deletingShift}
+                                onClick={handleDeleteShift}
+                                className="h-10 rounded-xl text-zinc-400 hover:text-red-600 hover:bg-red-50 font-bold text-xs uppercase"
+                            >
+                                {deletingShift ? 'Eliminando...' : 'Eliminar el turno seleccionado'}
+                            </Button>
+                        )}
+                    </div>
                 </DialogContent>
             </Dialog>
         </div>

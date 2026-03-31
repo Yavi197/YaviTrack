@@ -11,7 +11,7 @@ export type UserRole = typeof UserRoles[number];
 export const Modalities = ["TAC", "RX", "ECO", "MAMO", "DENSITOMETRIA", "RMN"] as const;
 export type Modality = typeof Modalities[number];
 
-export const ShiftTypes = ['CORRIDO', 'NOCHE', 'POSTURNO', 'LIBRE', 'MANANA_TARDE', 'MANANA'] as const;
+export const ShiftTypes = ['CORRIDO', 'NOCHE', 'POSTURNO', 'LIBRE', 'MANANA_TARDE', 'MANANA', 'VACACIONES', 'LICENCIA', 'CALAMIDAD', 'PERMISO'] as const;
 export type ShiftType = typeof ShiftTypes[number];
 
 export const CalendarModalities = ['RX', 'ECO', 'TAC'] as const;

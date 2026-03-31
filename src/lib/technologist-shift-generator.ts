@@ -24,12 +24,13 @@ export type ManualShiftOverride = {
 
 export type GenerateTechnologistShiftsOptions = {
     technologistId: string;
-    year: number; // e.g. 2025
-    month: number; // 1-12
+    startDate: string; // ISO YYYY-MM-DD
+    endDate: string; // ISO YYYY-MM-DD
     startSequenceIndex?: number; // 0-3
     holidays?: Iterable<string>; // fechas YYYY-MM-DD
     notesByDate?: Record<string, string>;
     manualOverrides?: ManualShiftOverride[];
+    baseModality?: CalendarModality;
 };
 
 const pad = (value: number) => value.toString().padStart(2, '0');
@@ -61,31 +62,41 @@ export const getShiftTimingForDate = (dateStr: string, shiftType: ShiftType) => 
     };
 };
 
-const getDaysInMonth = (year: number, month: number) => {
-    return new Date(year, month, 0).getDate();
-};
+export const generateTechnologistShiftsInRange = (options: GenerateTechnologistShiftsOptions): TechnologistShift[] => {
+    const { 
+        technologistId, 
+        startDate, 
+        endDate, 
+        startSequenceIndex = 0, 
+        holidays, 
+        notesByDate, 
+        manualOverrides, 
+        baseModality = 'RX' 
+    } = options;
 
-const formatDate = (year: number, monthIndex: number, day: number) => {
-    return `${year}-${pad(monthIndex + 1)}-${pad(day)}`;
-};
-
-export const generateTechnologistMonthlyShifts = (options: GenerateTechnologistShiftsOptions): TechnologistShift[] => {
-    const { technologistId, year, month, startSequenceIndex = 0, holidays, notesByDate, manualOverrides } = options;
-    if (month < 1 || month > 12) {
-        throw new Error('month must be between 1 and 12');
+    const start = new Date(`${startDate}T00:00:00`);
+    const end = new Date(`${endDate}T00:00:00`);
+    
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        throw new Error('Fechas inválidas');
     }
-    const monthIndex = month - 1;
-    const totalDays = getDaysInMonth(year, month);
+
+    const totalDays = Math.floor((end.getTime() - start.getTime()) / (24 * 60 * 60 * 1000)) + 1;
+    if (totalDays <= 0) return [];
+
     const holidaySet = new Set(holidays ?? []);
     const manualOverrideMap = new Map<string, ManualShiftOverride>();
     for (const override of manualOverrides ?? []) {
         manualOverrideMap.set(override.date, override);
     }
+
     const shifts: TechnologistShift[] = [];
     let sequenceIndex = startSequenceIndex % SHIFT_SEQUENCE.length;
 
-    for (let day = 1; day <= totalDays; day++) {
-        const dateStr = formatDate(year, monthIndex, day);
+    for (let i = 0; i < totalDays; i++) {
+        const currentDate = new Date(start.getTime() + i * 24 * 60 * 60 * 1000);
+        const dateStr = currentDate.toISOString().split('T')[0];
+        
         const baseShiftType = SHIFT_SEQUENCE[sequenceIndex];
         const manualOverride = manualOverrideMap.get(dateStr);
         const finalShiftType = manualOverride?.shiftType ?? baseShiftType;
@@ -103,15 +114,12 @@ export const generateTechnologistMonthlyShifts = (options: GenerateTechnologistS
             hours,
             holiday: holidaySet.has(dateStr),
             status: 'assigned',
+            modality: finalModality || baseModality,
         };
 
         const finalNote = (manualOverride?.note ?? noteFromForm)?.trim();
         if (finalNote) {
             shift.notes = finalNote;
-        }
-
-        if (finalModality) {
-            shift.modality = finalModality;
         }
 
         if (manualOverride) {
@@ -122,7 +130,6 @@ export const generateTechnologistMonthlyShifts = (options: GenerateTechnologistS
         }
 
         shifts.push(shift);
-
         sequenceIndex = (sequenceIndex + 1) % SHIFT_SEQUENCE.length;
     }
 
