@@ -13,6 +13,10 @@ const SHIFT_CONFIG: Record<ShiftType, { startHour: number; durationHours: number
     LIBRE: { startHour: 7, durationHours: 24, countedHours: 0 },
     MANANA_TARDE: { startHour: 7, durationHours: 10, countedHours: 8 },
     MANANA: { startHour: 8, durationHours: 4, countedHours: 4 },
+    VACACIONES: { startHour: 7, durationHours: 0, countedHours: 0 },
+    LICENCIA: { startHour: 7, durationHours: 0, countedHours: 0 },
+    CALAMIDAD: { startHour: 7, durationHours: 0, countedHours: 0 },
+    PERMISO: { startHour: 7, durationHours: 0, countedHours: 0 },
 };
 
 export type ManualShiftOverride = {
