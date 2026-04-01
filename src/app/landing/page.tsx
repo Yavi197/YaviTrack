@@ -26,7 +26,7 @@ const features = [
   {
     icon: ClipboardList,
     title: 'Administración y Auditoría Integral',
-    description: 'Además de optimizar el flujo, Medi-Track sirve como un sistema de registro robusto, facilitando la gestión de inventario de insumos y la generación de reportes detallados para auditoría y facturación.',
+    description: 'Además de optimizar el flujo, Med-iTrack sirve como un sistema de registro robusto, facilitando la gestión de inventario de insumos y la generación de reportes detallados para auditoría y facturación.',
     img: "https://picsum.photos/seed/feature-admin/1200/900",
     imgHint: "medical audit inventory"
   },
@@ -73,7 +73,7 @@ export default function LandingPage() {
                     <Link href="/landing" className="flex items-center gap-3">
                         <AppLogoIcon className="h-8 w-8 text-primary" />
                         <h1 className="text-xl font-bold font-headline tracking-tight">
-                            Medi-Track Solutions<sup className="text-xs">&reg;</sup>
+                            Med-iTrack Solutions<sup className="text-xs">&reg;</sup>
                         </h1>
                     </Link>
                     <Button asChild>
@@ -90,18 +90,18 @@ export default function LandingPage() {
                             Optimiza tu Flujo de Trabajo Clínico. <span className="text-primary">Inteligente y Eficaz.</span>
                         </h1>
                         <p className="max-w-2xl text-lg text-muted-foreground">
-                            Medi-Track es la plataforma definitiva para gestionar solicitudes de estudios de diagnóstico por imágenes e interconsultas médicas. Centraliza, agiliza y reduce errores.
+                            Med-iTrack es la plataforma definitiva para gestionar solicitudes de estudios de diagnóstico por imágenes e interconsultas médicas. Centraliza, agiliza y reduce errores.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4">
                             <Button asChild size="lg" className="text-lg">
-                                <Link href="/login">Acceder a Medi-Track</Link>
+                                <Link href="/login">Acceder a Med-iTrack</Link>
                             </Button>
                         </div>
                     </div>
                     <div className="relative w-full h-80 lg:h-96 rounded-xl overflow-hidden shadow-2xl">
                          <Image
                             src="https://picsum.photos/seed/landing-hero/1200/800"
-                            alt="Dashboard de Medi-Track"
+                            alt="Dashboard de Med-iTrack"
                             fill
                             style={{ objectFit: 'cover' }}
                             priority
@@ -178,7 +178,7 @@ export default function LandingPage() {
                                     Únete a la revolución digital en la gestión de salud. Accede ahora y descubre una forma más inteligente de trabajar.
                                 </p>
                                 <Button asChild size="lg" className="text-lg">
-                                    <Link href="/login">Acceder a Medi-Track</Link>
+                                    <Link href="/login">Acceder a Med-iTrack</Link>
                                 </Button>
                             </div>
                         </ScrollFadeIn>
@@ -188,7 +188,7 @@ export default function LandingPage() {
 
             <footer className="border-t">
                 <div className="container flex items-center justify-center h-16">
-                    <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} Medi-Track. Todos los derechos reservados.</p>
+                    <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} Med-iTrack. Todos los derechos reservados.</p>
                 </div>
             </footer>
         </div>

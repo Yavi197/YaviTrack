@@ -62,7 +62,7 @@ export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
       const link = document.createElement("a");
       const url = URL.createObjectURL(blob);
       
-      let fileName = "Medi-Track Export";
+      let fileName = "Med-iTrack Export";
       if (exportDateRange?.from) {
         const from = formatDate(exportDateRange.from, 'dd-MM-yyyy');
         if (exportDateRange.to) {

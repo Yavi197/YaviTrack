@@ -53,7 +53,7 @@ export function handleServerActionError({
       variant: "destructive",
       title: "Actualizamos la app",
       description:
-        "Medi-Track instaló una nueva versión. Recargaremos para evitar errores.",
+        "Med-iTrack instaló una nueva versión. Recargaremos para evitar errores.",
     });
     setTimeout(() => {
       if (typeof window !== "undefined") {

@@ -168,7 +168,7 @@ function ModuleSelectionContent() {
                      <div className="flex items-center gap-2"><LayoutGrid className="h-4 w-4" /><span className="text-[10px] font-black uppercase tracking-widest">Multi-módulo</span></div>
                      <div className="flex items-center gap-2"><Activity className="h-4 w-4" /><span className="text-[10px] font-black uppercase tracking-widest">Tiempo Real</span></div>
                  </div>
-                 <p className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400">© 2026 Medi-Track Systems - Advanced Medical Intelligence.</p>
+                 <p className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400">© 2026 Med-iTrack Systems - Advanced Medical Intelligence.</p>
             </div>
         </div>
     );
