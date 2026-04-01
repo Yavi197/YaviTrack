@@ -15,6 +15,11 @@ export const metadata: Metadata = {
     template: "%s - " + APP_NAME,
   },
   description: APP_DESCRIPTION,
+  manifest: "/manifest.json",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
   other: {
     "mobile-web-app-capable": "yes",
   },
