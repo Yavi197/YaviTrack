@@ -605,22 +605,27 @@ function DailySummaryWidget({ dutyUsers, allUsers, onStatusChange, onStatusFilte
                 </div>
             </CardContent>
         </Card>
-         <AssignOperatorDialog
-            open={assignTechnologistOpen}
-            onOpenChange={setAssignTechnologistOpen}
-            title="Asignar Tecnólogo de Turno"
-            description="Seleccione el tecnólogo que estará a cargo de los estudios de Rayos X."
-            operators={[...new Set(allUsers.filter(u => u.rol === 'tecnologo').flatMap(u => (u.operadores as any) || []))] as string[]}
-            onAssign={op => handleAssignOperator('tecnologo', op)}
-         />
-         <AssignOperatorDialog
-            open={assignRadiologistOpen}
-            onOpenChange={setAssignRadiologistOpen}
-            title="Asignar Radiólogo de Turno"
-            description="Seleccione el radiólogo que estará a cargo de las ecografías."
-            operators={[...new Set(allUsers.filter(u => u.rol === 'transcriptora').flatMap(u => (u.operadores as any) || []))] as string[]}
-            onAssign={op => handleAssignOperator('transcriptora', op)}
-         />
+          {assignTechnologistOpen && (
+            <AssignOperatorDialog
+              open={assignTechnologistOpen}
+              onOpenChange={setAssignTechnologistOpen}
+              title="Asignar Tecnólogo de Turno"
+              description="Seleccione el tecnólogo que estará a cargo de los estudios de Rayos X."
+              operators={[...new Set(allUsers.filter(u => u.rol === 'tecnologo').flatMap(u => (u.operadores as any) || []))] as string[]}
+              onAssign={op => handleAssignOperator('tecnologo', op)}
+            />
+          )}
+
+          {assignRadiologistOpen && (
+            <AssignOperatorDialog
+              open={assignRadiologistOpen}
+              onOpenChange={setAssignRadiologistOpen}
+              title="Asignar Radiólogo de Turno"
+              description="Seleccione el radiólogo que estará a cargo de las ecografías."
+              operators={[...new Set(allUsers.filter(u => u.rol === 'transcriptora').flatMap(u => (u.operadores as any) || []))] as string[]}
+              onAssign={op => handleAssignOperator('transcriptora', op)}
+            />
+          )}
         </>
     );
 }
@@ -653,7 +658,28 @@ function ShiftReminderDialog({ show, onConfirm, onOpenHandover, isTechnologist }
 }
 
 function AlarmDialog({ alarm, onClose }: { alarm: any; onClose: () => void; }) {
-  return (<AlertDialog open={!!alarm} onOpenChange={(open) => !open && onClose()}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle className="flex items-center gap-2 text-red-600"><AlertTriangle className="h-8 w-8" /><span className="text-2xl">¡ALARMA GENERAL!</span></AlertDialogTitle><AlertDialogDescription className="pt-4 text-lg">Alarma activada por <span className="font-bold">{alarm?.triggeredBy?.name}</span> ({alarm?.triggeredBy?.rol}).<br/>Por favor, responda a la emergencia.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogAction onClick={onClose} className="bg-red-600 hover:bg-red-700">Entendido</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>);
+  return (
+    <AlertDialog open={!!alarm} onOpenChange={(open) => !open && onClose()}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle className="flex items-center gap-2 text-red-600">
+            <AlertTriangle className="h-8 w-8" />
+            <span className="text-2xl">¡ALARMA GENERAL!</span>
+          </AlertDialogTitle>
+          <AlertDialogDescription className="pt-4 text-lg">
+            Alarma activada por <span className="font-bold">{alarm?.triggeredBy?.name}</span> ({alarm?.triggeredBy?.rol}).
+            <br />
+            Por favor, responda a la emergencia.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogAction onClick={onClose} className="bg-red-600 hover:bg-red-700">
+            Entendido
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
 }
 
 
@@ -1183,12 +1209,14 @@ export default function DashboardPage() {
   return (
     <div className="w-full px-4 sm:px-6 xl:px-10 py-6 space-y-6">
       <OperatorSelectionDialog />
-      <ShiftReminderDialog 
-        show={showReminder} 
-        onConfirm={confirmReminder} 
-        onOpenHandover={() => setShiftHandoverOpen(true)}
-        isTechnologist={currentProfile?.rol === 'tecnologo'}
-      />
+      {showReminder && (
+        <ShiftReminderDialog 
+          show={showReminder} 
+          onConfirm={confirmReminder} 
+          onOpenHandover={() => setShiftHandoverOpen(true)}
+          isTechnologist={currentProfile?.rol === 'tecnologo'}
+        />
+      )}
       <ShiftHandoverDialog 
         open={shiftHandoverOpen}
         onOpenChange={setShiftHandoverOpen}
@@ -1203,7 +1231,7 @@ export default function DashboardPage() {
           allUsers.filter(u => u.rol === 'tecnologo')
         }
       />
-      <AlarmDialog alarm={activeAlarm} onClose={() => setActiveAlarm(null)} />
+      {activeAlarm && <AlarmDialog alarm={activeAlarm} onClose={() => setActiveAlarm(null)} />}
       <CreatininePromptDialog open={creatininePromptOpen} onOpenChange={setCreatininePromptOpen} onConfirm={handleCreatinineSubmit} onCancel={() => setPendingOrderData(null)}/>
       <ServiceSelectionDialog open={serviceSelectionOpen} onOpenChange={setServiceSelectionOpen} onConfirm={handleServiceSelectionSubmit} onCancel={() => setPendingOrderData(null)}/>
       <SelectStudiesDialog 

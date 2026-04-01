@@ -35,6 +35,8 @@ export function AssignOperatorDialog({
 }: AssignOperatorDialogProps) {
   const [selectedOperator, setSelectedOperator] = useState<string | null>(null);
 
+  if (!open) return null;
+
   const handleConfirm = () => {
     if (selectedOperator) {
       onAssign(selectedOperator);
@@ -46,17 +48,14 @@ export function AssignOperatorDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle id="assign-operator-title">{title}</AlertDialogTitle>
-          <AlertDialogDescription id="assign-operator-desc">{description}</AlertDialogDescription>
+          <AlertDialogTitle>{title || "Asignar Operador"}</AlertDialogTitle>
+          <AlertDialogDescription>{description || "Por favor seleccione un operador para continuar."}</AlertDialogDescription>
         </AlertDialogHeader>
         <ScrollArea className="max-h-60 w-full rounded-md border p-4">
           <RadioGroup
             value={selectedOperator ?? undefined}
             onValueChange={setSelectedOperator}
             className="flex flex-col gap-3"
-            aria-labelledby="assign-operator-title"
-            aria-describedby="assign-operator-desc"
-            role="radiogroup"
           >
             {operators.length > 0 ? operators.map((op) => (
               <div key={op} className="flex items-center space-x-3">
