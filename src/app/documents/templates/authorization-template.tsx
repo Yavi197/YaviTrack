@@ -3,8 +3,12 @@
 import type { Study } from '@/lib/types';
 import { format } from 'date-fns';
 import { DocumentHeader } from '@/components/app/document-header';
+import { Provider, PROVIDERS } from '@/lib/providers';
 
-export function AuthorizationTemplate({ study }: { study: Study }) {
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { cn } from '@/lib/utils';
+
+export function AuthorizationTemplate({ study, provider = PROVIDERS[0], onProviderChange }: { study: Study, provider?: Provider, onProviderChange?: (p: Provider) => void }) {
   // Ensure studyDate is a valid Date object before formatting
   let studyDate: Date | null = null;
   if (study.requestDate) {
@@ -44,15 +48,39 @@ export function AuthorizationTemplate({ study }: { study: Study }) {
         <tbody>
           <tr>
             <td style={{ fontWeight: 'bold', border: '1px solid black', padding: '4px', width: '15%' }}>NOMBRE:</td>
-            <td style={{ border: '1px solid black', padding: '4px' }} {...editableProps}>RESONANCIA DE ALTA TECNOLOGÍA DEL CARIBE S.A.S.</td>
+            <td style={{ border: '1px solid black', padding: '0px' }} className="relative bg-zinc-50/30 group hover:bg-zinc-100/50 transition-colors">
+              <div className="print:hidden">
+                <Select 
+                  value={provider.id} 
+                  onValueChange={(id) => {
+                    const p = PROVIDERS.find(x => x.id === id);
+                    if (p && onProviderChange) onProviderChange(p);
+                  }}
+                >
+                  <SelectTrigger className="h-full w-full rounded-none border-none font-bold text-[9pt] shadow-none bg-transparent focus:ring-0 px-1 py-1">
+                    <SelectValue placeholder="Elegir Prestador" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-2xl border-zinc-100">
+                    {PROVIDERS.map(p => (
+                      <SelectItem key={p.id} value={p.id} className="text-xs font-bold py-2.5">
+                        {p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="hidden print:block px-1 py-1 font-bold">
+                {provider.name}
+              </div>
+            </td>
           </tr>
           <tr>
             <td style={{ fontWeight: 'bold', border: '1px solid black', padding: '4px' }}>DIRECCIÓN:</td>
-            <td style={{ border: '1px solid black', padding: '4px' }} {...editableProps}>CRA.12 No 27 - 43</td>
+            <td style={{ border: '1px solid black', padding: '4px' }} {...editableProps}>{provider.address}</td>
           </tr>
           <tr>
             <td style={{ fontWeight: 'bold', border: '1px solid black', padding: '4px' }}>TELÉFONO:</td>
-            <td style={{ border: '1px solid black', padding: '4px' }} {...editableProps}>789-44-79</td>
+            <td style={{ border: '1px solid black', padding: '4px' }} {...editableProps}>{provider.phone}</td>
           </tr>
         </tbody>
       </table>

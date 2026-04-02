@@ -40,7 +40,7 @@ import { ServiceSelectionDialog } from '@/components/app/service-selection-dialo
 import { ModalityIcon } from '@/components/icons/modality-icon';
 import { ViewModeSwitch } from '@/components/app/view-mode-switch';
 import { SelectStudiesDialog } from '@/components/app/select-studies-dialog';
-import { RmnChoiceDialog } from '@/components/app/rmn-choice-dialog';
+
 import { RemissionRequestDialog } from '@/components/app/remission-request-dialog';
 import { ShiftHandoverDialog } from '@/components/app/shift-handover-dialog';
 import { ShiftReceiptDialog } from '@/components/app/shift-receipt-dialog';
@@ -741,8 +741,6 @@ export default function DashboardPage() {
   const [duplicateStudyInfo, setDuplicateStudyInfo] = useState<{ studyName: string, patientName: string } | null>(null);
   const [pendingDuplicateData, setPendingDuplicateData] = useState<OrderData | null>(null);
 
-  const [rmnChoiceOpen, setRmnChoiceOpen] = useState(false);
-  const [pendingRmnData, setPendingRmnData] = useState<OrderData | null>(null);
   const [remissionDialogOpen, setRemissionDialogOpen] = useState(false);
   const [remissionStudyData, setRemissionStudyData] = useState<Study | null>(null);
   const [initialRemissionFile, setInitialRemissionFile] = useState<File | null>(null);
@@ -920,12 +918,7 @@ export default function DashboardPage() {
                 setPendingOrderData(result);
                 setInitialRemissionFile(file); // Keep file for potential RMN remission
 
-                if (result.studies[0]?.modality === 'RMN' && result.studies.length === 1) {
-                    setRmnChoiceOpen(true);
-                    setPendingRmnData(result);
-                } else {
-                    setSelectStudiesOpen(true);
-                }
+                setSelectStudiesOpen(true);
             } catch (error: any) {
                 console.error("AI Extraction Error:", error);
                 toast({ variant: 'destructive', title: 'Error de Extracción', description: error.message || 'Ocurrió un error inesperado al procesar el archivo.' });
@@ -1027,59 +1020,19 @@ export default function DashboardPage() {
             }
 
             // Default 'imagenes' flow
-            const containsRmn = processedData.studies.some(s => s.modality === 'RMN');
-
-            if (containsRmn) {
-                setPendingRmnData(processedData); // Keep data for next step
-                setSelectStudiesOpen(false);
-                setRmnChoiceOpen(true);
-            } else {
-                setSelectStudiesOpen(false);
-                setPendingOrderData(processedData);
-                
-                await handleCreateStudy(processedData, { 
-                    service: processedData.service as GeneralService,
-                    subService: processedData.subService as SubServiceArea,
-                    bedNumber: processedData.bedNumber,
-                    bajoSedacion: processedData.bajoSedacion,
-                    creatinine: creatinineValue
-                });
-            }
+            setSelectStudiesOpen(false);
+            setPendingOrderData(processedData);
+            
+            await handleCreateStudy(processedData, { 
+                service: processedData.service as GeneralService,
+                subService: processedData.subService as SubServiceArea,
+                bedNumber: processedData.bedNumber,
+                bajoSedacion: processedData.bajoSedacion,
+                creatinine: creatinineValue
+            });
         }
     };
 
-    const handleRmnChoice = async (choice: 'order' | 'remission') => {
-        setRmnChoiceOpen(false);
-        if (!pendingRmnData) return;
-
-        const rmnStudy = pendingRmnData.studies.find(s => s.modality === 'RMN');
-        const otherStudies = pendingRmnData.studies.filter(s => s.modality !== 'RMN');
-
-        if (otherStudies.length > 0) {
-            const otherStudiesData = { ...pendingRmnData, studies: otherStudies };
-            await handleCreateStudy(otherStudiesData);
-        }
-
-        if (rmnStudy) {
-            const rmnOrderData = { ...pendingRmnData, studies: [rmnStudy] };
-            if (choice === 'order') {
-                setPendingOrderData(rmnOrderData);
-                setSelectStudiesOpen(true);
-            } else if (choice === 'remission') {
-                const tempStudyForRemission: Study = {
-                    ...(rmnOrderData as Study),
-                    id: `temp_${Date.now()}`,
-                    status: 'Pendiente',
-                    service: currentProfile?.servicioAsignado as GeneralService || 'C.EXT',
-                    subService: currentProfile?.subServicioAsignado || 'AMB',
-                    requestDate: Timestamp.now(),
-                };
-                setRemissionStudyData(tempStudyForRemission);
-                setRemissionDialogOpen(true);
-            }
-        }
-        setPendingRmnData(null);
-    };
     
     const handleCreatinineSubmit = async (creatinine: number) => {
         if (pendingOrderData) { await handleCreateStudy(pendingOrderData, { creatinine }); }
@@ -1243,7 +1196,6 @@ export default function DashboardPage() {
             onCancel={() => setPendingOrderData(null)}
       />
       {duplicateStudyInfo && (<DuplicateStudyDialog open={duplicateWarningOpen} onOpenChange={setDuplicateWarningOpen} onConfirm={handleDuplicateConfirmation} studyName={duplicateStudyInfo.studyName} patientName={duplicateStudyInfo.patientName}/>)}
-      <RmnChoiceDialog open={rmnChoiceOpen} onOpenChange={setRmnChoiceOpen} onSelect={handleRmnChoice} />
       <RemissionRequestDialog 
         open={remissionDialogOpen} 
         onOpenChange={(isOpen) => {

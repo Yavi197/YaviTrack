@@ -15,6 +15,8 @@ import { ImagingOrderTemplate } from '@/app/documents/templates/imaging-order-te
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PROVIDERS, Provider } from '@/lib/providers';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const documentComponents = {
   consent: ConsentTemplate,
@@ -46,6 +48,7 @@ export default function DocumentPage() {
 
   const [study, setStudy] = useState<Study | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedProvider, setSelectedProvider] = useState<Provider>(PROVIDERS[0]);
 
   useEffect(() => {
     if (!studyId || !documentType) return;
@@ -104,7 +107,11 @@ export default function DocumentPage() {
     <div className="bg-gray-100 print:bg-white">
       <div className="max-w-4xl mx-auto bg-white shadow-lg print:shadow-none min-h-screen">
         <main>
-          <DocumentTemplate study={study} />
+          {documentType === 'authorization' ? (
+            <AuthorizationTemplate study={study} provider={selectedProvider} onProviderChange={setSelectedProvider} />
+          ) : (
+            <DocumentTemplate study={study} />
+          )}
         </main>
       </div>
        <div className="fixed bottom-5 right-5 print:hidden">
