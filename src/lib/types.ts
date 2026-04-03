@@ -200,6 +200,8 @@ export type Remission = Study & {
 };
 
 
+export type TargetModule = 'imagenes' | 'remisiones' | 'consultas';
+
 export type Message = {
     id: string;
     senderId: string;

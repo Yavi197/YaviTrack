@@ -25,6 +25,8 @@ import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { ScrollArea } from '../ui/scroll-area';
+import { TargetModule } from '@/lib/types';
+import { Check, UserPlus, ClipboardList, Stethoscope } from 'lucide-react';
 
 
 const studySchema = z.object({
@@ -68,6 +70,7 @@ export function StudyDialog({ open, onOpenChange, initialData, mode, onCreate }:
     const [loading, setLoading] = useState(false);
     const [addModalOpen, setAddModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
+    const [targetModule, setTargetModule] = useState<TargetModule>('imagenes');
 
     const isConsultationsModule = pathname ? pathname.includes('/consultations') : false;
     // Agrupar estudios por modalidad para una selección más visual
@@ -165,9 +168,14 @@ export function StudyDialog({ open, onOpenChange, initialData, mode, onCreate }:
         if (mode === 'edit') return; // Should be handled by EditStudyDialog
 
         setLoading(true);
+        const orderData: OrderData = {
+           ...data,
+           targetModule: targetModule as any // Added for clarity, though handled by onCreate if provided
+        } as any;
+
         const result = onCreate 
-            ? await onCreate(data as OrderData) 
-            : await createStudyAction(data as OrderData, currentProfile);
+            ? await onCreate(orderData) 
+            : await createStudyAction(orderData, currentProfile);
 
         if (result.success) {
             toast({ 
@@ -323,9 +331,9 @@ export function StudyDialog({ open, onOpenChange, initialData, mode, onCreate }:
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    <SelectItem value="F">Femenino</SelectItem>
-                                                    <SelectItem value="M">Masculino</SelectItem>
-                                                    <SelectItem value="O">Otro / No especifica</SelectItem>
+                                                    <SelectItem value="F">FEMENINO</SelectItem>
+                                                    <SelectItem value="M">MASCULINO</SelectItem>
+                                                    <SelectItem value="O">OTRO / NO ESPECIFICA</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </FormItem>
@@ -461,13 +469,55 @@ export function StudyDialog({ open, onOpenChange, initialData, mode, onCreate }:
                                 </div>
                             </section>
                         </div>
-                        <DialogFooter className="pt-4 px-8 pb-8">
+                        <div className="px-8 pb-4">
+                            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-3 px-1">¿A dónde enviar esta solicitud?</p>
+                            <div className="grid grid-cols-3 rounded-2xl overflow-hidden border-2 border-zinc-100 shadow-sm">
+                                {[
+                                    { id: 'imagenes', label: 'SOLICITUD', icon: <UserPlus className="h-4 w-4" />, color: 'zinc' },
+                                    { id: 'remisiones', label: 'REMISIÓN', icon: <ClipboardList className="h-4 w-4" />, color: 'blue' },
+                                    { id: 'consultas', label: 'CONSULTA', icon: <Stethoscope className="h-4 w-4" />, color: 'emerald' }
+                                ].map((dest) => {
+                                    const isActive = targetModule === dest.id;
+                                    return (
+                                        <button
+                                            key={dest.id}
+                                            type="button"
+                                            onClick={() => setTargetModule(dest.id as TargetModule)}
+                                            className={cn(
+                                                "flex flex-col items-center justify-center gap-1.5 py-4 text-[10px] font-black uppercase tracking-widest transition-all border-r-2 border-zinc-100 last:border-0",
+                                                isActive 
+                                                    ? "bg-zinc-900 text-white shadow-inner" 
+                                                    : "bg-white text-zinc-400 hover:bg-zinc-50 hover:text-zinc-600"
+                                            )}
+                                        >
+                                            <div className={cn("p-2 rounded-xl transition-colors", isActive ? "bg-white/10" : "bg-zinc-100/50")}>
+                                                {dest.icon}
+                                            </div>
+                                            <span>{dest.label}</span>
+                                            {isActive && <Check className="h-3 w-3 mt-0.5 text-yellow-400 animate-in zoom-in-50 duration-300" />}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                        <DialogFooter className="pt-2 px-8 pb-8">
                             <Button
                                 type="submit"
-                                disabled={loading || !form.formState.isValid}
-                                className="w-full text-xs py-8 bg-zinc-900 hover:bg-zinc-800 text-white font-black uppercase tracking-widest rounded-2xl shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
+                                disabled={loading || !form.formState.isValid || fields.length === 0}
+                                className={cn(
+                                    "w-full text-xs py-8 font-black uppercase tracking-widest rounded-2xl shadow-xl transition-all hover:scale-[1.01] active:scale-[0.99]",
+                                    targetModule === 'remisiones' ? "bg-blue-600 hover:bg-blue-700 text-white" :
+                                    targetModule === 'consultas' ? "bg-emerald-600 hover:bg-emerald-700 text-white" :
+                                    "bg-zinc-900 hover:bg-zinc-800 text-white"
+                                )}
                             >
-                                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Crear Solicitud(es)"}
+                                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : (
+                                    <span className="flex items-center gap-2">
+                                        {targetModule === 'imagenes' ? 'CREAR SOLICITUD' :
+                                         targetModule === 'remisiones' ? 'CREAR REMISIÓN' : 'CREAR CONSULTA'}
+                                        · {fields.length} {fields.length === 1 ? (isConsultationsModule ? 'CONSULTA' : 'ESTUDIO') : (isConsultationsModule ? 'CONSULTAS' : 'ESTUDIOS')}
+                                    </span>
+                                )}
                             </Button>
                         </DialogFooter>
                     </form>
