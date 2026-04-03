@@ -223,7 +223,7 @@ export function EditStudyDialog({ open, onOpenChange, study }: EditStudyDialogPr
                         <div className="max-h-[65vh] overflow-y-auto px-8 pb-8 space-y-6" style={{WebkitOverflowScrolling: 'touch'}} role="region" aria-label="Formulario principal">
                             {/* Datos del Paciente */}
                             <section className="bg-white rounded-[2rem] border-2 border-zinc-100 shadow-sm p-8 mb-4">
-                                <FormLabel className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-6 block">Datos del Paciente</FormLabel>
+                                <h3 className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-6 block">Datos del Paciente</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <FormField control={form.control} name="patient.fullName" render={({ field }) => (
                                         <FormItem>
@@ -281,9 +281,9 @@ export function EditStudyDialog({ open, onOpenChange, study }: EditStudyDialogPr
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    <SelectItem value="F">Femenino</SelectItem>
-                                                    <SelectItem value="M">Masculino</SelectItem>
-                                                    <SelectItem value="O">Otro / No especifica</SelectItem>
+                                                    <SelectItem value="FEMENINO">FEMENINO</SelectItem>
+                                                    <SelectItem value="MASCULINO">MASCULINO</SelectItem>
+                                                    <SelectItem value="OTRO / NO ESPECIFICA">OTRO / NO ESPECIFICA</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </FormItem>
@@ -293,7 +293,7 @@ export function EditStudyDialog({ open, onOpenChange, study }: EditStudyDialogPr
 
                             {/* Estudios/Consultas */}
                             <section className="bg-white rounded-[2rem] border-2 border-zinc-100 shadow-sm p-8 mb-4">
-                                <FormLabel className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-6 block">{isConsultationsModule ? 'Consultas Solicitadas' : 'Estudios Solicitados'}</FormLabel>
+                                <h3 className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-6 block">{isConsultationsModule ? 'Consultas Solicitadas' : 'Estudios Solicitados'}</h3>
                                 <Button
                                     type="button"
                                     variant="outline"
@@ -315,11 +315,14 @@ export function EditStudyDialog({ open, onOpenChange, study }: EditStudyDialogPr
                                         </DialogHeader>
                                         <div className="mb-4">
                                             <Input
+                                                id="edit-study-search-input"
+                                                name="edit-study-search"
                                                 placeholder={`Buscar ${isConsultationsModule ? 'consulta' : 'estudio'} por nombre o CUPS...`}
                                                 value={searchTerm}
                                                 onChange={e => setSearchTerm(e.target.value)}
                                                 className="w-full"
                                                 autoFocus
+                                                aria-label={`Buscar ${isConsultationsModule ? 'consulta' : 'estudio'}`}
                                             />
                                         </div>
                                         <ScrollArea className="max-h-80 w-full rounded-md border border-yellow-300 bg-yellow-50 p-0">
@@ -409,7 +412,7 @@ export function EditStudyDialog({ open, onOpenChange, study }: EditStudyDialogPr
 
                             {/* Diagnóstico */}
                             <section className="bg-white rounded-[2rem] border-2 border-zinc-100 shadow-sm p-8">
-                                <FormLabel className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-6 block">Diagnóstico</FormLabel>
+                                <h3 className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-6 block">Diagnóstico</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <FormField control={form.control} name="diagnosis.code" render={({ field }) => (
                                         <FormItem>

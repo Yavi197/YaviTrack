@@ -556,7 +556,34 @@ export default function ConsultationsDashboardPage() {
     const handleCreateStudy = async (data: OrderData, options?: { creatinine?: number, service?: GeneralService, subService?: SubServiceArea, skipDuplicateCheck?: boolean, bedNumber?: string, bajoSedacion?: boolean }) => {
         if (!currentProfile) return;
         toast({ title: 'Procesando...', description: 'Creando las solicitudes...' });
-        const creationResult = await createStudyAction(data, currentProfile, options);
+        
+      try {
+        // Sanitize profile to plain object for Server Actions
+        const sanitizedProfile = currentProfile ? {
+            uid: currentProfile.uid,
+            nombre: currentProfile.nombre,
+            rol: currentProfile.rol,
+            servicioAsignado: currentProfile.servicioAsignado,
+            subServicioAsignado: currentProfile.subServicioAsignado,
+            operadorActivo: currentProfile.operadorActivo,
+            email: currentProfile.email
+        } : null;
+
+        // Strip any non-plain objects like Firestore Timestamps that might be in the data
+        const sanitizedData: OrderData = {
+            patient: { ...data.patient },
+            studies: data.studies.map(s => ({ ...s })),
+            diagnosis: { ...data.diagnosis },
+            orderingPhysician: data.orderingPhysician ? { ...data.orderingPhysician } : undefined,
+            orderDate: data.orderDate,
+            admissionNumber: data.admissionNumber,
+            referenceNumber: data.referenceNumber,
+            bedNumber: data.bedNumber,
+            bajoSedacion: data.bajoSedacion,
+            requiresCreatinine: data.requiresCreatinine
+        };
+
+        const creationResult = await createStudyAction(sanitizedData, sanitizedProfile as any, options);
         setPendingOrderData(null);
         if (creationResult.success) {
             toast({ title: 'Solicitudes Creadas Exitosamente', description: `${creationResult.studyCount} nuevas solicitudes han sido registradas.` });
@@ -566,6 +593,10 @@ export default function ConsultationsDashboardPage() {
             setDuplicateWarningOpen(true);
             toast({ variant: 'destructive', title: 'Posible Duplicado', description: 'Se encontró una solicitud similar reciente.' });
         } else { toast({ variant: 'destructive', title: 'Error en Creación', description: creationResult.error }); }
+      } catch (error: any) {
+          console.error("Failed to create study:", error);
+          toast({ variant: 'destructive', title: 'Error en Creación', description: error.message || 'No se pudo crear la solicitud.' });
+      }
     };
 
     const handleDuplicateConfirmation = () => {
@@ -657,7 +688,24 @@ export default function ConsultationsDashboardPage() {
   const handleManualRequest = useCallback((patientId: string) => {
     const existingStudies = studies.filter(s => s.patient.id === patientId).sort((a, b) => b.requestDate.toMillis() - a.requestDate.toMillis());
     const existingStudy = existingStudies[0];
-    const initialData: Partial<Study> = existingStudy ? { ...existingStudy, id: '', patient: { ...existingStudy.patient, id: patientId }, studies: [] } : { patient: { fullName: '', id: patientId, entidad: '', birthDate: '' } , studies: [], diagnosis: { code: '', description: '' }, };
+    const initialData: Partial<Study> = existingStudy 
+        ? { 
+            patient: { ...existingStudy.patient, id: patientId }, 
+            diagnosis: existingStudy.diagnosis,
+            orderingPhysician: existingStudy.orderingPhysician,
+            service: existingStudy.service,
+            subService: existingStudy.subService,
+            admissionNumber: existingStudy.admissionNumber,
+            referenceNumber: existingStudy.referenceNumber,
+            bedNumber: existingStudy.bedNumber,
+            bajoSedacion: existingStudy.bajoSedacion,
+            studies: [] 
+          } 
+        : { 
+            patient: { fullName: '', id: patientId, entidad: '', birthDate: '' } , 
+            studies: [], 
+            diagnosis: { code: '', description: '' }, 
+          };
     setInitialDialogData(initialData);
     setDialogOpen(true);
 }, [studies]);

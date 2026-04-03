@@ -107,14 +107,24 @@ const extractConsultationFlowAdes = ai.defineFlow(
     if (!output) {
       throw new Error('El modelo de IA no pudo generar un resultado válido. Verifica que la orden ADES sea clara.');
     }
-    // Ensure modality is uppercase and normalized
+    // Normalize modality and service
     if (output.studies) {
       output.studies.forEach(study => {
-        if (study.modality) {
-          study.modality = normalizeString(study.modality);
-        }
+        if (study.modality) study.modality = normalizeString(study.modality);
       });
     }
+
+    if (output.service) {
+      const s = output.service.toString().toUpperCase();
+      if (s.includes('URG')) output.service = 'URG' as any;
+      else if (s.includes('HOSP')) output.service = 'HOSP' as any;
+      else if (s.includes('UCI')) output.service = 'UCI' as any;
+      else if (s.includes('EXT') || s.includes('CONSULTA')) output.service = 'C.EXT' as any;
+      else output.service = undefined;
+    } else {
+      output.service = undefined;
+    }
+
     return output;
   }
 );
@@ -130,14 +140,24 @@ const extractConsultationFlowEMedico = ai.defineFlow(
     if (!output) {
       throw new Error('El modelo de IA no pudo generar un resultado válido. Verifica que la orden eMEDICO sea clara.');
     }
-    // Ensure modality is uppercase and normalized
+    // Normalize modality and service
     if (output.studies) {
       output.studies.forEach(study => {
-        if (study.modality) {
-          study.modality = normalizeString(study.modality);
-        }
+        if (study.modality) study.modality = normalizeString(study.modality);
       });
     }
+
+    if (output.service) {
+      const s = output.service.toString().toUpperCase();
+      if (s.includes('URG')) output.service = 'URG' as any;
+      else if (s.includes('HOSP')) output.service = 'HOSP' as any;
+      else if (s.includes('UCI')) output.service = 'UCI' as any;
+      else if (s.includes('EXT') || s.includes('CONSULTA')) output.service = 'C.EXT' as any;
+      else output.service = undefined;
+    } else {
+      output.service = undefined;
+    }
+
     return output;
   }
 );

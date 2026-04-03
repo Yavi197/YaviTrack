@@ -108,9 +108,9 @@ export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
           <DateRangePicker date={exportDateRange} setDate={setExportDateRange} className="w-full md:w-auto" />
           <div className="flex-1 space-y-4 md:border-l md:pl-4">
              <div className="space-y-2">
-                <Label>Servicio</Label>
+                <Label htmlFor="export-service-select">Servicio</Label>
                 <Select value={service} onValueChange={setService}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger id="export-service-select"><SelectValue /></SelectTrigger>
                     <SelectContent>
                         <SelectItem value="TODOS">Todos</SelectItem>
                         {GeneralServices.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
@@ -118,9 +118,9 @@ export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
                 </Select>
              </div>
               <div className="space-y-2">
-                <Label>Modalidad</Label>
+                <Label htmlFor="export-modality-select">Modalidad</Label>
                 <Select value={modality} onValueChange={setModality}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger id="export-modality-select"><SelectValue /></SelectTrigger>
                     <SelectContent>
                         <SelectItem value="TODOS">Todas</SelectItem>
                         {Modalities.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
@@ -128,9 +128,9 @@ export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
                 </Select>
              </div>
              <div className="space-y-2">
-                <Label>Estado</Label>
+                <Label htmlFor="export-status-select">Estado</Label>
                  <Select value={status} onValueChange={setStatus}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger id="export-status-select"><SelectValue /></SelectTrigger>
                     <SelectContent>
                         <SelectItem value="TODOS">Todos</SelectItem>
                         {studyStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}

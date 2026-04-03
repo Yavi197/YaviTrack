@@ -472,9 +472,28 @@ export async function getSheetsClient(): Promise<sheets_v4.Sheets | null> {
     }
     
     // Apply common fixes for PEM format from environment variables
-    const formattedPrivateKey = privateKey.replace(/\\n/g, '\n').replace(/"/g, '').trim();
+    // Replace literal \n with real newlines, and handle potential double quotes from environmental variables
+    let formattedPrivateKey = privateKey.replace(/\\n/g, '\n').trim();
+    
+    // Remove wrapping quotes if they exist
+    if (formattedPrivateKey.startsWith('"') && formattedPrivateKey.endsWith('"')) {
+        formattedPrivateKey = formattedPrivateKey.substring(1, formattedPrivateKey.length - 1).replace(/\\n/g, '\n').trim();
+    }
+    
+    // Ensure the key has the correct headers (OpenSSL in Node 17+ is very strict)
+    if (!formattedPrivateKey.includes('-----BEGIN PRIVATE KEY-----')) {
+        console.error("[Google Sheets Auth Error] La clave privada no tiene el encabezado BEGIN PRIVATE KEY.");
+    }
+    if (!formattedPrivateKey.includes('-----END PRIVATE KEY-----')) {
+        console.error("[Google Sheets Auth Error] La clave privada no tiene el encabezado END PRIVATE KEY.");
+    }
 
     try {
+        // Debug info (safe part only)
+        const keyLength = formattedPrivateKey.length;
+        const keyLines = formattedPrivateKey.split('\n').length;
+        console.log(`[Google Sheets Auth Debug] Key length: ${keyLength}, Lines: ${keyLines}, Client: ${clientEmail.substring(0, 10)}...`);
+
         const auth = new google.auth.JWT({
             email: clientEmail,
             key: formattedPrivateKey,
@@ -485,6 +504,10 @@ export async function getSheetsClient(): Promise<sheets_v4.Sheets | null> {
         return google.sheets({ version: 'v4', auth });
     } catch (error: any) {
         console.error("[Google Sheets Auth Error] No se pudo crear el cliente de JWT. Verifica las credenciales:", error.message);
+        // Show truncated key for debugging if it failed
+        const start = formattedPrivateKey.substring(0, 30);
+        const end = formattedPrivateKey.substring(formattedPrivateKey.length - 30);
+        console.error(`[Google Sheets Auth Diagnostic] Key starts with: "${start}" and ends with: "${end}"`);
         return null;
     }
 }

@@ -88,10 +88,12 @@ export default function LoginPage() {
                   <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300 group-focus-within:text-blue-500 transition-colors">
                     <Mail className="h-4 w-4" />
                   </div>
-                  <Input
+                   <Input
                     id="email"
+                    name="email"
                     type="email"
                     placeholder="ejemplo@meditrack.com"
+                    autoComplete="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -110,10 +112,12 @@ export default function LoginPage() {
                   <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300 group-focus-within:text-blue-500 transition-colors">
                     <Lock className="h-4 w-4" />
                   </div>
-                  <Input
+                   <Input
                     id="password"
+                    name="password"
                     type="password"
                     placeholder="••••••••••••"
+                    autoComplete="current-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required

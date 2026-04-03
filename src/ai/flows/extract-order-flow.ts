@@ -189,6 +189,18 @@ export async function extractOrderData(input: ExtractOrderInput): Promise<Extrac
     if (!output.referenceNumber) output.referenceNumber = undefined;
     if (!output.requiresCreatinine) output.requiresCreatinine = false;
     
+    // Normalize service to the expected enum values
+    if (output.service) {
+      const s = output.service.toString().toUpperCase();
+      if (s.includes('URG')) output.service = 'URG';
+      else if (s.includes('HOSP')) output.service = 'HOSP';
+      else if (s.includes('UCI')) output.service = 'UCI';
+      else if (s.includes('EXT') || s.includes('CONSULTA')) output.service = 'C.EXT';
+      else output.service = undefined; // Fallback for invalid values
+    } else {
+      output.service = undefined; // Handle null/empty
+    }
+    
     // Validate output against schema
     const validatedOutput = OrderDataSchema.parse(output);
     

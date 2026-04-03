@@ -170,12 +170,22 @@ export function StudyDialog({ open, onOpenChange, initialData, mode, onCreate }:
         setLoading(true);
         const orderData: OrderData = {
            ...data,
-           targetModule: targetModule as any // Added for clarity, though handled by onCreate if provided
+           targetModule: targetModule as any
         } as any;
+
+        // Ensure we only pass a PLAIN object for userProfile (no Timestamps from Firebase)
+        const sanitizedProfile = currentProfile ? {
+            uid: currentProfile.uid,
+            nombre: currentProfile.nombre,
+            rol: currentProfile.rol,
+            servicioAsignado: currentProfile.servicioAsignado,
+            subServicioAsignado: currentProfile.subServicioAsignado,
+            operadorActivo: currentProfile.operadorActivo,
+        } : null;
 
         const result = onCreate 
             ? await onCreate(orderData) 
-            : await createStudyAction(orderData, currentProfile);
+            : await createStudyAction(orderData, sanitizedProfile as any);
 
         if (result.success) {
             toast({ 
@@ -263,7 +273,7 @@ export function StudyDialog({ open, onOpenChange, initialData, mode, onCreate }:
                             }
                         }} role="region" aria-label="Formulario principal">
                             <section className="bg-white rounded-[2rem] border-2 border-zinc-100 shadow-sm p-8 mb-4">
-                                <FormLabel className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-6 block">Datos del Paciente</FormLabel>
+                                <h3 className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-6 block">Datos del Paciente</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <FormField control={form.control} name="patient.fullName" render={({ field }) => (
                                         <FormItem>
@@ -341,7 +351,7 @@ export function StudyDialog({ open, onOpenChange, initialData, mode, onCreate }:
                                 </div>
                             </section>
                             <section className="bg-white rounded-[2rem] border-2 border-zinc-100 shadow-sm p-8 mb-4">
-                                <FormLabel className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-6 block">{isConsultationsModule ? 'Consultas Solicitadas' : 'Estudios Solicitados'}</FormLabel>
+                                <h3 className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-6 block">{isConsultationsModule ? 'Consultas Solicitadas' : 'Estudios Solicitados'}</h3>
                                 <Button
                                     variant="outline"
                                     className="w-full h-14 justify-start text-left font-bold tracking-widest uppercase text-xs border-dashed border-2 border-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-zinc-600 rounded-2xl"
@@ -361,11 +371,14 @@ export function StudyDialog({ open, onOpenChange, initialData, mode, onCreate }:
                                         </DialogHeader>
                                         <div className="mb-4">
                                             <Input
+                                                id="study-search-input"
+                                                name="study-search"
                                                 placeholder={`Buscar ${isConsultationsModule ? 'consulta' : 'estudio'} por nombre o CUPS...`}
                                                 value={searchTerm}
                                                 onChange={e => setSearchTerm(e.target.value)}
                                                 className="w-full"
                                                 autoFocus
+                                                aria-label={`Buscar ${isConsultationsModule ? 'consulta' : 'estudio'}`}
                                             />
                                         </div>
                                         <div style={{maxHeight: 320, overflowY: 'auto', borderRadius: 12, border: '1px solid #fbbf24', background: '#f8fafc', boxShadow: '0 2px 8px #fbbf2433'}}>
@@ -429,7 +442,7 @@ export function StudyDialog({ open, onOpenChange, initialData, mode, onCreate }:
                                             <div className="flex items-center gap-2">
                                                 <FormField control={form.control} name={`studies.${index}.details`} render={({ field }) => ( 
                                                     <FormItem className="w-[180px]">
-                                                        <FormControl><Input type="text" placeholder="Detalles (Opcional)" {...field} className="h-8 text-xs" /></FormControl>
+                                                        <FormControl><Input id={`details-${index}`} type="text" placeholder="Detalles (Opcional)" {...field} className="h-8 text-xs" aria-label="Detalles adicionales" /></FormControl>
                                                         {form.formState.isSubmitted ? <FormMessage /> : null}
                                                     </FormItem> 
                                                 )}/>
@@ -442,7 +455,7 @@ export function StudyDialog({ open, onOpenChange, initialData, mode, onCreate }:
                                 </div>
                             </section>
                             <section className="bg-white rounded-[2rem] border-2 border-zinc-100 shadow-sm p-8">
-                                <FormLabel className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-6 block">Diagnóstico</FormLabel>
+                                <h3 className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-6 block">Diagnóstico</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <FormField control={form.control} name="diagnosis.code" render={({ field }) => (
                                         <FormItem>

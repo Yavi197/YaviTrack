@@ -446,9 +446,9 @@ function RemissionServiceDialog({ remission, children }: { remission: Remission;
         </AlertDialogHeader>
         <div className="space-y-4 py-2">
           <div className="space-y-2">
-            <Label>Servicio general</Label>
+            <Label htmlFor="remission-service-select">Servicio general</Label>
             <Select value={service} onValueChange={handleServiceChange}>
-              <SelectTrigger>
+              <SelectTrigger id="remission-service-select">
                 <SelectValue placeholder="Selecciona un servicio" />
               </SelectTrigger>
               <SelectContent>
@@ -461,9 +461,9 @@ function RemissionServiceDialog({ remission, children }: { remission: Remission;
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Sub-servicio</Label>
+            <Label htmlFor="remission-subservice-select">Sub-servicio</Label>
             <Select value={subService} onValueChange={(value) => setSubService(value as SubServiceArea)}>
-              <SelectTrigger>
+              <SelectTrigger id="remission-subservice-select">
                 <SelectValue placeholder="Selecciona un sub-servicio" />
               </SelectTrigger>
               <SelectContent>
@@ -756,8 +756,11 @@ export function RemissionsTable({ statusFilter, onStatusSummaryChange, onCountsC
                       <>
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
+                          id="remissions-search"
+                          name="remissions-search"
                           type="search"
                           placeholder="Buscar por paciente o ID..."
+                          aria-label="Buscar remisiones por paciente o ID"
                           className="w-full rounded-xl bg-white border-2 border-zinc-100 focus-visible:ring-amber-400 focus-visible:border-amber-400 pl-9 h-10 shadow-sm transition-all font-semibold"
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}

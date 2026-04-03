@@ -58,7 +58,7 @@ import { Textarea } from '../ui/textarea';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Form, FormControl, FormField, FormItem } from '../ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '../ui/form';
 import { DateRangePicker } from '../ui/date-range-picker';
 import { ModalityIcon } from '../icons/modality-icon';
 
@@ -266,9 +266,9 @@ function EditServiceDialog({ study, children }: { study: Study; children: React.
                 </AlertDialogHeader>
                 <div className="space-y-4 py-4">
                     <div className="space-y-2">
-                        <Label>Servicio General</Label>
+                        <Label htmlFor="service-select">Servicio General</Label>
                         <Select value={service} onValueChange={(v) => handleServiceChange(v as GeneralService)}>
-                            <SelectTrigger>
+                            <SelectTrigger id="service-select">
                                 <SelectValue placeholder="Seleccione un servicio" />
                             </SelectTrigger>
                             <SelectContent>
@@ -277,9 +277,9 @@ function EditServiceDialog({ study, children }: { study: Study; children: React.
                         </Select>
                     </div>
                      <div className="space-y-2">
-                        <Label>Sub-Servicio</Label>
+                        <Label htmlFor="subservice-select">Sub-Servicio</Label>
                         <Select value={subService} onValueChange={(v) => setSubService(v as SubServiceArea)}>
-                            <SelectTrigger>
+                            <SelectTrigger id="subservice-select">
                                 <SelectValue placeholder="Seleccione un sub-servicio" />
                             </SelectTrigger>
                             <SelectContent>
@@ -477,11 +477,11 @@ function CompletionDialog({ study, onConfirm, children }: { study: Study; onConf
             name={name}
             render={({ field }) => (
                 <FormItem>
-                    <Label>{label}</Label>
+                    <FormLabel>{label}</FormLabel>
                     <div className="flex items-center">
                         <Button type="button" size="icon" variant="outline" className="h-8 w-8 rounded-r-none" onClick={() => form.setValue(name, String(Math.max(0, parseInt(String(field.value || '0')) - 1)) as any)}><Minus className="h-4 w-4" /></Button>
                         <FormControl>
-                            <Input type="number" {...field} className="h-8 w-12 rounded-none p-0 text-center" />
+                            <Input type="number" {...field} id={name} name={name} aria-label={label} className="h-8 w-12 rounded-none p-0 text-center" />
                         </FormControl>
                         <Button type="button" size="icon" variant="outline" className="h-8 w-8 rounded-l-none" onClick={() => form.setValue(name, String(parseInt(String(field.value || '0')) + 1) as any)}><Plus className="h-4 w-4" /></Button>
                     </div>
@@ -506,15 +506,15 @@ function CompletionDialog({ study, onConfirm, children }: { study: Study; onConf
                         <div className="space-y-4 py-3 px-1">
                             {modality === 'RX' && (
                                 <div className="grid grid-cols-3 gap-4">
-                                    <FormField control={form.control} name="kV" render={({ field }) => ( <FormItem><Label className="text-xs">kV</Label><FormControl><Input autoFocus {...field} className="text-center text-sm h-8" /></FormControl></FormItem> )}/>
-                                    <FormField control={form.control} name="mA" render={({ field }) => ( <FormItem><Label className="text-xs">mA</Label><FormControl><Input {...field} className="text-center text-sm h-8" /></FormControl></FormItem> )}/>
-                                    <FormField control={form.control} name="timeMs" render={({ field }) => ( <FormItem><Label className="text-xs">Tiempo (ms)</Label><FormControl><Input {...field} className="text-center text-sm h-8" /></FormControl></FormItem> )}/>
+                                    <FormField control={form.control} name="kV" render={({ field }) => ( <FormItem><FormLabel className="text-xs">kV</FormLabel><FormControl><Input autoFocus {...field} className="text-center text-sm h-8" /></FormControl></FormItem> )}/>
+                                    <FormField control={form.control} name="mA" render={({ field }) => ( <FormItem><FormLabel className="text-xs">mA</FormLabel><FormControl><Input {...field} className="text-center text-sm h-8" /></FormControl></FormItem> )}/>
+                                    <FormField control={form.control} name="timeMs" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Tiempo (ms)</FormLabel><FormControl><Input {...field} className="text-center text-sm h-8" /></FormControl></FormItem> )}/>
                                 </div>
                             )}
                             {modality === 'TAC' && (
                                  <div className="grid grid-cols-2 gap-4">
-                                    <FormField control={form.control} name="ctdi" render={({ field }) => ( <FormItem><Label className="text-xs">CTDI (mGy)</Label><FormControl><Input autoFocus placeholder="0" {...field} className="text-center text-sm h-8" /></FormControl></FormItem> )}/>
-                                    <FormField control={form.control} name="dlp" render={({ field }) => ( <FormItem><Label className="text-xs">DLP (mGy-cm)</Label><FormControl><Input {...field} placeholder="0" className="text-center text-sm h-8" /></FormControl></FormItem> )}/>
+                                    <FormField control={form.control} name="ctdi" render={({ field }) => ( <FormItem><FormLabel className="text-xs">CTDI (mGy)</FormLabel><FormControl><Input autoFocus placeholder="0" {...field} className="text-center text-sm h-8" /></FormControl></FormItem> )}/>
+                                    <FormField control={form.control} name="dlp" render={({ field }) => ( <FormItem><FormLabel className="text-xs">DLP (mGy-cm)</FormLabel><FormControl><Input {...field} placeholder="0" className="text-center text-sm h-8" /></FormControl></FormItem> )}/>
                                 </div>
                             )}
                             {isContrastedIV && (
@@ -523,7 +523,7 @@ function CompletionDialog({ study, onConfirm, children }: { study: Study; onConf
                                       <Label className="text-xs">Creatinina</Label>
                                       <Input value={study.creatinine || 'N/A'} readOnly className="text-center font-bold text-sm h-8" />
                                     </div>
-                                    <FormField control={form.control} name="contrastAdministeredMl" render={({ field }) => ( <FormItem><Label className="text-xs">Contraste Adminis. (ml)</Label><FormControl><Input {...field} placeholder="Ej: 70" className="text-center text-sm h-8"/></FormControl></FormItem> )}/>
+                                    <FormField control={form.control} name="contrastAdministeredMl" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Contraste Adminis. (ml)</FormLabel><FormControl><Input {...field} placeholder="Ej: 70" className="text-center text-sm h-8"/></FormControl></FormItem> )}/>
                                 </div>
                             )}
                             {showSupplyRegistration && (
@@ -543,7 +543,7 @@ function CompletionDialog({ study, onConfirm, children }: { study: Study; onConf
                                                     name={`abbocaths.${index}.id`}
                                                     render={({ field }) => (
                                                         <FormItem>
-                                                            <Label className="text-xs">Abbocath #{index + 1}</Label>
+                                                            <FormLabel className="text-xs">Abbocath #{index + 1}</FormLabel>
                                                             <Select 
                                                                 onValueChange={(value) => {
                                                                     const selectedAbbocath = availableAbbocaths.find(a => a.id === value);
@@ -828,64 +828,171 @@ function AttachReportDialog({ study, open, onOpenChange }: { study: Study | null
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogPrimitiveContent className="sm:max-w-4xl">
-                <DialogHeader>
-                    <DialogTitle>Adjuntar Informe para {study?.studies[0]?.nombre}</DialogTitle>
-                    <DialogDescription>
-                        Puedes dictar el informe, usar una plantilla, o cargar un PDF existente.
-                    </DialogDescription>
-                </DialogHeader>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-                    <div className="flex flex-col space-y-4">
-                        <h4 className="font-semibold">Opción 1: Redactar o Dictar Informe</h4>
-                        <div className="relative flex-grow">
-                             <Textarea
-                                value={reportText}
-                                onChange={(e) => setReportText(e.target.value)}
-                                className="h-full min-h-[340px] text-xs font-mono"
-                                placeholder="Comienza a redactar o usa los botones de abajo..."
-                            />
-                            {transcribing && (
-                                <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center">
-                                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                                    <p className="font-semibold mt-2">Transcribiendo audio...</p>
-                                </div>
-                            )}
+            <DialogPrimitiveContent className="sm:max-w-5xl p-0 overflow-hidden bg-white border-2 border-zinc-200 shadow-2xl selection:bg-blue-100 max-h-[90vh] flex flex-col">
+                <div className="bg-gradient-to-r from-blue-700 via-indigo-700 to-indigo-900 p-6 text-white relative border-b border-white/10 flex-shrink-0">
+                   <div className="absolute top-0 right-0 p-8 opacity-10 scale-125 rotate-12 pointer-events-none">
+                       <FileText className="h-24 w-24" />
+                   </div>
+                   <DialogHeader className="relative z-10 text-left">
+                        <div className="inline-flex items-center gap-2 px-2.5 py-1 bg-zinc-900/40 rounded-full border border-white/10 mb-3 backdrop-blur-md">
+                            <Stethoscope className="h-3 w-3 text-blue-300" />
+                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white">Centro de Informes</span>
                         </div>
-                         <div className="grid grid-cols-2 gap-2">
-                             <Button variant="outline" onClick={handleLoadTemplate} disabled={loading || isRecording}>
-                                 <CornerDownLeft className="mr-2" /> Cargar Plantilla
-                             </Button>
-                              {isRecording ? (
-                                <Button variant="destructive" onClick={handleStopRecording}>
-                                    <StopCircle className="mr-2" /> Detener
+                        <DialogTitle className="text-2xl font-black tracking-tight leading-none mb-2">
+                           {study?.studies[0]?.nombre}
+                        </DialogTitle>
+                        <DialogDescription className="text-blue-100 font-semibold text-sm opacity-90">
+                            Finalice el estudio redactando o adjuntando el PDF oficial.
+                        </DialogDescription>
+                    </DialogHeader>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-0 flex-grow overflow-y-auto">
+                    {/* Opción 1: Redactar */}
+                    <div className="p-7 border-r-2 border-zinc-100 bg-white group flex flex-col">
+                        <div className="flex items-center gap-3 mb-5">
+                            <div className="p-2.5 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-100 group-hover:scale-105 transition-transform">
+                                <Mic className="h-5 w-5" />
+                            </div>
+                            <div>
+                                <h4 className="font-black text-zinc-900 uppercase tracking-tighter text-base leading-none">01. Redactar / Dictar</h4>
+                                <p className="text-[9px] font-black text-blue-600 uppercase tracking-[0.1em] mt-1">Hallazgos Clínicos</p>
+                            </div>
+                        </div>
+
+                        <div className="relative flex flex-col h-[300px]">
+                            <div className="relative flex-grow flex flex-col">
+                                <Textarea
+                                    value={reportText}
+                                    onChange={(e) => setReportText(e.target.value)}
+                                    className="flex-grow resize-none text-sm font-bold leading-relaxed p-5 bg-zinc-100/50 border-2 border-zinc-100 rounded-[2rem] focus:bg-white focus:border-blue-600 focus:ring-0 transition-all placeholder:text-zinc-400 text-zinc-800 shadow-inner"
+                                    placeholder="Inicie la redacción aquí..."
+                                />
+                                {transcribing && (
+                                    <div className="absolute inset-0 bg-white/95 backdrop-blur-md flex flex-col items-center justify-center rounded-[2rem] z-20 border-2 border-blue-50">
+                                        <Loader2 className="h-8 w-8 animate-spin text-blue-700 mb-3" />
+                                        <p className="font-black text-blue-800 uppercase tracking-widest text-[9px]">Transcribiendo...</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3 mt-4">
+                                <Button 
+                                    variant="outline" 
+                                    onClick={handleLoadTemplate} 
+                                    disabled={loading || isRecording}
+                                    className="h-11 border-2 border-zinc-200 rounded-xl hover:bg-zinc-900 hover:text-white transition-all font-black text-[9px] uppercase tracking-widest group"
+                                >
+                                    <CornerDownLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" /> 
+                                    Plantilla
                                 </Button>
-                            ) : (
-                                <Button variant="secondary" onClick={handleStartRecording} disabled={loading}>
-                                    <Mic className="mr-2" /> Grabar Dictado
-                                </Button>
-                            )}
-                         </div>
-                         <Button onClick={() => handleAttach('template')} disabled={!reportText || loading || isRecording} className="w-full">
-                            {loading ? <Loader2 className="animate-spin" /> : "Finalizar con este Texto"}
-                        </Button>
+                                {isRecording ? (
+                                    <Button 
+                                        variant="destructive" 
+                                        onClick={handleStopRecording}
+                                        className="h-11 rounded-xl font-black text-[9px] uppercase tracking-widest animate-pulse"
+                                    >
+                                        <StopCircle className="h-4 w-4 mr-2" /> Detener
+                                    </Button>
+                                ) : (
+                                    <Button 
+                                        variant="secondary" 
+                                        onClick={handleStartRecording} 
+                                        disabled={loading}
+                                        className="h-11 bg-blue-50 text-blue-800 hover:bg-blue-100 border-2 border-blue-100 rounded-xl font-black text-[9px] uppercase tracking-widest"
+                                    >
+                                        <Mic className="h-4 w-4 mr-2" /> Dictar
+                                    </Button>
+                                )}
+                            </div>
+
+                            <Button 
+                                onClick={() => handleAttach('template')} 
+                                disabled={!reportText || loading || isRecording} 
+                                className={cn(
+                                    "w-full h-12 mt-4 rounded-2xl font-black text-xs uppercase tracking-[0.15em] transition-all",
+                                    !reportText || loading || isRecording 
+                                        ? "bg-zinc-100 text-zinc-400 border border-zinc-200" 
+                                        : "bg-zinc-900 hover:bg-black text-white shadow-xl shadow-zinc-200"
+                                )}
+                            >
+                                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : (
+                                    <div className="flex items-center gap-2">
+                                        Confirmar Hallazgo <CheckCircle className="h-4 w-4" />
+                                    </div>
+                                )}
+                            </Button>
+                        </div>
                     </div>
-                    <div className="flex flex-col space-y-4">
-                         <h4 className="font-semibold">Opción 2: Cargar PDF</h4>
-                         <div className="flex items-center justify-center w-full flex-grow">
-                            <label htmlFor="file-upload-dialog" className="flex flex-col items-center justify-center w-full h-full border-2 border-border border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted">
-                                <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center">
-                                    <FileUp className="w-8 h-8 mb-4 text-muted-foreground" />
-                                    <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click para cargar</span> o arrastre y suelte</p>
-                                    {file ? <p className="text-xs text-primary font-bold">{file.name}</p> : <p className="text-xs text-muted-foreground">PDF (MAX. 2MB)</p>}
-                                </div>
-                                <Input id="file-upload-dialog" type="file" className="hidden" accept=".pdf" onChange={handleFileChange} />
-                            </label>
-                        </div> 
-                        <Button onClick={() => handleAttach('pdf')} disabled={!file || loading || isRecording} className="w-full">
-                            {loading ? <Loader2 className="animate-spin" /> : "Finalizar con PDF"}
-                        </Button>
+
+                    {/* Opción 2: Cargar PDF */}
+                    <div className="p-7 bg-zinc-50/50 group flex flex-col">
+                        <div className="flex items-center gap-3 mb-5">
+                            <div className="p-2.5 bg-emerald-600 text-white rounded-xl shadow-lg shadow-emerald-50 group-hover:scale-105 transition-transform">
+                                <FileUp className="h-5 w-5" />
+                            </div>
+                            <div>
+                                <h4 className="font-black text-zinc-900 uppercase tracking-tighter text-base leading-none">02. Cargar Informe</h4>
+                                <p className="text-[9px] font-black text-emerald-600 uppercase tracking-[0.1em] mt-1">Archivo PDF Oficial</p>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col h-[300px]">
+                            <div className="flex-grow">
+                                <label 
+                                    htmlFor="file-upload-dialog" 
+                                    className={cn(
+                                        "flex flex-col items-center justify-center w-full h-full border-4 border-dashed rounded-[2.5rem] cursor-pointer transition-all duration-500 overflow-hidden relative",
+                                        file 
+                                            ? "bg-emerald-50 border-emerald-500" 
+                                            : "bg-white border-zinc-200 hover:border-blue-600 hover:shadow-xl hover:shadow-blue-50"
+                                    )}
+                                >
+                                    <div className="flex flex-col items-center justify-center p-6 text-center relative z-10">
+                                        <div className={cn(
+                                            "w-16 h-16 rounded-full flex items-center justify-center mb-5 transition-all duration-500 shadow-lg",
+                                            file 
+                                                ? "bg-emerald-600 text-white" 
+                                                : "bg-zinc-50 text-zinc-400 group-hover:bg-blue-600 group-hover:text-white"
+                                        )}>
+                                            {file ? <Check className="w-8 h-8" /> : <FileUp className="w-6 h-6" />}
+                                        </div>
+                                        
+                                        {file ? (
+                                            <div className="animate-in zoom-in-95 duration-500">
+                                                <p className="text-emerald-900 font-black text-base tracking-tight mb-2 uppercase break-all px-4 leading-tight">{file.name}</p>
+                                                <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-600 text-white rounded-full text-[8px] font-black uppercase tracking-widest shadow-md shadow-emerald-50">
+                                                    PDF Listo <CheckCircle className="h-3 w-3" />
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <p className="text-zinc-900 font-black text-lg tracking-tight mb-2 uppercase">Subir archivo</p>
+                                                <p className="text-zinc-400 font-bold text-[9px] px-8 leading-tight uppercase tracking-widest leading-relaxed">Máximo 2MB · .PDF</p>
+                                            </>
+                                        )}
+                                    </div>
+                                    <Input id="file-upload-dialog" type="file" className="hidden" accept=".pdf" onChange={handleFileChange} />
+                                </label>
+                            </div> 
+
+                            <Button 
+                                onClick={() => handleAttach('pdf')} 
+                                disabled={!file || loading || isRecording} 
+                                className={cn(
+                                    "w-full h-12 mt-4 rounded-2xl font-black text-xs uppercase tracking-[0.15em] transition-all",
+                                    !file || loading || isRecording 
+                                        ? "bg-zinc-100 text-zinc-400 border border-zinc-200" 
+                                        : "bg-emerald-600 hover:bg-emerald-700 text-white shadow-xl shadow-emerald-200"
+                                )}
+                            >
+                                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : (
+                                    <div className="flex items-center gap-2">
+                                        Enviar Archivo <FileCheck className="h-4 w-4" />
+                                    </div>
+                                )}
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </DialogPrimitiveContent>
