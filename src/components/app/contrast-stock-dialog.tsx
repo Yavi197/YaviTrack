@@ -167,44 +167,43 @@ export function ContrastStockDialog({ open, onOpenChange }: ContrastStockDialogP
     return (
         <>
             <Dialog open={open} onOpenChange={onOpenChange}>
-                <DialogContent className="max-w-xl p-0 overflow-hidden border-none rounded-[2.5rem] bg-white shadow-2xl">
-                    {/* Header Premium */}
-                    <div className="bg-zinc-900 p-8 flex justify-between items-center relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-amber-400/10 rounded-full -mr-16 -mt-16 blur-3xl" />
+                <DialogContent className="max-w-md p-0 overflow-hidden border-none rounded-[2rem] bg-white shadow-2xl">
+                    {/* Header Premium - Mas compacto */}
+                    <div className="bg-zinc-900 px-6 py-4 flex justify-between items-center relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-amber-400/10 rounded-full -mr-12 -mt-12 blur-2xl" />
                         <div className="relative z-10">
-                            <div className="flex items-center gap-2 mb-1">
-                                <div className="bg-amber-400 p-1.5 rounded-lg">
-                                    <Beaker className="h-4 w-4 text-zinc-900" />
+                            <div className="flex items-center gap-1.5 mb-0.5">
+                                <div className="bg-amber-400 p-1 rounded-md">
+                                    <Beaker className="h-3 w-3 text-zinc-900" />
                                 </div>
-                                <span className="text-amber-400 text-[10px] font-black uppercase tracking-[0.2em]">Inventory System</span>
+                                <span className="text-amber-400 text-[8px] font-black uppercase tracking-[0.2em]">Inventory System</span>
                             </div>
-                            <DialogTitle className="text-3xl font-black text-white italic tracking-tighter uppercase leading-none">
+                            <DialogTitle className="text-xl font-black text-white italic tracking-tighter uppercase leading-none">
                                 Stock de Contraste
                             </DialogTitle>
                         </div>
                         <Button 
                             variant="default" 
                             onClick={() => setAddDialogOpen(true)}
-                            className="bg-amber-400 hover:bg-amber-500 text-zinc-900 font-black rounded-2xl px-6 h-12 uppercase tracking-widest text-xs transition-all shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)] active:shadow-none active:translate-y-[2px]"
+                            className="bg-amber-400 hover:bg-amber-500 text-zinc-900 font-black rounded-xl px-4 h-9 uppercase tracking-widest text-[10px] transition-all shadow-[3px_3px_0px_0px_rgba(255,255,255,0.2)] active:shadow-none active:translate-y-[2px]"
                         >
                             + Entrada
                         </Button>
                     </div>
 
-                    <div className="p-8 space-y-8">
-                        {/* Stock Visualizer */}
+                    <div className="p-5 space-y-4">
+                        {/* Stock Visualizer - Mas denso */}
                         <div className="relative group">
-                            <div className="absolute -inset-1 bg-gradient-to-r from-amber-400/20 to-zinc-900/5 rounded-[2rem] blur opacity-25 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
-                            <Card className="relative bg-white border-2 border-zinc-100 rounded-[2rem] overflow-hidden shadow-sm">
-                                <CardContent className="p-8">
-                                    <div className="flex justify-between items-start mb-6">
+                            <Card className="relative bg-white border-2 border-zinc-100 rounded-[1.5rem] overflow-hidden shadow-sm">
+                                <CardContent className="p-5">
+                                    <div className="flex justify-between items-start mb-4">
                                         <div>
-                                            <h3 className="text-zinc-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Nivel de Reserva</h3>
+                                            <h3 className="text-zinc-400 text-[8px] font-black uppercase tracking-[0.2em] mb-0.5">Nivel de Reserva</h3>
                                             <div className="flex items-baseline gap-1">
-                                                <span className="text-5xl font-black text-zinc-900 tracking-tighter italic">
+                                                <span className="text-3xl font-black text-zinc-900 tracking-tighter italic">
                                                     {Math.round(netTotalMl)}
                                                 </span>
-                                                <span className="text-xl font-bold text-zinc-400 uppercase italic">ml</span>
+                                                <span className="text-sm font-bold text-zinc-400 uppercase italic">ml</span>
                                             </div>
                                         </div>
                                         <Button 
@@ -212,87 +211,81 @@ export function ContrastStockDialog({ open, onOpenChange }: ContrastStockDialogP
                                             size="sm" 
                                             onClick={handleResetCounter} 
                                             disabled={resetting}
-                                            className="rounded-xl border-2 border-zinc-900 font-black uppercase text-[10px] tracking-widest h-10 hover:bg-zinc-900 hover:text-white transition-all shadow-[3px_3px_0px_0px_rgba(24,24,27,1)] active:shadow-none active:translate-x-[1px] active:translate-y-[1px]"
+                                            className="rounded-lg border-2 border-zinc-900 font-black uppercase text-[8px] tracking-widest h-8 px-3 hover:bg-zinc-900 hover:text-white transition-all shadow-[2px_2px_0px_0px_rgba(24,24,27,1)] active:shadow-none active:translate-x-[1px] active:translate-y-[1px]"
                                         >
-                                            {resetting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Reiniciar'}
+                                            {resetting ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Reiniciar'}
                                         </Button>
                                     </div>
                                     
-                                    <div className="relative h-10 bg-zinc-50 rounded-2xl border-2 border-zinc-100 p-1.5 overflow-hidden">
+                                    <div className="relative h-7 bg-zinc-50 rounded-xl border-2 border-zinc-100 p-1 overflow-hidden">
                                         <div 
-                                            className="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-xl relative transition-all duration-1000 shadow-[0_0_20px_rgba(251,191,36,0.3)]"
+                                            className="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-lg relative transition-all duration-1000 shadow-[0_0_15px_rgba(251,191,36,0.2)]"
                                             style={{ width: `${Math.min(100, (netTotalMl / 1000) * 100)}%` }}
                                         >
-                                            <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.2)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.2)_50%,rgba(255,255,255,0.2)_75%,transparent_75%,transparent)] bg-[length:24px_24px] animate-[progress-stripe_2s_linear_infinite]" />
-                                            {/* Glow effect at the tip */}
-                                            <div className="absolute right-0 top-0 bottom-0 w-2 bg-white/40 blur-[2px]" />
+                                            <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.2)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.2)_50%,rgba(255,255,255,0.2)_75%,transparent_75%,transparent)] bg-[length:20px_20px] animate-[progress-stripe_2s_linear_infinite]" />
                                         </div>
                                     </div>
-                                    <div className="flex justify-between mt-3 px-1">
-                                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">0 ml</span>
-                                        <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest">+1000 ml</span>
+                                    <div className="flex justify-between mt-2 px-0.5">
+                                        <span className="text-[8px] font-black text-zinc-300 uppercase tracking-widest">0 ml</span>
+                                        <span className="text-[8px] font-black text-amber-500 uppercase tracking-widest">+1000 ml</span>
                                     </div>
                                 </CardContent>
                             </Card>
                         </div>
 
-                        {/* History Section */}
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-2 px-2">
-                                <HistoryIcon className="h-4 w-4 text-zinc-400" />
-                                <h3 className="text-zinc-900 text-xs font-black uppercase tracking-widest">Historial de Entradas</h3>
+                        {/* History Section - Reducido en altura */}
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-1.5 px-1">
+                                <HistoryIcon className="h-3 w-3 text-zinc-400" />
+                                <h3 className="text-zinc-900 text-[10px] font-black uppercase tracking-widest">Historial</h3>
                             </div>
                             
-                            <ScrollArea className="h-[280px] rounded-[2rem] border-2 border-zinc-50 bg-zinc-50/30 p-2">
-                                <div className="space-y-2">
+                            <ScrollArea className="h-[180px] rounded-[1.5rem] border-2 border-zinc-50 bg-zinc-50/20 p-1.5">
+                                <div className="space-y-1.5">
                                     {historyLoading ? (
-                                        <div className="flex flex-col items-center justify-center py-20 opacity-40">
-                                            <Loader2 className="h-8 w-8 animate-spin mb-4 text-zinc-400" />
-                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Sincronizando Historial...</p>
+                                        <div className="flex flex-col items-center justify-center py-10 opacity-30">
+                                            <Loader2 className="h-6 w-6 animate-spin mb-2 text-zinc-400" />
+                                            <p className="text-[8px] font-black uppercase tracking-[0.2em] text-zinc-400">Sincronizando...</p>
                                         </div>
                                     ) : historyError ? (
-                                        <div className="p-6">
-                                            <Alert variant="destructive" className="rounded-2xl border-2 border-red-100 bg-red-50/50">
-                                                <AlertCircle className="h-4 w-4 text-red-600" />
-                                                <AlertTitle className="text-xs font-black uppercase mb-1">Error de Conexión</AlertTitle>
-                                                <AlertDescriptionComponent className="text-[11px] font-medium leading-relaxed opacity-80">
+                                        <div className="p-4">
+                                            <Alert variant="destructive" className="rounded-xl border-2 border-red-50 bg-red-50/30 p-3">
+                                                <AlertCircle className="h-3.5 w-3.5 text-red-600" />
+                                                <AlertTitle className="text-[10px] font-black uppercase mb-0.5">Fallo de Carga</AlertTitle>
+                                                <AlertDescriptionComponent className="text-[9px] font-medium leading-tight opacity-70">
                                                     {historyError}
                                                 </AlertDescriptionComponent>
                                             </Alert>
                                         </div>
                                     ) : entries.length === 0 ? (
-                                        <div className="flex flex-col items-center justify-center py-20 opacity-40">
-                                            <Beaker className="h-10 w-10 mb-4 text-zinc-300" />
-                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Sin movimientos registrados</p>
+                                        <div className="flex flex-col items-center justify-center py-12 opacity-30">
+                                            <Beaker className="h-8 w-8 mb-2 text-zinc-300" />
+                                            <p className="text-[8px] font-black uppercase tracking-[0.2em] text-zinc-400">Sin movimientos</p>
                                         </div>
                                     ) : (
                                         entries.map((entry) => (
-                                            <div key={entry.id} className="bg-white p-4 rounded-2xl border border-zinc-100 shadow-sm transition-all hover:shadow-md hover:border-amber-200 group">
-                                                <div className="flex justify-between items-center">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="bg-emerald-50 p-2 rounded-xl group-hover:bg-emerald-100 transition-colors">
-                                                            <Activity className="h-4 w-4 text-emerald-600" />
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-[11px] font-black text-zinc-900 uppercase leading-none mb-1">
-                                                                {entry.itemName}
-                                                            </p>
-                                                            <div className="flex gap-2 items-center">
-                                                                <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-tighter">
-                                                                    {entry.date ? format(entry.date.toDate(), 'dd MMM yyyy', { locale: es }) : 'N/A'}
-                                                                </span>
-                                                                <span className="w-1 h-1 rounded-full bg-zinc-200" />
-                                                                <span className="text-[9px] font-bold text-amber-600 uppercase tracking-widest">
-                                                                    Lote: {entry.lote}
-                                                                </span>
-                                                            </div>
+                                            <div key={entry.id} className="bg-white p-3 rounded-xl border border-zinc-100 shadow-sm transition-all hover:shadow-md group flex justify-between items-center">
+                                                <div className="flex items-center gap-2.5">
+                                                    <div className="bg-emerald-50 p-1.5 rounded-lg group-hover:bg-emerald-100 transition-colors">
+                                                        <Activity className="h-3 h-3 text-emerald-600" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-black text-zinc-900 uppercase leading-none mb-0.5">
+                                                            {entry.itemName}
+                                                        </p>
+                                                        <div className="flex gap-1.5 items-center">
+                                                            <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-tighter">
+                                                                {entry.date ? format(entry.date.toDate(), 'dd MMM yy', { locale: es }) : 'N/A'}
+                                                            </span>
+                                                            <span className="text-[8px] font-bold text-amber-600 uppercase tracking-tighter">
+                                                                #{entry.lote}
+                                                            </span>
                                                         </div>
                                                     </div>
-                                                    <div className="text-right">
-                                                        <div className="text-sm font-black text-emerald-600 italic tracking-tighter">
-                                                            +{entry.amountAdded} {entry.presentation === 'UNIDAD' ? 'uds' : 'viales'}
-                                                        </div>
-                                                        <p className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest">Ingreso de stock</p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <div className="text-[11px] font-black text-emerald-600 italic tracking-tighter leading-none">
+                                                        +{entry.amountAdded} ud
                                                     </div>
                                                 </div>
                                             </div>
