@@ -13,7 +13,7 @@ import sharp from 'sharp';
 
 let genAI: GoogleGenerativeAI | undefined;
 let model: GenerativeModel | undefined;
-const ORDER_EXTRACTION_MODEL = process.env.GENKIT_ORDER_EXTRACTION_MODEL || 'gemini-2.5-flash';
+const ORDER_EXTRACTION_MODEL = process.env.GENKIT_ORDER_EXTRACTION_MODEL || 'gemini-3-flash-preview';
 
 function getInferenceModel(): GenerativeModel {
   if (model) return model;
@@ -34,7 +34,7 @@ function getInferenceModel(): GenerativeModel {
       topP: 0.8,
       topK: 40,
     }
-  });
+  }, { apiVersion: 'v1beta' });
   
   return model;
 }

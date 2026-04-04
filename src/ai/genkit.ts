@@ -10,7 +10,7 @@ if (!process.env.GENKIT_GOOGLE_GENAI_API_KEY) {
 export const ai = genkit({
   plugins: [
     googleAI({
-      apiVersion: 'v1',
+      apiVersion: 'v1beta',
       apiKey: process.env.GENKIT_GOOGLE_GENAI_API_KEY,
     }),
   ],

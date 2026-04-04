@@ -33,7 +33,7 @@ const prompt = ai.definePrompt({
   name: 'extractReportTextPrompt',
   input: {schema: ExtractReportTextInputSchema},
   output: {schema: ExtractReportTextOutputSchema},
-  model: googleAI.model('gemini-2.0-flash-lite-001'),
+  model: googleAI.model('gemini-3-flash-preview'),
   prompt: `Extract all text from the provided document.
 
 Document: {{media url=reportDataUri}}

@@ -26,7 +26,7 @@ const promptAdes = ai.definePrompt({
   name: 'extractConsultationPromptAdes',
   input: {schema: ExtractOrderInputSchema},
   output: {schema: OrderDataSchema},
-  model: googleAI.model('gemini-2.5-flash'),
+  model: googleAI.model('gemini-3-flash-preview'),
   prompt: `Analiza esta ORDEN ADES y extrae la información en JSON.
 
 CAMPOS PRINCIPALES ADES:
@@ -61,7 +61,7 @@ const promptEmedico = ai.definePrompt({
   name: 'extractConsultationPromptEmedico',
   input: {schema: ExtractOrderInputSchema},
   output: {schema: OrderDataSchema},
-  model: googleAI.model('gemini-2.5-flash'),
+  model: googleAI.model('gemini-3-flash-preview'),
   prompt: `Analiza esta ORDEN eMEDICO y extrae la información en JSON.
 
 CAMPOS PRINCIPALES eMEDICO:

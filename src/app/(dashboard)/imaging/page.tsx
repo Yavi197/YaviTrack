@@ -20,7 +20,7 @@ import { cn } from '@/lib/utils';
 import { StudyDialog } from '@/components/app/study-dialog';
 import { EditStudyDialog } from '@/components/app/edit-study-dialog';
 import { StudyTable } from '@/components/app/study-table';
-import { Search, UploadCloud, Loader2, ShieldPlus, FileClock, FileCheck2, Paperclip, Check, AlertCircle, LogOut, LogIn, UserCheck, UserX, Activity, ListChecks, Hourglass, LogOutIcon, Eye, Syringe, User, LifeBuoy, Beaker, AlertTriangle, X, ChevronsUp, ChevronsDown } from 'lucide-react';
+import { Search, UploadCloud, Loader2, ShieldPlus, FileClock, FileCheck2, Paperclip, Check, AlertCircle, LogOut, LogIn, UserCheck, UserX, Activity, ListChecks, Hourglass, LogOutIcon, Eye, Syringe, User, LifeBuoy, Beaker, AlertTriangle, X, ChevronsUp, ChevronsDown, Clock, Zap, ArrowRight } from 'lucide-react';
 import type { DateRange } from "react-day-picker";
 import { createStudyAction, updateUserOperationalStatusAction, setStudyContrastAction, searchStudiesAction, setActiveOperatorAction, createRemissionAction, extractOrderDataAction } from '@/app/actions';
 import { handleServerActionError } from '@/lib/client-safe-action';
@@ -633,25 +633,59 @@ function DailySummaryWidget({ dutyUsers, allUsers, onStatusChange, onStatusFilte
 function ShiftReminderDialog({ show, onConfirm, onOpenHandover, isTechnologist }: { show: boolean; onConfirm: () => void; onOpenHandover?: () => void; isTechnologist?: boolean }) {
   return (
     <AlertDialog open={show} onOpenChange={(open) => !open && onConfirm()}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle className="flex items-center gap-2">
-            <AlertCircle className="text-amber-500 h-6 w-6" />
-            <span>Recordatorio de Cambio de Turno</span>
-          </AlertDialogTitle>
-          <AlertDialogDescription className="pt-2">
-            Son las 7:00. Por favor, asegúrate de que el operador de turno correcto esté seleccionado para continuar registrando las órdenes a su nombre.
-            {isTechnologist && <div className="mt-3 text-sm font-medium text-blue-600">💡 Como técnologo, puedes registrar la entrega de turno.</div>}
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter className="flex gap-2">
-          {isTechnologist && onOpenHandover && (
-            <Button onClick={onOpenHandover} variant="default" className="bg-green-600 hover:bg-green-700">
-              Entregar Turno
-            </Button>
-          )}
-          <AlertDialogAction onClick={onConfirm}>Entendido</AlertDialogAction>
-        </AlertDialogFooter>
+      <AlertDialogContent className="max-w-[440px] rounded-[2.5rem] border-2 border-zinc-900 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] overflow-hidden p-0">
+        <div className="bg-amber-400 p-6 flex flex-col items-center gap-2">
+            <div className="bg-white/20 p-4 rounded-full backdrop-blur-sm">
+                <Clock className="h-10 w-10 text-zinc-900 animate-pulse" />
+            </div>
+            <h2 className="text-2xl font-black text-zinc-900 uppercase italic tracking-tighter text-center leading-none">
+                Cambio de Turno
+            </h2>
+            <div className="bg-zinc-900 text-amber-400 px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest">
+                Importante
+            </div>
+        </div>
+        
+        <div className="p-8 space-y-6">
+            <p className="text-zinc-600 text-center text-lg leading-relaxed font-medium">
+                Son las <span className="text-zinc-900 font-black">7:00 AM</span>. 
+                <br />
+                <span className="text-sm">Por favor, asegúrate de que el <span className="font-bold text-zinc-800 underline decoration-amber-400 decoration-2 underline-offset-2">operador de turno</span> correcto esté seleccionado para continuar registrando órdenes.</span>
+            </p>
+
+            {isTechnologist && onOpenHandover && (
+                <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-xl">
+                    <div className="flex gap-3">
+                        <div className="bg-blue-100 p-2 rounded-full h-fit">
+                            <Zap className="h-4 w-4 text-blue-600" />
+                        </div>
+                        <p className="text-blue-800 text-xs font-bold leading-tight uppercase">
+                            Sugerencia técnica
+                            <span className="block mt-1 font-medium lowercase first-letter:uppercase text-blue-600">
+                                Como tecnólogo, puedes formalizar la entrega de turno ahora.
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            )}
+
+            <div className="grid grid-cols-1 gap-3 pt-2">
+                {isTechnologist && onOpenHandover && (
+                    <Button 
+                        onClick={onOpenHandover} 
+                        className="h-14 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase tracking-widest text-sm transition-all shadow-lg hover:shadow-emerald-200 active:scale-95"
+                    >
+                        Entregar Turno <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                )}
+                <Button 
+                    onClick={onConfirm}
+                    className="h-14 rounded-2xl bg-amber-400 hover:bg-amber-500 text-zinc-900 font-black uppercase tracking-widest text-sm border-2 border-zinc-900 transition-all shadow-[4px_4px_0px_0px_rgba(24,24,27,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]"
+                >
+                    Entendido, continuar
+                </Button>
+            </div>
+        </div>
       </AlertDialogContent>
     </AlertDialog>
   );
@@ -660,23 +694,46 @@ function ShiftReminderDialog({ show, onConfirm, onOpenHandover, isTechnologist }
 function AlarmDialog({ alarm, onClose }: { alarm: any; onClose: () => void; }) {
   return (
     <AlertDialog open={!!alarm} onOpenChange={(open) => !open && onClose()}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle className="flex items-center gap-2 text-red-600">
-            <AlertTriangle className="h-8 w-8" />
-            <span className="text-2xl">¡ALARMA GENERAL!</span>
-          </AlertDialogTitle>
-          <AlertDialogDescription className="pt-4 text-lg">
-            Alarma activada por <span className="font-bold">{alarm?.triggeredBy?.name}</span> ({alarm?.triggeredBy?.rol}).
-            <br />
-            Por favor, responda a la emergencia.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogAction onClick={onClose} className="bg-red-600 hover:bg-red-700">
-            Entendido
-          </AlertDialogAction>
-        </AlertDialogFooter>
+      <AlertDialogContent className="max-w-[440px] rounded-[2.5rem] border-4 border-red-600 shadow-[0_30px_60px_-15px_rgba(220,38,38,0.5)] overflow-hidden p-0 animate-in fade-in zoom-in duration-300">
+        <div className="bg-red-600 p-8 flex flex-col items-center gap-4 relative overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.2)_0%,transparent_70%)] animate-pulse" />
+            <div className="bg-white/20 p-5 rounded-full backdrop-blur-md relative z-10">
+                <AlertTriangle className="h-12 w-12 text-white animate-bounce" />
+            </div>
+            <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter text-center leading-none relative z-10">
+                ¡Alarma General!
+            </h2>
+            <div className="bg-white text-red-600 px-4 py-1 rounded-full text-sm font-black uppercase tracking-[0.2em] relative z-10">
+                Emergencia
+            </div>
+        </div>
+        
+        <div className="p-8 space-y-6 bg-white">
+            <div className="space-y-4">
+                <p className="text-zinc-600 text-center text-lg leading-snug font-medium">
+                    Alarma activada por:
+                    <span className="block mt-2 text-2xl text-red-600 font-black uppercase tracking-tight">
+                        {alarm?.triggeredBy?.name}
+                    </span>
+                    <span className="inline-block mt-1 px-3 py-0.5 bg-red-50 text-red-700 text-xs font-black rounded-full uppercase border border-red-100">
+                        {alarm?.triggeredBy?.rol}
+                    </span>
+                </p>
+                
+                <div className="h-px bg-gradient-to-r from-transparent via-red-200 to-transparent w-full" />
+                
+                <p className="text-zinc-500 text-center text-sm font-bold uppercase italic">
+                    Por favor, responda a la emergencia de inmediato.
+                </p>
+            </div>
+
+            <Button 
+                onClick={onClose}
+                className="w-full h-16 rounded-2xl bg-red-600 hover:bg-zinc-900 text-white font-black uppercase tracking-[0.2em] text-lg transition-all shadow-[0_8px_0_0_rgba(153,27,27,1)] active:shadow-none active:translate-y-[4px]"
+            >
+                Entendido
+            </Button>
+        </div>
       </AlertDialogContent>
     </AlertDialog>
   );

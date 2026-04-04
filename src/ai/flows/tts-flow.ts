@@ -55,7 +55,7 @@ const silenceRequestFlow = ai.defineFlow(
   async () => {
     const text = "Atención, por favor. Para poder escuchar el llamado de los turnos, les solicitamos amablemente modular el tono de voz y poner sus dispositivos móviles en silencio. Agradecemos su colaboración.";
     const { media } = await ai.generate({
-      model: 'googleai/gemini-2.5-flash-preview-tts',
+      model: 'googleai/gemini-3-flash-preview',
       config: {
         responseModalities: ['AUDIO'],
         speechConfig: {
@@ -108,7 +108,7 @@ const turnCallFlow = ai.defineFlow(
     const text = `Paciente con turno ${spelledOutTurn}, por favor dirigirse a ${modalityName}.`;
     
     const { media } = await ai.generate({
-      model: 'googleai/gemini-2.5-flash-preview-tts',
+      model: 'googleai/gemini-3-flash-preview',
       config: {
         responseModalities: ['AUDIO'],
         speechConfig: {

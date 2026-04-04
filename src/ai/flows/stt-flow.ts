@@ -36,7 +36,7 @@ const prompt = ai.definePrompt(
     name: 'transcribeAudioPrompt',
     input: { schema: TranscribeInputSchema },
     output: { schema: z.object({ text: z.string() }) }, // The model itself only needs to output text
-    model: googleAI.model('gemini-2.5-flash'), // Updated to the correct model
+    model: googleAI.model('gemini-3-flash-preview'), // Updated to the correct model
     prompt: `Transcribe el siguiente audio. El audio es un dictado de un informe radiológico en español. Asegúrate de que la transcripción sea precisa, incluyendo terminología médica.
 
 Audio: {{media url=audioDataUri}}
