@@ -59,8 +59,8 @@ export function AssignOperatorDialog({
           >
             {operators.length > 0 ? operators.map((op) => (
               <div key={op} className="flex items-center space-x-3">
-                <RadioGroupItem value={op} id={`op-${op}`} aria-label={`Seleccionar operador ${op}`} />
-                <Label htmlFor={`op-${op}`} className="text-base font-medium w-full cursor-pointer">
+                <RadioGroupItem value={op} id={`op-${op.replace(/\s+/g, '-')}`} aria-label={`Seleccionar operador ${op}`} />
+                <Label htmlFor={`op-${op.replace(/\s+/g, '-')}`} className="text-base font-medium w-full cursor-pointer">
                   {op}
                 </Label>
               </div>

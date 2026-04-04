@@ -55,8 +55,8 @@ export function OperatorSelectionDialog() {
           >
             {(currentProfile?.operadores || []).map((op) => (
               <div key={op} className="flex items-center space-x-3 p-3 border rounded-md has-[:checked]:bg-accent has-[:checked]:border-primary">
-                <RadioGroupItem value={op} id={`op-${op}`} />
-                <Label htmlFor={`op-${op}`} className="text-base font-medium w-full cursor-pointer">
+                <RadioGroupItem value={op} id={`op-${op.replace(/\s+/g, '-')}`} />
+                <Label htmlFor={`op-${op.replace(/\s+/g, '-')}`} className="text-base font-medium w-full cursor-pointer">
                   {op}
                 </Label>
               </div>

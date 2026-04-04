@@ -241,7 +241,7 @@ export function SelectStudiesDialog({ open, onOpenChange, orderData, userProfile
                     <div className="grid grid-cols-2 gap-2 mb-2">
                       <FormField control={form.control} name="service" render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-[9px] font-bold uppercase text-zinc-500">Servicio</FormLabel>
+                          <FormLabel>Servicio</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value} disabled={isAdmissionist}>
                             <FormControl>
                               <SelectTrigger className="h-9 rounded-xl border-zinc-200 bg-zinc-50 font-bold text-xs uppercase shadow-none focus-visible:ring-0">
@@ -256,7 +256,7 @@ export function SelectStudiesDialog({ open, onOpenChange, orderData, userProfile
                       )} />
                       <FormField control={form.control} name="subService" render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-[9px] font-bold uppercase text-zinc-500">Subservicio</FormLabel>
+                          <FormLabel>Subservicio</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value} disabled={isAdmissionist}>
                             <FormControl>
                               <SelectTrigger className="h-9 rounded-xl border-zinc-200 bg-zinc-50 font-bold text-xs uppercase shadow-none focus-visible:ring-0">
@@ -275,14 +275,14 @@ export function SelectStudiesDialog({ open, onOpenChange, orderData, userProfile
                   )}
                   <FormField control={form.control} name="bedNumber" render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[9px] font-bold uppercase text-zinc-500">N° de Cama (Opcional)</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Bed className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-400" />
+                      <FormLabel>N° de Cama (Opcional)</FormLabel>
+                      <div className="relative">
+                        <Bed className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-400" />
+                        <FormControl>
                           <Input {...field} placeholder="Piso / Cama"
                             className="h-9 pl-9 rounded-xl border-zinc-200 bg-zinc-50 font-bold text-xs shadow-none focus-visible:ring-amber-500" />
-                        </div>
-                      </FormControl>
+                        </FormControl>
+                      </div>
                     </FormItem>
                   )} />
                 </div>
@@ -317,14 +317,14 @@ export function SelectStudiesDialog({ open, onOpenChange, orderData, userProfile
                 {watchContrast && (
                   <FormField control={form.control} name="creatinine" render={({ field }) => (
                     <FormItem className="animate-in slide-in-from-top-2 duration-200">
-                      <FormLabel className="text-[9px] font-black uppercase text-red-600">Creatinina (MG/DL) *</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Thermometer className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-red-400" />
+                      <FormLabel>Creatinina (MG/DL) *</FormLabel>
+                      <div className="relative">
+                        <Thermometer className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-red-400" />
+                        <FormControl>
                           <Input {...field} type="number" step="0.01" placeholder="Ej: 1.25"
                             className="h-9 pl-9 rounded-xl border-red-200 bg-red-50/40 font-black text-red-700 text-xs shadow-none focus-visible:ring-red-500" />
-                        </div>
-                      </FormControl>
+                        </FormControl>
+                      </div>
                       <FormMessage className="text-[9px] font-bold" />
                     </FormItem>
                   )} />

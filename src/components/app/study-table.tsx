@@ -146,8 +146,8 @@ function SelectOperatorDialog({ onConfirm, children }: { onConfirm: (operator: s
                         >
                             {operators.map((op) => (
                                 <div key={op} className="flex items-center space-x-3 p-3 border rounded-md has-[:checked]:bg-accent has-[:checked]:border-primary">
-                                    <RadioGroupItem value={op} id={`op-${op}`} />
-                                    <Label htmlFor={`op-${op}`} className="text-base font-medium w-full cursor-pointer">
+                                    <RadioGroupItem value={op} id={`op-table-${op.replace(/\s+/g, '-')}`} />
+                                    <Label htmlFor={`op-table-${op.replace(/\s+/g, '-')}`} className="text-base font-medium w-full cursor-pointer">
                                         {op}
                                     </Label>
                                 </div>
@@ -201,8 +201,8 @@ function SelectSpecialistDialog({ study, specialists, onConfirm, children }: { s
                     >
                         {filteredSpecialists.length > 0 ? filteredSpecialists.map((spec) => (
                             <div key={spec.id} className="flex items-center space-x-3 p-3 border rounded-md has-[:checked]:bg-accent has-[:checked]:border-primary">
-                                <RadioGroupItem value={spec.id} id={`spec-${spec.id}`} />
-                                <Label htmlFor={`spec-${spec.id}`} className="text-base font-medium w-full cursor-pointer">
+                                <RadioGroupItem value={spec.id} id={`spec-${spec.id.replace(/\s+/g, '-')}`} />
+                                <Label htmlFor={`spec-${spec.id.replace(/\s+/g, '-')}`} className="text-base font-medium w-full cursor-pointer">
                                     {spec.name}
                                 </Label>
                             </div>
