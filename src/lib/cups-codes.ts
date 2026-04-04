@@ -1,244 +1,319 @@
-/**
- * CUPS (Código Único de Procedimientos en Salud) - Colombian medical procedure codes
- * Used to map study descriptions to standardized codes
+/*
+ * Master List of CUPS and SOAT Codes for Med-iTrack
+ * This file is used for fuzzy matching and mapping of medical procedures.
  */
 
 import { GENERATED_CUPS_METADATA } from './generated/cups.generated';
 import type { CupsModality } from './generated/cups.generated';
 
 const LEGACY_CODES: Record<string, string> = {
-    // Nuevos CUPS Ecografía Nov 2025
-    '881620': 'ECOGRAFIA ARTICULAR DE RODILLA',
-    '881511': 'ULTRASONOGRAFIA TESTICULAR CON ANALISIS DOPPLER',
-    '881331': 'ULTRASONOGRAFIA DE RIÑONES, BAZO, AORTA O ADRENALES',
-  // TAC (Tomografía Axial Computarizada)
-  '21701': 'Cráneo simple',
-  '21702': 'Cráneo con contraste',
-  '21703': 'Cráneo simple y con contraste',
-  '21704': 'Cisternografía',
-  '21705': 'Silla turca u oído',
-  '21706': 'Senos paranasales o rinofaringe',
-  '21707': 'Órbitas',
-  '21708': 'Columna cervical, dorsal o lumbar (hasta tres espacios)',
-  '21709': 'Columna cervical, dorsal o lumbar (espacio adicional)',
-  '21710': 'Laringe o cuello',
-  '21711': 'Laringe y cuello',
-  '21712': 'Tórax',
-  '21713': 'Abdomen superior',
-  '21714': 'Pelvis',
-  '21715': 'Abdomen total',
-  '21716': 'Extremidades y articulaciones',
-  '21717': 'Articulación temporo mandibular',
-  '21718': 'Osteodensitometría',
-  '21719': 'Complemento a mielografía',
-  '21720': 'Anteversión femoral o tibial',
-  '21721': 'Guía escanográfica para procedimientos intervencionistas',
-  '21722': 'Reconstrucción tridimensional',
-  '21723': 'Peñasco, conductos auditivos internos',
-
-  // RX (Radiografía)
-  '21101': 'Mano, dedos, puño, codo, pie, clavícula',
-  '21102': 'Brazo, pierna, rodilla, fémur, hombro',
-  '21103': 'Test de Farill, estudio de pie plano',
-  '21104': 'Test de anteversión femoral',
-  '21105': 'Pelvis, cadera, articulaciones sacro ilíacas',
-  '21106': 'Comparativas de las regiones anteriores',
-  '21107': 'Tomografía osteoarticular',
-  '21108': 'Proyección adicional',
-  '21109': 'Tangencial rótula',
-  '21110': 'Panorámica en miembros inferiores',
-  '21111': 'Estudio de huesos largos AP',
-  '21112': 'Fotopodografía',
-  '21113': 'Osteodensitometría por absorción dual',
-  '21120': 'Cara, malar, arco cigomático, huesos nasales',
-  '21121': 'Senos paranasales, maxilar inferior, órbitas',
-  '21122': 'Cráneo simple',
-  '21123': 'Cráneo simple más base de cráneo',
-  '21124': 'Mastoides comparativas, peñascos',
-  '21125': 'Tomografía lineal de las regiones anteriores',
-  '21126': 'Proyecciones adicionales',
-  '21127': 'Politomografía de conductos auditivos internos',
-  '21128': 'Politomografía unilateral de mastoides',
-  '21129': 'Politomografía bilateral de mastoides',
-  // Códigos ISS y ADES actualizados
-  '870001': 'RADIOGRAFÍA DE CRÁNEO SIMPLE',
-  '870003': 'RADIOGRAFÍA DE BASE DE CRÁNEO',
-  '870004': 'RADIOGRAFÍA DE SILLA TURCA',
-  '870005': 'RADIOGRAFÍA DE MASTOIDES COMPARATIVAS',
-  '870006': 'RADIOGRAFÍA DE PEÑASCOS',
-  '870007': 'RADIOGRAFÍA DE CONDUCTO AUDITIVO INTERNO',
-  '870101': 'RADIOGRAFÍA DE CARA (PERFILOGRAMA)',
-  '870102': 'RADIOGRAFÍA DE ÓRBITAS',
-  '870103': 'RADIOGRAFÍA DE AGUJEROS ÓPTICOS',
-  '870104': 'RADIOGRAFÍA DE MALAR',
-  '870105': 'RADIOGRAFÍA DE ARCO CIGOMATICO',
-  '870107': 'RADIOGRAFÍA DE HUESOS NASALES',
-  '870108': 'RADIOGRAFÍA DE SENOS PARANASALES',
-  '870112': 'RADIOGRAFÍA DE MAXILAR SUPERIOR',
-  '870113': 'RADIOGRAFÍA DE MAXILAR INFERIOR',
-  '870131': 'RADIOGRAFÍA DE ARTICULACIÓN TEMPOROMAXILAR [ATM]',
-  '870601': 'RADIOGRAFÍA DE TEJIDOS BLANDOS DE CUELLO',
-  '870602': 'RADIOGRAFÍA DE CAVUM FARÍNGEO',
-  '870603': 'RADIOGRAFÍA DE FARINGE [FARINGOGRAFÍA]',
-  '871010': 'RADIOGRAFÍA DE COLUMNA CERVICAL',
-  '871019': 'RADIOGRAFÍA DE COLUMNA UNIÓN CERVICO DORSAL',
-  '871020': 'RADIOGRAFÍA DE COLUMNA TORÁCICA',
-  '871030': 'RADIOGRAFÍA DE COLUMNA DORSOLUMBAR',
-  '871040': 'RADIOGRAFÍA DE COLUMNA LUMBOSACRA',
-  '871050': 'RADIOGRAFÍA DE SACRO CÓCCIX',
-  '871060': 'RADIOGRAFÍA DE COLUMNA VERTEBRAL TOTAL',
-  '871070': 'RADIOGRAFÍA DINÁMICA DE COLUMNA VERTEBRAL',
-  '871091': 'RADIOGRAFÍA DE ARTICULACIONES SACROILIACAS',
-  '871111': 'RADIOGRAFÍA DE REJA COSTAL',
-  '871112': 'RADIOGRAFÍA DE ESTERNÓN',
-  '871121': 'RADIOGRAFÍA DE TÓRAX (P.A. O A.P. Y LATERAL, DECÚBITO LATERAL, OBLICUAS O LATERAL)',
-  '871129': 'RADIOGRAFÍA DE ARTICULACIONES ESTERNOCLAVICULARES',
-  '871202': 'APICOGRAMA',
-  '871320': 'RADIOGRAFÍA DE ESÓFAGO',
-  '872002': 'RADIOGRAFÍA DE ABDOMEN SIMPLE',
-  '872011': 'RADIOGRAFÍA DE ABDOMEN SIMPLE CON PROYECCIONES ADICIONALES (SERIE DE ABDOMEN AGUDO)',
-  '872101': 'RADIOGRAFÍA DE TRÁNSITO INTESTINAL CONVENCIONAL',
-  '872103': 'RADIOGRAFÍA DE TRÁNSITO INTESTINAL CON MARCADORES',
-  '872104': 'RADIOGRAFÍA DE COLON POR ENEMA O COLON POR INGESTA',
-  '872121': 'RADIOGRAFÍA DE VÍAS DIGESTIVAS ALTAS (ESÓFAGO, ESTÓMAGO Y DUODENO)',
-  '872123': 'RADIOGRAFÍA DE VÍAS DIGESTIVAS ALTAS (ESÓFAGO, ESTÓMAGO Y DUODENO) Y TRÁNSITO INTESTINAL',
-  '873001': 'RADIOGRAFÍA PARA SERIE ESQUELÉTICA',
-  '873002': 'RADIOGRAFÍA DE HUESOS LARGOS SERIE COMPLETA (ESQUELETO AXIAL Y APENDICULAR)',
-  '873003': 'RADIOGRAFÍA PARA ESTUDIOS DE LONGITUD DE LOS HUESOS (ORTORRADIOGRAFÍA Y ESCANOGRAMA)',
-  '873004': 'RADIOGRAFÍA PARA DETECTAR EDAD ÓSEA [CARPOGRAMA]',
-  '873111': 'RADIOGRAFÍA DE OMOPLATO',
-  '873112': 'RADIOGRAFÍA DE CLAVICULA',
-  '873121': 'RADIOGRAFÍA DE HÚMERO',
-  '873122': 'RADIOGRAFÍA DE ANTEBRAZO',
-  '873123': 'RADIOGRAFIAS COMPARATIVAS DE EXTREMIDADES SUPERIORES',
-  '873202': 'RADIOGRAFÍA DE ARTICULACIONES ACROMIO CLAVICULARES COMPARATIVAS',
-  '873204': 'RADIOGRAFÍA DE HOMBRO',
-  '873205': 'RADIOGRAFÍA DE CODO',
-  '873206': 'RADIOGRAFÍA DE PUÑO O MUÑECA',
-  '873210': 'RADIOGRAFÍA DE MANO',
-  '873302': 'RADIOGRAFÍA PARA MEDICIÓN DE MIEMBROS INFERIORES [ESTUDIO DE FARILL U OSTEOMETRÍA]',
-  '873312': 'RADIOGRAFÍA DE FÉMUR (AP, LATERAL)',
-  '873313': 'RADIOGRAFÍA DE PIERNA (AP, LATERAL)',
-  '873314': 'RADIOGRAFÍA DE ANTEVERSIÓN TIBIAL',
-  '873333': 'RADIOGRAFÍA DE PIE (AP, LATERAL Y OBLICUA)',
-  '873335': 'RADIOGRAFÍA DE CALCÁNEO (AXIAL Y LATERAL)',
-  '873340': 'RADIOGRAFÍA DE MIEMBRO INFERIOR (AP, LATERAL)',
-  '873411': 'RADIOGRAFÍA DE CADERA O ARTICULACIÓN COXO-FEMORAL (AP, LATERAL)',
-  '873412': 'RADIOGRAFÍA DE CADERA COMPARATIVA',
-  '873420': 'RADIOGRAFÍA DE RODILLA (AP, LATERAL)',
-  '873422': 'RADIOGRAFÍA DE RODILLAS COMPARATIVAS POSICIÓN VERTICAL (ÚNICAMENTE VISTA ANTEROPOSTERIOR)',
-  '873423': 'RADIOGRAFÍA TANGENCIAL O AXIAL DE RÓTULA',
-  '873431': 'RADIOGRAFÍA DE TOBILLO (AP, LATERAL Y ROTACIÓN INTERNA)',
-  '873443': 'RADIOGRAFÍAS COMPARATIVAS DE EXTREMIDADES INFERIORES',
-  '873444': 'RADIOGRAFÍAS EN EXTREMIDADES PROYECCIONES ADICIONALES (STRESS, TUNEL, OBLICUAS)',
-  'M87000': 'EQUIPO DE RADIOLOGIA PORTATIL SIMPLE',
+  // --- RADIOGRAFÍA (RX) ---
+  '870001': 'RADIOGRAFIA DE CRANEO SIMPLE',
+  '870002': 'PERFILOGRAMA CON CEFALOMETRIA',
+  '870003': 'RADIOGRAFIA DE BASE DE CRANEO',
+  '870004': 'RADIOGRAFIA DE SILLA TURCA',
+  '870005': 'RADIOGRAFIA DE MASTOIDES COMPARATIVAS',
+  '870006': 'RADIOGRAFIA DE PEÑASCOS',
+  '870007': 'RADIOGRAFIA DE CONDUCTO AUDITIVO INTERNO',
+  '870101': 'RADIOGRAFIA DE CARA (PERFILOGRAMA)',
+  '870102': 'RADIOGRAFIA DE ORBITAS',
+  '870103': 'RADIOGRAFIA DE AGUJEROS OPTICOS',
+  '870104': 'RADIOGRAFIA DE MALAR',
+  '870105': 'RADIOGRAFIA DE ARCO CIGOMATICO',
+  '870107': 'RADIOGRAFIA DE HUESOS NASALES',
+  '870108': 'RADIOGRAFIA DE SENOS PARANASALES',
+  '870112': 'RADIOGRAFIA DE MAXILAR SUPERIOR',
+  '870131': 'RADIOGRAFIA DE ARTICULACION TEMPOROMAXILAR [ATM]',
+  '870601': 'RADIOGRAFIA DE TEJIDOS BLANDOS DE CUELLO',
+  '870602': 'RADIOGRAFIA DE CAVUM FARINGEO',
+  '870603': 'RADIOGRAFIA DE FARINGE [FARINGOGRAFIA]',
+  '871010': 'RADIOGRAFIA DE COLUMNA CERVICAL',
+  '871019': 'RADIOGRAFIA DE COLUMNA UNION CERVICO DORSAL',
+  '871020': 'RADIOGRAFIA DE COLUMNA TORACICA',
+  '871030': 'RADIOGRAFIA DE COLUMNA DORSOLUMBAR',
+  '871040': 'RADIOGRAFIA DE COLUMNA LUMBOSACRA',
+  '871050': 'RADIOGRAFIA DE SACRO COCCIX',
+  '871060': 'RADIOGRAFIA DE COLUMNA VERTEBRAL TOTAL',
+  '871070': 'RADIOGRAFIA DINAMICA DE COLUMNA VERTEBRAL',
+  '871091': 'RADIOGRAFIA DE ARTICULACIONES SACROILIACAS',
+  '871111': 'RADIOGRAFIA DE REJA COSTAL',
+  '871112': 'RADIOGRAFIA DE ESTERNON',
+  '871121': 'RADIOGRAFIA DE TORAX (P.A. O A.P. Y LATERAL)',
+  '871129': 'RADIOGRAFIA DE ARTICULACIONES ESTERNOCLAVICULARES',
+  '871320': 'RADIOGRAFIA DE ESOFAGO',
+  '872002': 'RADIOGRAFIA DE ABDOMEN SIMPLE',
+  '872011': 'RADIOGRAFIA DE ABDOMEN SIMPLE (ABDOMEN AGUDO)',
+  '872101': 'RADIOGRAFIA DE TRANSITO INTESTINAL CONVENCIONAL',
   '872102': 'RADIOGRAFIA DE TRANSITO INTESTINAL DOBLE CONTRASTE',
-  '872122': 'RADIOGRAFIA DE VIAS DIGESTIVAS ALTAS (ESOFAGO, ESTOMAGO Y DUODENO) CON DOBLE CONTRASTE',
-  // ...continúa con los códigos de TOMOGRAFIA, ECOGRAFIA, MAMOGRAFIA, RESONANCIA...
-  '883440': 'Resonancia Magnética de Pelvis',
-  '883110': 'Resonancia Magnética de Senos Paranasales o Cara',
-  '883590': 'Resonancia Magnética de Sistema Músculo Esquelético',
-  '883301': 'Resonancia Magnética del Tórax',
-  '883430': 'Resonancia Nuclear Magnética de Vías Biliares',
+  '872103': 'RADIOGRAFIA DE TRANSITO INTESTINAL CON MARCADORES',
+  '872104': 'RADIOGRAFIA DE COLON POR ENEMA',
+  '872105': 'RADIOGRAFIA DE COLON POR ENEMA CON DOBLE CONTRASTE',
+  '872121': 'RADIOGRAFIA DE VIAS DIGESTIVAS ALTAS',
+  '872122': 'RADIOGRAFIA DE VIAS DIGESTIVAS ALTAS CON DOBLE CONTRASTE',
+  '872123': 'RADIOGRAFIA DE VIAS DIGESTIVAS ALTAS Y TRANSITO INTESTINAL',
+  '873001': 'RADIOGRAFIA PARA SERIE ESQUELETICA',
+  '873002': 'RADIOGRAFIA DE HUESOS LARGOS SERIE COMPLETA',
+  '873003': 'RADIOGRAFIA PARA ESTUDIOS DE LONGITUD DE LOS HUESOS',
+  '873004': 'RADIOGRAFIA PARA DETECTAR EDAD OSEA [CARPOGRAMA]',
+  '873111': 'RADIOGRAFIA DE OMOPLATO',
+  '873112': 'RADIOGRAFIA DE CLAVICULA',
+  '873121': 'RADIOGRAFIA DE HUMERO',
+  '873122': 'RADIOGRAFIA DE ANTEBRAZO',
+  '873123': 'RADIOGRAFIAS COMPARATIVAS DE EXTREMIDADES SUPERIORES',
+  '873202': 'RADIOGRAFIA DE ARTICULACIONES ACROMIO CLAVICULARES',
+  '873204': 'RADIOGRAFIA DE HOMBRO',
+  '873205': 'RADIOGRAFIA DE CODO',
+  '873206': 'RADIOGRAFIA DE PUÑO O MUÑECA',
+  '873210': 'RADIOGRAFIA DE MANO',
+  '873302': 'RADIOGRAFIA PARA MEDICION DE MIEMBROS INFERIORES [FARILL]',
+  '873303': 'RADIOGRAFIA COMPARATIVA DE PIES CON APOYO',
+  '873304': 'RADIOGRAFIA AXIAL DE SESAMOIDEOS',
+  '873311': 'RADIOGRAFIA DE ANTEVERSION FEMORAL',
+  '873312': 'RADIOGRAFIA DE FEMUR (AP - LATERAL)',
+  '873313': 'RADIOGRAFIA DE PIERNA (AP - LATERAL)',
+  '873314': 'RADIOGRAFIA DE ANTEVERSION TIBIAL',
+  '873333': 'RADIOGRAFIA DE PIE (AP - LATERAL Y OBLICUA)',
+  '873335': 'RADIOGRAFIA DE CALCANEO (AXIAL Y LATERAL)',
+  '873340': 'RADIOGRAFIA DE MIEMBRO INFERIOR (AP - LATERAL)',
+  '873411': 'RADIOGRAFIA DE CADERA (AP - LATERAL)',
+  '873412': 'RADIOGRAFIA DE CADERA COMPARATIVA',
+  '873420': 'RADIOGRAFIA DE RODILLA (AP - LATERAL)',
+  '873422': 'RADIOGRAFIA DE RODILLAS COMPARATIVAS VERTICAL',
+  '873423': 'RADIOGRAFIA TANGENCIAL O AXIAL DE ROTULA',
+  '873431': 'RADIOGRAFIA DE TOBILLO (AP - LATERAL)',
+  '873443': 'RADIOGRAFIAS COMPARATIVAS DE EXTREMIDADES INFERIORES',
+  '873444': 'RADIOGRAFIAS EN EXTREMIDADES PROYECCIONES ADICIONALES',
+  '873501': 'FLUOROSCOPIA COMO GUIA PARA PROCEDIMIENTOS',
+  '876801': 'MAMOGRAFIA UNILATERAL',
+  '876802': 'MAMOGRAFIA BILATERAL',
+  '876901': 'GALACTOGRAFIA DE UN CONDUCTO',
+  '876902': 'GALACTOGRAFIA DE MULTIPLES CONDUCTOS',
+  '877602': 'COLANGIOGRAFIA POR TUBO O CATETER',
+  '877603': 'COLANGIOGRAFIA PERCUTANEA',
+  '877802': 'UROGRAFIA INTRAVENOSA',
+  '877812': 'PIELOGRAFIA A TRAVES DE TUBO DE NEFROSTOMIA',
+  '877814': 'PIELOGRAFIA RETROGRADA',
+  '877815': 'PIELOGRAFIA RETROGRADA O ANTEROGRADA',
+  '877816': 'PIELOGRAFIA PERCUTANEA',
+  '877831': 'URETEROGRAFIA RETROGRADA',
+  '877851': 'CISTOGRAFIA CON PROYECCIONES OBLICUAS',
+  '877861': 'URETROCISTOGRAFIA',
+  '877862': 'URETROCISTOGRAFIA MICCIONAL',
+  '877863': 'URETROCISTOGRAFIA RETROGRADA',
+  '877871': 'URETROGRAFIA RETROGRADA',
 
-  // TAC (Tomografía Computada) - ISS codes
-  '879141': 'Tomografía Axial Computada de Maxilares',
-  '879990': 'Tomografía Computada como Guía para Procedimientos',
-  '879920': 'Tomografía Computada con Modalidad Dinámica',
-  '879410': 'Tomografía Computada de Abdomen Superior',
-  '879420': 'Tomografía Computada de Abdomen y Pelvis',
-  '879205': 'Tomografía Computada de Columna (Complemento a Mielografía)',
-  '879201': 'Tomografía Computada de Columna (Tres Espacios)',
-  '879112': 'Tomografía Computada de Cráneo con Contraste',
-  '879111': 'Tomografía Computada de Cráneo Simple',
-  '879113': 'Tomografía Computada de Cráneo Simple y con Contraste',
-  '879161': 'Tomografía Computada de Cuello',
-  '879162': 'Tomografía Computada de Laringe',
-  '879522': 'Tomografía Computada de Miembros Inferiores (Anteversión Femoral)',
-  '879523': 'Tomografía Computada de Miembros Inferiores (Axiales de Rótula)',
-  '879520': 'Tomografía Computada de Miembros Inferiores y Articulaciones',
-  '879510': 'Tomografía Computada de Miembros Superiores y Articulaciones',
-  '879122': 'Tomografía Computada de Oído, Peñasco y Conducto Auditivo',
-  '879121': 'Tomografía Computada de Órbitas',
-  '879460': 'Tomografía Computada de Pelvis',
-  '879132': 'Tomografía Computada de Rinofaringe',
-  '879131': 'Tomografía Computada de Senos Paranasales o Cara',
-  '879116': 'Tomografía Computada de Silla Turca (Hipófisis)',
-  '879301': 'Tomografía Computada de Tórax',
-  '879391': 'Tomografía Computada de Tórax Extendido al Abdomen Superior',
-  '879901': 'Tomografía Computada de Vasos',
-  '879430': 'Tomografía Computada de Vías Urinarias',
-  '879910': 'Tomografía Computada en Reconstrucción Tridimensional',
+  // --- TOMOGRAFÍA (TAC) ---
+  '879111': 'TOMOGRAFIA COMPUTADA DE CRANEO SIMPLE',
+  '879112': 'TOMOGRAFIA COMPUTADA DE CRANEO CON CONTRASTE',
+  '879113': 'TOMOGRAFIA COMPUTADA DE CRANEO SIMPLE Y CON CONTRASTE',
+  '879116': 'TOMOGRAFIA COMPUTADA DE SILLA TURCA (HIPOFISIS)',
+  '879121': 'TOMOGRAFIA COMPUTADA DE ORBITAS',
+  '879122': 'TOMOGRAFIA COMPUTADA DE OIDO - PEÑASCO',
+  '879131': 'TOMOGRAFIA COMPUTADA DE SENOS PARANASALES O CARA',
+  '879132': 'TOMOGRAFIA COMPUTADA DE RINOFARINGE',
+  '879141': 'TOMOGRAFIA COMPUTADA DE MAXILARES',
+  '879150': 'TOMOGRAFIA COMPUTADA DE ATM (BILATERAL)',
+  '879161': 'TOMOGRAFIA COMPUTADA DE CUELLO',
+  '879162': 'TOMOGRAFIA COMPUTADA DE LARINGE',
+  '879201': 'TOMOGRAFIA COMPUTADA DE COLUMNA (TRES ESPACIOS)',
+  '879205': 'TOMOGRAFIA COMPUTADA DE COLUMNA (COMPLEMENTO MIELOGRAFIA)',
+  '879301': 'TOMOGRAFIA COMPUTADA DE TORAX',
+  '879302': 'TOMOGRAFIA COMPUTADA DE CORAZON Y GRANDES VASOS',
+  '879303': 'TOMOGRAFIA COMPUTADA DE TORAX DE BAJA DOSIS',
+  '879304': 'TOMOGRAFIA COMPUTADA DE TORAX DE ALTA RESOLUCION',
+  '879391': 'TOMOGRAFIA COMPUTADA DE TORAX EXTENDIDO AL ABDOMEN',
+  '879410': 'TOMOGRAFIA COMPUTADA DE ABDOMEN SUPERIOR',
+  '879411': 'TOMOGRAFIA COMPUTADA de INTESTINO [ENTEROTC]',
+  '879420': 'TOMOGRAFIA COMPUTADA DE ABDOMEN Y PELVIS (TOTAL)',
+  '879421': 'TOMOGRAFIA COMPUTADA DE CADERA',
+  '879430': 'TOMOGRAFIA COMPUTADA DE VIAS URINARIAS [UROTC]',
+  '879431': 'UROGRAFIA CON TOMOGRAFIA COMPUTADA',
+  '879460': 'TOMOGRAFIA COMPUTADA DE PELVIS',
+  '879510': 'TOMOGRAFIA COMPUTADA DE MIEMBROS SUPERIORES',
+  '879520': 'TOMOGRAFIA COMPUTADA DE MIEMBROS INFERIORES',
+  '879522': 'TOMOGRAFIA COMPUTADA DE MIEMBROS INFERIORES (ANTEVERSION)',
+  '879523': 'TOMOGRAFIA COMPUTADA DE MIEMBROS INFERIORES (AXIALES ROTULA)',
+  '879901': 'TOMOGRAFIA COMPUTADA DE VASOS',
+  '879902': 'TOMOGRAFIA COMPUTADA DE CORONARIAS [ANGIOTC]',
+  '879903': 'TOMOGRAFIA COMPUTADA CON PERFUSION',
+  '879904': 'TOMOGRAFIA DE COHERENCIA OPTICA ENDOVASCULAR',
+  '879905': 'TOMOGRAFIA COMPUTADA OSEA DE CUERPO ENTERO',
+  '879910': 'TOMOGRAFIA COMPUTADA RECONSTRUCCION TRIDIMENSIONAL',
+  '879911': 'TOMOGRAFIA COMPUTADA RECONSTRUCCION VIRTUAL',
+  '879920': 'TOMOGRAFIA COMPUTADA CON MODALIDAD DINAMICA',
+  '879990': 'TOMOGRAFIA COMPUTADA COMO GUIA PARA PROCEDIMIENTOS',
+  '872520': 'COLANGIOGRAFIA-TOMOGRAFIA',
 
-  // ECO (Ecografía) - ISS codes
-  '882308': 'Doppler de Vasos Arteriales de Miembros Inferiores',
-  '882307': 'Doppler de Vasos Arteriales de Miembros Superiores',
-  '882318': 'Doppler de Vasos Venosos de Miembros Inferiores',
-  '882309': 'Doppler de Vasos Venosos de Miembros Superiores',
-  '881701': 'Ecografía como Guía para Procedimientos',
-  '881702': 'Ecografía como Guía para Procedimientos con Marcación',
-  '881305': 'Ecografía de Abdomen Superior',
-  '881302': 'Ecografía de Abdomen Total',
-  '881132': 'Ecografía de Cuello',
-  '881131': 'Ecografía de Glándulas Salivales',
-  '881151': 'Ecografía de Ganglios Cervicales (Mapeo)',
-  '881306': 'Ecografía de Hígado, Páncreas y Vía Biliar',
-  '881201': 'Ecografía de Mama',
-  '881212': 'Ecografía de Otros Sitios Torácicos',
-  '881521': 'Ecografía de Pene',
-  '881501': 'Ecografía de Próstata Transabdominal',
-  '881502': 'Ecografía de Próstata Transrectal',
-  '881362': 'Ecografía de Tejidos Blandos de Abdomen con Análisis Doppler',
-  '881301': 'Ecografía de Tejidos Blandos de Pared Abdominal y Pelvis',
-  '881602': 'Ecografía de Tejidos Blandos en Extremidades Inferiores',
-  '881601': 'Ecografía de Tejidos Blandos en Extremidades Superiores',
-  '881141': 'Ecografía de Tiroides',
-  '881211': 'Ecografía de Tórax (Pericardio o Pleura)',
-  '881332': 'Ecografía de Vías Urinarias',
-  '881390': 'Ecografía del Abdomen y Pelvis como Guía de Procedimiento',
-  '882296': 'Ecografía Doppler con Evaluación de Flujo en Hipertensión Portal',
-  '882222': 'Ecografía Doppler de Arterias Renales',
-  '882272': 'Ecografía Doppler de Vasos del Pene',
-  '881317': 'Ecografía Endoscópica Biliopancreática',
-  '881314': 'Ecografía Endoscópica de Estómago o Duodeno',
-  '881319': 'Ecografía Endoscópica de Recto',
-  '881360': 'Ecografía Pélvica con Análisis Doppler',
-  '881410': 'Ecografía Pélvica Ginecológica',
-  '881510': 'Ecografía Testicular',
-  '881437': 'Ecografía Obstétrica con Detalle Anatómico',
-  '881436': 'Ecografía Obstétrica con Translucencia Nucal',
-  '881438': 'Ecocardiografía Fetal',
-  '881434': 'Perfil Biofísico',
-  '882298': 'Ecografía Doppler Obstétrica con Evaluación de Circulación Placentaria',
-  '872105': 'RADIOGRAFÍA DE COLON POR ENEMA CON DOBLE CONTRASTE',
-  '871062': 'RADIOGRAFIA PANORAMICA DE COLUMNA (NIÑOS)',
-  '871061': 'RADIOGRAFIA PANORAMICA DE COLUMNA (ADULTOS)',
-  '870114': 'RADIOGRAFIA PANORAMICA DE MAXILARES',
-  '873305': 'RADIOGRAFIA PANORAMICA DE MIEMBROS INFERIORES',
+  // --- ECOGRAFÍA (ECO) ---
+  '881112': 'ECOGRAFIA CEREBRAL TRANSFONTANELAR',
+  '881118': 'ECOGRAFIA CEREBRAL TRANSFONTANELAR CON DOPPLER',
+  '881130': 'ECOGRAFIA DE TEJIDOS BLANDOS DE CARA',
+  '881131': 'ECOGRAFIA DE GLANDULAS SALIVALES',
+  '881132': 'ECOGRAFIA DE CUELLO',
+  '881141': 'ECOGRAFIA DE TIROIDES',
+  '881151': 'ECOGRAFIA DE GLANGLIOS CERVICALES (MAPEO)',
+  '881201': 'ECOGRAFIA DE MAMA',
+  '881211': 'ECOGRAFIA DE TORAX (PERICARDIO O PLEURA)',
+  '881212': 'ECOGRAFIA DE OTROS SITIOS TORACICOS',
+  '881213': 'ECOGRAFIA ENDOSCOPICA DE MEDIASTINO',
+  '881215': 'ECOGRAFIA ENDOSCOPICA DE PULMON',
+  '881301': 'ECOGRAFIA DE TEJIDOS BLANDOS DE PARED ABDOMINAL',
+  '881302': 'ECOGRAFIA DE ABDOMEN TOTAL',
+  '881305': 'ECOGRAFIA DE ABDOMEN SUPERIOR',
+  '881306': 'ECOGRAFIA DE HIGADO - PANCREAS - VIA BILIAR',
+  '881312': 'ECOGRAFIA ENDOSCOPICA DE ESOFAGO',
+  '881313': 'ECOGRAFIA DE ABDOMEN (PILORO)',
+  '881314': 'ECOGRAFIA ENDOSCOPICA DE ESTOMAGO O DUODENO',
+  '881317': 'ECOGRAFIA ENDOSCOPICA BILIOPANCREATICA',
+  '881318': 'ECOGRAFIA DE RECTO',
+  '881319': 'ECOGRAFIA ENDOSCOPICA DE RECTO',
+  '881320': 'ECOGRAFIA DE ANO',
+  '881321': 'ECOGRAFIA LAPAROSCOPICA DE ABDOMEN',
+  '881332': 'ECOGRAFIA DE VIAS URINARIAS',
+  '881360': 'ECOGRAFIA PELVICA CON ANALISIS DOPPLER',
+  '881361': 'ECOGRAFIA INTESTINAL CON ANALISIS DOPPLER',
+  '881362': 'ECOGRAFIA DE TEJIDOS BLANDOS CON ANALISIS DOPPLER',
+  '881390': 'ECOGRAFIA ABDOMEN Y PELVIS GUIA PROCEDIMIENTO',
+  '881401': 'ECOGRAFIA PELVICA GINECOLOGICA TRANSVAGINAL',
+  '881402': 'ECOGRAFIA PELVICA GINECOLOGICA TRANSABDOMINAL',
+  '881403': 'ECOGRAFIA PELVICA INTEGRAL FOLICULAR',
+  '881410': 'ECOGRAFIA PELVICA GINECOLOGICA HISTEROSONOGRAFIA',
+  '881411': 'ECOGRAFIA DINAMICA DE PISO PELVICO',
+  '881412': 'ECOGRAFIA DE MAPEO PELVICO',
+  '881431': 'ECOGRAFIA OBSTETRICA TRANSABDOMINAL',
+  '881432': 'ECOGRAFIA OBSTETRICA TRANSVAGINAL',
+  '881434': 'PERFIL BIOFISICO',
+  '881435': 'ECOGRAFIA OBSTETRICA CON EVALUACION CIRCULACION',
+  '881436': 'ECOGRAFIA OBSTETRICA CON TRANSLUCENCIA NUCAL',
+  '881437': 'ECOGRAFIA OBSTETRICA CON DETALLE ANATOMICO',
+  '881501': 'ECOGRAFIA DE PROSTATA TRANSABDOMINAL',
+  '881502': 'ECOGRAFIA DE PROSTATA TRANSRECTAL',
+  '881510': 'ECOGRAFIA TESTICULAR',
+  '881511': 'ECOGRAFIA TESTICULAR CON ANALISIS DOPPLER',
+  '881521': 'ECOGRAFIA DE PENE',
+  '881601': 'ECOGRAFIA DE TEJIDOS BLANDOS EXTREMIDADES SUPERIORES',
+  '881602': 'ECOGRAFIA de TEJIDOS BLANDOS EXTREMIDADES INFERIORES',
+  '881610': 'ECOGRAFIA ARTICULAR DE HOMBRO',
+  '881611': 'ECOGRAFIA ARTICULAR DE CODO',
+  '881612': 'ECOGRAFIA ARTICULAR DE PUÑO (MUÑECA)',
+  '881613': 'ECOGRAFIA ARTICULAR DE MANO',
+  '881620': 'ECOGRAFIA ARTICULAR DE RODILLA',
+  '881621': 'ECOGRAFIA ARTICULAR DE TOBILLO',
+  '881622': 'ECOGRAFIA ARTICULAR DE PIE',
+  '881630': 'ECOGRAFIA ARTICULAR DE CADERA',
+  '881640': 'ECOGRAFIA DE CALCANEO',
+  '881701': 'ECOGRAFIA COMO GUIA PARA PROCEDIMIENTOS',
+  '882103': 'ECOGRAFIA DOPPLER TRANSCRANEAL',
+  '882112': 'ECOGRAFIA DOPPLER DE VASOS DEL CUELLO',
+  '882203': 'ECOGRAFIA DOPPLER DE VASOS ABDOMINALES O PELVICOS',
+  '882212': 'ECOGRAFIA DOPPLER DE AORTA ABDOMINAL',
+  '882222': 'ECOGRAFIA DOPPLER DE ARTERIAS RENALES',
+  '882307': 'ECOGRAFIA DOPPLER ARTERIAS MIEMBROS SUPERIORES',
+  '882308': 'ECOGRAFIA DOPPLER ARTERIAS MIEMBROS INFEIORES',
+  '882309': 'ECOGRAFIA DOPPLER VENAS MIEMBROS SUPERIORES',
+  '882317': 'ECOGRAFIA DOPPLER VENAS MIEMBROS INFERIORES',
 
-  '877862': 'Uretrocistografía Miccional',
-  '877863': 'Uretrocistografía Retrógrada',
-  '877871': 'Uretrografía Retrógrada',
-  '879431': 'Urografía con Tomografía Computada',
-  '877802': 'Urografía Intravenosa',
+  // --- RESONANCIA (RMN) ---
+  '883101': 'RESONANCIA MAGNETICA DE CEREBRO',
+  '883102': 'RESONANCIA MAGNETICA DE BASE DE CRANEO O SILLA TURCA',
+  '883103': 'RESONANCIA MAGNETICA DE ORBITAS',
+  '883105': 'RESONANCIA MAGNETICA DE ATM',
+  '883108': 'RESONANCIA MAGNETICA DE PARES CRANEANOS',
+  '883109': 'RESONANCIA MAGNETICA DE OIDOS',
+  '883110': 'RESONANCIA MAGNETICA DE SENOS PARANASALES O CARA',
+  '883111': 'RESONANCIA MAGNETICA DE CUELLO',
+  '883210': 'RESONANCIA MAGNETICA DE COLUMNA CERVICAL SIMPLE',
+  '883211': 'RESONANCIA MAGNETICA DE COLUMNA CERVICAL CON CONTRASTE',
+  '883220': 'RESONANCIA MAGNETICA DE COLUMNA TORACICA SIMPLE',
+  '883221': 'RESONANCIA MAGNETICA DE COLUMNA TORACICA CON CONTRASTE',
+  '883230': 'RESONANCIA MAGNETICA DE COLUMNA LUMBOSACRA SIMPLE',
+  '883231': 'RESONANCIA MAGNETICA DE COLUMNA LUMBAR CON CONTRASTE',
+  '883232': 'RESONANCIA MAGNETICA DE ARTICULACION SACROILIACA SIMPLE',
+  '883234': 'RESONANCIA MAGNETICA DE COLUMNA SACROCOXIGEA SIMPLE',
+  '883301': 'RESONANCIA MAGNETICA DEL TORAX',
+  '883351': 'RESONANCIA MAGNETICA DE MAMA',
+  '883401': 'RESONANCIA MAGNETICA DE ABDOMEN',
+  '883430': 'RESONANCIA MAGNETICA DE VIAS BILIARES',
+  '883434': 'COLANGIORESONANCIA',
+  '883435': 'RESONANCIA MAGNETICA DE VIA URINARIA [URORRESONANCIA]',
+  '883436': 'RESONANCIA MAGNETICA DE INTESTINO [ENTERORM]',
+  '883440': 'RESONANCIA MAGNETICA DE PELVIS',
+  '883511': 'RESONANCIA MAGNETICA DE MIEMBRO SUPERIOR',
+  '883512': 'RESONANCIA MAGNETICA DE ARTICULACIONES MIEMBRO SUPERIOR',
+  '883521': 'RESONANCIA MAGNETICA DE MIEMBRO INFERIOR',
+  '883522': 'RESONANCIA MAGNETICA DE ARTICULACIONES MIEMBRO INFERIOR',
+  '883590': 'RESONANCIA MAGNETICA DE SISTEMA MUSCULO ESQUELETICO',
+  '883901': 'RESONANCIA MAGNETICA DE CUERPO ENTERO',
+  '883908': 'RESONANCIA MAGNETICA DE VASOS',
+  '883909': 'RESONANCIA MAGNETICA CON ANGIOGRAFIA',
 
-  // MAMO (Mamografía) - ISS codes
-  '876802': 'Mamografía Bilateral',
-  '876801': 'Mamografía Unilateral o de Pieza Quirúrgica',
-
-  // DENSITOMETRIA - ISS codes
+  // --- CODIGOS SOAT (5 DÍGITOS) ---
+  '18707': 'CISTOSCOPIA Y PIELOGRAFIA RETROGADA',
+  '21101': 'MANO - DEDOS - PUÑO - CODO - PIE - CLAVICULA - ANTEBRAZO',
+  '21102': 'BRAZO - PIERNA - RODILLA - FEMUR - HOMBRO - OMOPLATO',
+  '21103': 'TEST DE FARILL (OSTEOMETRIA) - PIE PLANO',
+  '21104': 'TEST DE ANTEVERSION FEMORAL',
+  '21105': 'PELVIS - CADERA - ARTICULACIONES SACRO ILIACAS',
+  '21108': 'PROYECCION ADICIONAL (STRESS - TUNEL - TANGENCIALES)',
+  '21109': 'TANGENCIAL ROTULA',
+  '21111': 'ESTUDIO DE HUESOS LARGOS AP',
+  '21113': 'OSTEODENSITOMETRIA POR ABSORCION DUAL DE RX',
+  '21120': 'CARA - MALAR - ARCO CIGOMATICO - HUESOS NASALES',
+  '21121': 'SENOS PARANASALES - MAXILAR INFERIOR - ORBITAS',
+  '21122': 'CRANEO SIMPLE',
+  '21123': 'CRANEO SIMPLE Y BASE DE CRANEO',
+  '21124': 'MASTOIDES COMPARATIVAS - PENASCOS - CAI',
+  '21136': 'CAVUM FARINGEO - CUELLO Y TEJIDOS BLANDOS',
+  '21140': 'COLUMNA CERVICAL',
+  '21141': 'COLUMNA DORSAL O TORAXICA',
+  '21142': 'COLUMNA LUMBOSACRA',
+  '21143': 'SACROCOCCIX',
+  '21144': 'TEST DE ESCOLIOSIS',
+  '21201': 'TORAX (PA O P A Y LATERAL) - REJA COSTAL',
+  '21203': 'ESTERNON - ARTICULACIONES ESTERNO CLAVICULARES',
+  '21210': 'MAMOGRAFIA (BILATERAL)',
+  '21211': 'GALACTOGRAFIA',
+  '21212': 'MAMOGRAFIA UNILATERAL',
+  '21301': 'ABDOMEN SIMPLE',
+  '21302': 'ABDOMEN SIMPLE SERIE DE ABDOMEN AGUDO',
+  '21303': 'PIELOGRAFIA RETROGRADA',
+  '21304': 'UROGRAFIA INTRAVENOSA',
+  '21325': 'COLANGIOGRAFIA TOMOGRAFIA',
+  '31306': 'ANGIORESONANCIA MAGNETICA',
   '886012': 'Osteodensitometría por Absorción Dual',
   '886013': 'Osteodensitometría y Composición Corporal',
 };
 
 const GENERATED_CUPS_DESCRIPTIONS: Record<string, string> = Object.fromEntries(
-  Object.entries(GENERATED_CUPS_METADATA).map(([code, metadata]) => [code, metadata.description])
+  Object.entries(GENERATED_CUPS_METADATA).map(([code, metadata]) => [code, (metadata as any).description])
 );
 
 export const CUPS_CODES: Record<string, string> = {
   ...LEGACY_CODES,
   ...GENERATED_CUPS_DESCRIPTIONS,
 };
+
+/**
+ * Derives the medical modality (RX, TAC, ECO, etc.) from a CUPS or SOAT code.
+ */
+export function getModalityFromCUPS(code: string): string | null {
+  const meta = GENERATED_CUPS_METADATA[code as any];
+  if (meta) {
+    return MODALITY_MAPPING[meta.modality as CupsModality] || null;
+  }
+
+  // Fallback for SOAT and other legacy codes
+  if (code.startsWith('217')) return 'TAC';
+  if (code.startsWith('211') || code.startsWith('212') || code.startsWith('87') && !code.startsWith('879')) return 'RX';
+  if (code.startsWith('213')) return 'RX'; // Digestive radiographies
+  if (code.startsWith('311') || code.startsWith('187')) return 'ECO';
+  if (code.startsWith('313')) return 'RMN';
+  if (code.startsWith('879')) return 'TAC';
+  if (code.startsWith('881') || code.startsWith('882')) return 'ECO';
+  if (code.startsWith('883')) return 'RMN';
+
+  return null;
+}
 
 type SupportedModality = 'RX' | 'TAC' | 'ECO' | 'RMN' | 'MAMO';
 
@@ -268,91 +343,62 @@ function normalizeText(input: string): string {
     .trim();
 }
 
-function registerKeywords(code: string, phrase: string) {
-  const normalized = normalizeText(phrase);
-  if (!normalized) return;
-
-  EXACT_MATCHES.set(normalized, code);
-
-  const keywords = normalized
-    .split(/[^a-z0-9]+/i)
-    .map(token => token.trim())
-    .filter(token => token.length > 2);
-
-  if (keywords.length) {
-    KEYWORD_INDEX.push({ code, keywords });
-  }
-}
-
-// Precompute lookup tables so we only normalize strings once
-Object.entries(CUPS_CODES).forEach(([code, description]) => {
-  registerKeywords(code, description);
-});
-
-Object.entries(GENERATED_CUPS_METADATA).forEach(([code, metadata]) => {
-  metadata.aliases.forEach(alias => registerKeywords(code, alias));
-});
-
 /**
- * Map study description to CUPS code
- * Tries to find best match based on keywords and aliases
+ * Maps a medical study description to its most likely CUPS or SOAT code.
+ * Uses a combination of exact matching and keyword-based fuzzy search.
  */
-export function mapStudyToCUPS(studyDescription: string): string {
-  if (!studyDescription) return '0';
+export function mapStudyToCUPS(description: string, modality?: CupsModality): string | null {
+  const normalized = normalizeText(description);
 
-  const normalized = normalizeText(studyDescription);
-  if (!normalized) return '0';
-
-  const exactMatch = EXACT_MATCHES.get(normalized);
-  if (exactMatch) {
-    return exactMatch;
+  // Initialize index on first run
+  if (EXACT_MATCHES.size === 0) {
+    Object.entries(CUPS_CODES).forEach(([code, desc]) => {
+      const normDesc = normalizeText(desc);
+      EXACT_MATCHES.set(normDesc, code);
+      
+      const keywords = normDesc.split(/\s+/).filter(w => w.length > 3);
+      KEYWORD_INDEX.push({ code, keywords });
+    });
   }
 
-  let bestCode = '0';
-  let bestScore = 0;
+  // 1. Check exact matches
+  if (EXACT_MATCHES.has(normalized)) {
+    return EXACT_MATCHES.get(normalized)!;
+  }
+
+  // 2. Fuzzy match based on keywords
+  const inputKeywords = normalized.split(/\s+/).filter(w => w.length > 2);
+  let bestMatch: string | null = null;
+  let maxScore = 0;
 
   for (const entry of KEYWORD_INDEX) {
-    const score = entry.keywords.reduce((count, keyword) => (normalized.includes(keyword) ? count + 1 : count), 0);
-    if (score > bestScore) {
-      bestScore = score;
-      bestCode = entry.code;
+    let score = 0;
+    for (const kw of inputKeywords) {
+      if (entry.keywords.includes(kw)) {
+        score += 2;
+      } else if (entry.keywords.some(ek => ek.startsWith(kw))) {
+        score += 1;
+      }
+    }
+
+    // Weight by modality if provided
+    if (modality) {
+      const mappedModality = MODALITY_MAPPING[modality];
+      const codeStart = entry.code.substring(0, 2);
+      
+      // Basic CUPS/SOAT modality heuristics
+      if (mappedModality === 'RX' && (entry.code.startsWith('87') || entry.code.startsWith('211') || entry.code.startsWith('212'))) score += 1;
+      if (mappedModality === 'TAC' && (entry.code.startsWith('879') || entry.code.startsWith('217'))) score += 1;
+      if (mappedModality === 'ECO' && (entry.code.startsWith('881') || entry.code.startsWith('882') || entry.code.startsWith('311'))) score += 1;
+      if (mappedModality === 'RMN' && (entry.code.startsWith('883') || entry.code.startsWith('313'))) score += 1;
+    }
+
+    if (score > maxScore) {
+      maxScore = score;
+      bestMatch = entry.code;
     }
   }
 
-  return bestCode;
-}
-
-/**
- * Get modality (RX, TAC, ECO, RMN, MAMO) from CUPS code
- */
-export function getModalityFromCUPS(cupsCode: string): SupportedModality {
-  if (!cupsCode) return 'RX';
-
-  const metadata = GENERATED_CUPS_METADATA[cupsCode];
-  if (metadata) {
-    return MODALITY_MAPPING[metadata.modality] ?? 'RX';
-  }
-
-  const code = parseInt(cupsCode, 10);
-  if (Number.isNaN(code)) return 'RX';
-
-  // SOAT codes (old format)
-  if (code >= 21701 && code <= 21723) return 'TAC';
-  if (code >= 21101 && code <= 21602) return 'RX';
-  if (code >= 31100 && code <= 31201) return 'ECO';
-  if (code >= 31301 && code <= 31307) return 'RMN';
-
-  // ISS codes (new format) - TAC
-  if (code >= 879000 && code <= 879999) return 'TAC';
-  // ISS codes - RX
-  if (code >= 870000 && code <= 877999) return 'RX';
-  // ISS codes - ECO
-  if (code >= 881000 && code <= 882999) return 'ECO';
-  // ISS codes - RMN
-  if (code >= 883000 && code <= 883999) return 'RMN';
-  // ISS codes - MAMO
-  if (code >= 876000 && code <= 876999) return 'MAMO';
-
-  // Default to RX
-  return 'RX';
+  // Only return if confidence is high enough
+  return maxScore >= 2 ? bestMatch : null;
 }
