@@ -368,6 +368,7 @@ export function StudyDialog({ open, onOpenChange, initialData, mode, onCreate }:
                                     <DialogContent className="sm:max-w-[800px]">
                                         <DialogHeader>
                                             <DialogTitle className="font-headline text-xl">Seleccionar {isConsultationsModule ? 'consulta' : 'estudio'}</DialogTitle>
+                                            <DialogDescription className="sr-only">Busca y selecciona un estudio médico por nombre o código CUPS.</DialogDescription>
                                         </DialogHeader>
                                         <div className="mb-4">
                                             <Input

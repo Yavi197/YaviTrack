@@ -72,10 +72,15 @@ export function ContrastStockDialog({ open, onOpenChange }: ContrastStockDialogP
             const entryData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as InventoryStockEntry));
             setEntries(entryData);
             setHistoryLoading(false);
+            setHistoryError(null);
         }, (error) => {
-            if (error.code !== 'permission-denied') {
-                console.error("Error fetching contrast entries:", error);
-                setHistoryError('No se pudo cargar el historial de entradas.');
+            console.error("DEBUG: Contrast Entries Error:", error.code, error.message);
+            if (error.code === 'failed-precondition') {
+                setHistoryError('Falta un índice en la base de datos para cargar el historial. Revisa la consola de Firebase.');
+            } else if (error.code === 'permission-denied') {
+                // Silently ignore or handle permission issues if expected
+            } else {
+                setHistoryError('No se pudo cargar el historial de entradas (Error: ' + error.code + ')');
             }
             setHistoryLoading(false);
         });
@@ -84,10 +89,8 @@ export function ContrastStockDialog({ open, onOpenChange }: ContrastStockDialogP
             const consumptionData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as InventoryConsumption));
             setConsumptions(consumptionData);
         }, (error) => {
-             if (error.code !== 'permission-denied') {
-                console.error("Error fetching contrast consumptions:", error);
-                setHistoryError('No se pudo cargar el historial de consumos.');
-            }
+            console.error("DEBUG: Contrast Consumptions Error:", error.code, error.message);
+            // Non-critical for visual history, but good to know
         });
 
         const unsubscribeMeta = onSnapshot(doc(db, 'inventorySettings', 'contrastStock'), (snapshot) => {
@@ -181,6 +184,9 @@ export function ContrastStockDialog({ open, onOpenChange }: ContrastStockDialogP
                             <DialogTitle className="text-xl font-black text-white italic tracking-tighter uppercase leading-none">
                                 Stock de Contraste
                             </DialogTitle>
+                            <DialogDescription className="sr-only">
+                                Gestión del inventario y consumo de medios de contraste.
+                            </DialogDescription>
                         </div>
                         <Button 
                             variant="default" 

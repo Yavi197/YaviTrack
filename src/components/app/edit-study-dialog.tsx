@@ -312,6 +312,7 @@ export function EditStudyDialog({ open, onOpenChange, study }: EditStudyDialogPr
                                     <DialogContent className="sm:max-w-[800px]">
                                         <DialogHeader>
                                             <DialogTitle className="font-headline text-xl">Seleccionar {isConsultationsModule ? 'consulta' : 'estudio'}</DialogTitle>
+                                            <DialogDescription className="sr-only">Busca y selecciona un estudio médico por nombre o código CUPS para editar la solicitud.</DialogDescription>
                                         </DialogHeader>
                                         <div className="mb-4">
                                             <Input

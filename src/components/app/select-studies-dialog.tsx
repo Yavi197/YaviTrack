@@ -167,6 +167,9 @@ export function SelectStudiesDialog({ open, onOpenChange, orderData, userProfile
             <DialogTitle className="text-base font-black tracking-tight uppercase text-white leading-none">
               Procesar Nueva Solicitud
             </DialogTitle>
+            <DialogDescription className="sr-only">
+              Verificación y validación de datos para el estudio médico seleccionado.
+            </DialogDescription>
             <DialogDescription className="text-zinc-500 font-bold uppercase tracking-widest text-[9px] mt-0.5">
               Verifica los estudios y elige el destino antes de confirmar.
             </DialogDescription>
