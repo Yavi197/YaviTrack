@@ -17,10 +17,11 @@ import {
   DropdownMenuPortal,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, User as UserIcon, UserPlus, Download, Users, LifeBuoy, Package, Beaker, ShieldPlus, FileText, FileBarChart, HardDrive, DollarSign, Eye, Tv, VolumeX, Loader2, Stethoscope, Briefcase, FileSpreadsheet, MessageSquare, LogOutIcon, CalendarClock, AlertTriangle } from "lucide-react";
+import { LogOut, User as UserIcon, UserPlus, Download, Users, LifeBuoy, Package, Beaker, ShieldPlus, FileText, FileBarChart, HardDrive, DollarSign, Eye, Tv, VolumeX, Loader2, Stethoscope, Briefcase, FileSpreadsheet, MessageSquare, LogOutIcon, CalendarClock, AlertTriangle, RefreshCw } from "lucide-react";
 import { ModalityIcon } from "@/components/icons/modality-icon";
 import Link from 'next/link';
 import { AppLogoIcon } from "@/components/icons/app-logo-icon";
+import { cn } from "@/lib/utils";
 import { useState, useMemo, useEffect } from "react";
 import { ExportDialog } from "./export-dialog";
 import { MessagingDrawer } from "./messaging-drawer";
@@ -290,62 +291,128 @@ export default function AppHeader() {
   
   return (
     <>
-      <header className="theme-yellow sticky top-0 z-40 w-full border-b border-zinc-200/50 bg-white/70 backdrop-blur-3xl shadow-sm" role="banner" aria-label="Barra de navegación principal">
-        <div className="w-full h-20 px-4 sm:px-6 xl:px-10 flex items-center justify-between" role="navigation" aria-label="Navegación principal">
+      <header className="theme-yellow sticky top-0 z-40 w-full border-b border-zinc-200/40 bg-white/60 backdrop-blur-3xl shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_4px_6px_-2px_rgba(0,0,0,0.05)]" role="banner" aria-label="Barra de navegación principal">
+        <div className="w-full h-16 px-4 sm:px-6 xl:px-12 flex items-center justify-between" role="navigation" aria-label="Navegación principal">
           <div className="flex items-center gap-4">
-            <Link href="/" className="flex items-center gap-2 px-1 py-1 transition-all group" aria-label="Ir al inicio">
-              <div className="group-hover:scale-105 transition-transform">
+            <Link href="/" className="flex items-center gap-3 px-1 py-1 transition-all group" aria-label="Ir al inicio">
+              <div className="group-hover:scale-110 transition-all duration-500 bg-white p-2 rounded-xl shadow-lg shadow-zinc-100 ring-1 ring-zinc-50 translate-y-0 group-hover:-translate-y-0.5">
                 <AppLogoIcon className="h-7 w-7" />
               </div>
               <div className="flex flex-col justify-center">
-                <h1 className="text-xl font-black tracking-normal text-zinc-900 leading-none">
+                <h1 className="text-2xl font-black tracking-tighter text-zinc-900 leading-none italic italic-title">
                   Med-<span className="text-amber-500 lowercase mr-[0.05em]">i</span>Track
                 </h1>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 mt-1">Intelligence Hub</span>
               </div>
             </Link>
+
+          {user && currentProfile && (
+            (() => {
+              const allModules = [
+                {
+                  href: "/imaging",
+                  icon: <ModalityIcon style={{ width: 22, height: 22, color: 'inherit' }} />,
+                  color: "text-amber-950 bg-amber-400 hover:bg-amber-500 shadow-amber-100 border-amber-300/20",
+                  label: "Imágenes",
+                  active: pathname?.startsWith("/imaging")
+                },
+                {
+                  href: "/remissions",
+                  icon: <FileSpreadsheet className="h-5 w-5" />,
+                  color: "text-white bg-emerald-600 hover:bg-emerald-700 shadow-emerald-100 border-emerald-500/20",
+                  label: "Remisiones",
+                  active: pathname?.startsWith("/remissions")
+                },
+                {
+                  href: "/consultations",
+                  icon: <Stethoscope className="h-5 w-5" />,
+                  color: "text-white bg-indigo-500 hover:bg-indigo-600 shadow-indigo-100 border-indigo-400/20",
+                  label: "Consultas",
+                  active: pathname?.startsWith("/consultations")
+                },
+                {
+                  href: "/inventory",
+                  icon: <Package className="h-5 w-5" />,
+                  color: "text-white bg-zinc-600 hover:bg-zinc-700 shadow-zinc-100 border-zinc-400/20",
+                  label: "Inventario",
+                  active: pathname?.startsWith("/inventory")
+                },
+              ];
+
+              const currentModule = allModules.find(m => m.active);
+              const otherModules = allModules.filter(m => !m.active && m.href !== "/inventory");
+
+              return (
+                <>
+                  {currentModule && (
+                    <div 
+                      onClick={() => window.location.reload()}
+                      className={cn(
+                        "hidden md:flex items-center gap-2 h-10 px-6 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] cursor-pointer transition-all hover:-translate-y-1 hover:shadow-xl active:scale-95 border",
+                        currentModule.color
+                      )}
+                      title="Refrescar módulo"
+                    >
+                      {currentModule.icon}
+                      <span>{currentModule.label}</span>
+                    </div>
+                  )}
+                  
+                  {!currentModule && (
+                    <div className="hidden md:flex items-center gap-2 h-10 px-5 bg-zinc-900 text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-lg">
+                      <div className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+                      Panel Principal
+                    </div>
+                  )}
+                </>
+              );
+            })()
+          )}
           </div>
           
           {user && currentProfile && (
-            <div className="flex items-center gap-2">
-              {/* Navegación - Módulos principales (solo muestra los otros dos) */}
+            <div className="flex items-center gap-3">
+              {/* Navegación - Módulos principales */}
               {currentProfile?.rol === 'administrador' && (
                 (() => {
-                  const buttons = [
+                  const inactiveModules = [
+                    {
+                      href: "/imaging",
+                      icon: <ModalityIcon style={{ width: 22, height: 22, color: 'inherit' }} />,
+                      color: "text-amber-950 bg-amber-400 hover:bg-amber-500 shadow-amber-100 border-amber-300/20",
+                      label: "Imágenes",
+                      show: pathname ? !pathname.startsWith("/imaging") : true,
+                    },
                     {
                       href: "/remissions",
                       icon: <FileSpreadsheet className="h-5 w-5" />,
-                      color: "bg-emerald-400 hover:bg-emerald-500",
-                      label: "Abrir Remisiones",
+                      color: "text-white bg-emerald-600 hover:bg-emerald-700 shadow-emerald-100 border-emerald-500/20",
+                      label: "Remisiones",
                       show: pathname ? !pathname.startsWith("/remissions") : true,
-                    },
-                    {
-                      href: "/imaging",
-                      icon: <ModalityIcon style={{ width: 20, height: 20, color: '#000' }} />,
-                      color: "bg-yellow-400 hover:bg-yellow-500",
-                      label: "Abrir Imágenes",
-                      show: pathname ? !pathname.startsWith("/imaging") : true,
                     },
                     {
                       href: "/consultations",
                       icon: <Stethoscope className="h-5 w-5" />,
-                      color: "bg-blue-400 hover:bg-blue-500",
-                      label: "Abrir Consultas",
+                      color: "text-white bg-indigo-500 hover:bg-indigo-600 shadow-indigo-100 border-indigo-400/20",
+                      label: "Consultas",
                       show: pathname ? !pathname.startsWith("/consultations") : true,
                     },
                   ];
                   return (
-                    <div className="flex items-center gap-1.5 bg-zinc-50/80 p-1.5 rounded-full border border-zinc-200 shadow-sm">
-                      {buttons.filter(b => b.show).map(b => (
+                    <div className="flex items-center gap-2 bg-white/40 p-1 rounded-2xl border border-zinc-200 shadow-sm backdrop-blur-xl">
+                      {inactiveModules.filter(m => m.show).map(m => (
                         <Button
-                          key={b.href}
+                          key={m.href}
                           variant="ghost"
-                          size="icon"
-                          className={`h-9 w-9 rounded-full text-zinc-950 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${b.color}`}
+                          className={cn(
+                            "h-10 px-5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all hover:-translate-y-1 hover:shadow-xl active:scale-95 border",
+                            m.color
+                          )}
                           asChild
                         >
-                          <Link href={b.href} aria-label={b.label}>
-                            {b.icon}
-                            <span className="sr-only">{b.label}</span>
+                          <Link href={m.href} aria-label={m.label} className="flex items-center gap-2">
+                            {m.icon}
+                            <span className="hidden lg:inline">{m.label}</span>
                           </Link>
                         </Button>
                       ))}
@@ -354,24 +421,24 @@ export default function AppHeader() {
                 })()
               )}
 
+
               {/* Herramientas y Operacionales */}
-              <div className="flex items-center gap-2 bg-zinc-50/80 p-1.5 rounded-full border-2 border-zinc-100 shadow-sm ml-2">
+              <div className="flex items-center gap-2 bg-zinc-100/30 p-1.5 rounded-full border border-zinc-200/50 shadow-inner backdrop-blur-md ml-1">
                 {currentProfile?.rol === 'administrador' && <HeaderContrastIndicator />}
                 
                 {isTechnologist && (
                   <Button 
-                    style={{ backgroundColor: '#FFD600', color: '#222', fontWeight: 'bold' }}
-                    className="gap-2 border-none shadow-sm"
+                    className="h-10 bg-amber-400 hover:bg-amber-500 text-amber-950 font-black text-[10px] uppercase tracking-widest rounded-full shadow-lg shadow-amber-200/40 border-none transition-all hover:-translate-y-0.5 active:scale-95"
                     onClick={() => setIsShiftHandoverOpen(true)}
                     title="Registrar entrega de turno de equipos"
                   >
-                    <LogOutIcon className="h-4 w-4" />
+                    <LogOutIcon className="h-4 w-4 mr-2" />
                     Entregar Turno
                   </Button>
                 )}
                 
                 {hasTutorial && (
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsHelpOpen(true)} title="Ayuda">
+                  <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 transition-colors" onClick={() => setIsHelpOpen(true)} title="Ayuda">
                       <LifeBuoy className="h-5 w-5" />
                   </Button>
                 )}
@@ -385,7 +452,7 @@ export default function AppHeader() {
                 )}
               </div>
               
-              <Separator orientation="vertical" className="h-8" />
+              <div className="h-10 w-[2px] bg-zinc-200/30 mx-2" />
 
               <div className="flex items-center gap-2">
                  {userProfile?.rol === 'administrador' && (

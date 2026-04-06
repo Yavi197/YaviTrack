@@ -5,10 +5,10 @@ import * as React from 'react';
 import { useState, useEffect, useMemo, useCallback, useRef, Suspense } from 'react';
 import { collection, query, onSnapshot, orderBy, where, Timestamp, limit as firestoreLimit, startAfter, getDocs, DocumentSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import type { Study, GeneralService, UserProfile, Modality, StudyStatus, OperationalStatus, StudyWithCompletedBy, ContrastType, OrderData, SubServiceArea } from '@/lib/types';
+import type { Study, GeneralService, UserProfile, Modality, StudyStatus, OperationalStatus, StudyWithCompletedBy, ContrastType, OrderData, SubServiceArea, TechnologistShift } from '@/lib/types';
 import { useAuth } from '@/context/auth-context';
 import { GeneralServices, Modalities, UserRoles, SubServiceAreas } from '@/lib/types';
-import { startOfDay, endOfDay } from 'date-fns';
+import { startOfDay, endOfDay, subDays, addDays, format } from 'date-fns';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from '@/components/ui/skeleton';
@@ -41,6 +41,7 @@ import { ModalityIcon } from '@/components/icons/modality-icon';
 import { ViewModeSwitch } from '@/components/app/view-mode-switch';
 import { SelectStudiesDialog } from '@/components/app/select-studies-dialog';
 
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 import { RemissionRequestDialog } from '@/components/app/remission-request-dialog';
 import { ShiftHandoverDialog } from '@/components/app/shift-handover-dialog';
 import { ShiftReceiptDialog } from '@/components/app/shift-receipt-dialog';
@@ -351,79 +352,222 @@ function UnifiedControlPanel({
     );
 }
 
-function DailySummaryWidget({ dutyUsers, allUsers, onStatusChange, onStatusFilterToggle, filteredSummary, reportSummary, activeFilters, selectedOperator }: any) : any {
+function RxShiftDialog({ open, onClose, rxTeam, allUsers, canAssign, onAssign, assignLoading }: {
+    open: boolean;
+    onClose: () => void;
+    rxTeam: { prev?: string; current?: string; next?: string };
+    allUsers: UserProfile[];
+    canAssign: boolean;
+    onAssign: (name: string) => void;
+    assignLoading: boolean;
+}) {
+    const [showPicker, setShowPicker] = useState(false);
+    const [selected, setSelected] = useState<string>('');
+
+    const rxTechs = allUsers.filter(u => u.rol === 'tecnologo' && u.activo);
+
+    const handleAssign = () => {
+        if (selected) {
+            onAssign(selected);
+            setShowPicker(false);
+            setSelected('');
+        }
+    };
+
+    const ShiftRow = ({ name, badgeText, badgeColor, barColor }: { name?: string; badgeText: string; badgeColor: string; barColor: string }) => (
+        <div className="flex items-center gap-4 p-4 rounded-2xl bg-zinc-900 shadow-xl shadow-zinc-900/20">
+            <div className={cn("w-1.5 h-10 rounded-full shrink-0", barColor)} />
+            <div className="flex-1 min-w-0">
+                <p className="text-sm font-black uppercase tracking-tight truncate text-white">{name || '---'}</p>
+            </div>
+            <div className={cn("text-[9px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest shrink-0 text-center min-w-[90px]", badgeColor)}>
+                ● {badgeText}
+            </div>
+        </div>
+    );
+
+    if (!open) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4" onClick={onClose}>
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+            <div
+                className="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden animate-in slide-in-from-bottom-4 duration-300"
+                onClick={e => e.stopPropagation()}
+            >
+                {/* Header */}
+                <div className="bg-zinc-900 p-6 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="bg-amber-400 p-2.5 rounded-xl">
+                            <ModalityIcon modality="RX" className="h-5 w-5 text-amber-950" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest leading-none">Módulo Rayos X</p>
+                            <p className="text-white font-black text-lg tracking-tight leading-tight uppercase italic">Relevo de Turno</p>
+                        </div>
+                    </div>
+                    <button onClick={onClose} className="bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white p-2 rounded-xl transition-colors">
+                        <X className="h-4 w-4" />
+                    </button>
+                </div>
+
+                <div className="p-5 space-y-2">
+                    <ShiftRow name={rxTeam.prev} barColor="bg-amber-400" badgeText="ENTREGÓ" badgeColor="bg-amber-400 text-zinc-900" />
+                    <ShiftRow name={rxTeam.current} barColor="bg-emerald-500" badgeText="DE TURNO" badgeColor="bg-emerald-500 text-white" />
+                    <ShiftRow name={rxTeam.next} barColor="bg-blue-500" badgeText="RECIBE" badgeColor="bg-blue-500 text-white" />
+                </div>
+
+                {/* Assign Section */}
+                {canAssign && (
+                    <div className="px-5 pb-5">
+                        {!showPicker ? (
+                            <button
+                                onClick={() => setShowPicker(true)}
+                                className="w-full flex items-center justify-center gap-2 h-12 rounded-2xl border-2 border-dashed border-zinc-200 hover:border-zinc-900 hover:bg-zinc-50 text-zinc-400 hover:text-zinc-900 font-black text-xs uppercase tracking-widest transition-all"
+                            >
+                                <User className="h-4 w-4" />
+                                Cambiar Tecnólogo de Turno
+                            </button>
+                        ) : (
+                            <div className="space-y-3">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Seleccionar tecnólogo:</p>
+                                <div className="space-y-1.5 max-h-52 overflow-y-auto">
+                                    {rxTechs.map(tech => (
+                                        <button
+                                            key={tech.uid}
+                                            onClick={() => setSelected(tech.nombre)}
+                                            className={cn(
+                                                "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all font-bold text-sm",
+                                                selected === tech.nombre
+                                                    ? "bg-zinc-900 text-white shadow-lg"
+                                                    : "bg-zinc-50 text-zinc-700 hover:bg-zinc-100"
+                                            )}
+                                        >
+                                            <div className={cn(
+                                                "h-2 w-2 rounded-full shrink-0",
+                                                tech.nombre === rxTeam.current ? "bg-emerald-500" : "bg-zinc-300"
+                                            )} />
+                                            <span className="uppercase tracking-tight">{tech.nombre}</span>
+                                            {tech.nombre === rxTeam.current && (
+                                                <span className="ml-auto text-[9px] font-black text-emerald-500 uppercase tracking-widest">Actual</span>
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+                                <div className="flex gap-2 pt-1">
+                                    <button
+                                        onClick={() => { setShowPicker(false); setSelected(''); }}
+                                        className="flex-1 h-11 rounded-2xl border-2 border-zinc-200 text-zinc-500 font-black text-xs uppercase tracking-widest hover:border-zinc-400 transition-all"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        onClick={handleAssign}
+                                        disabled={!selected || assignLoading}
+                                        className="flex-1 h-11 rounded-2xl bg-zinc-900 text-white font-black text-xs uppercase tracking-widest hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                                    >
+                                        {assignLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                                        Asignar
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+function DailySummaryWidget({ dutyUsers, allUsers, onStatusChange, onStatusFilterToggle, filteredSummary, reportSummary, activeFilters, selectedOperator, rxTeam, isSummaryVisible, setIsSummaryVisible }: any) : any {
     const { currentProfile } = useAuth();
     const { toast } = useToast();
     const [loading, setLoading] = useState<Record<string, boolean>>({});
     const [assignTechnologistOpen, setAssignTechnologistOpen] = useState(false);
     const [assignRadiologistOpen, setAssignRadiologistOpen] = useState(false);
-  const handleActionError = useCallback(
-    (error: unknown, label: string) => handleServerActionError({ error, toast, actionLabel: label }),
-    [toast]
-  );
+    const [rxShiftDialogOpen, setRxShiftDialogOpen] = useState(false);
+    const [assignLoading, setAssignLoading] = useState(false);
+
+    const handleActionError = useCallback(
+        (error: unknown, label: string) => handleServerActionError({ error, toast, actionLabel: label }),
+        [toast]
+    );
 
     const handleStatusToggle = async (userId: string, currentStatus: OperationalStatus, isEco: boolean) => {
         let newStatus: OperationalStatus;
         if (isEco) {
             newStatus = currentStatus === 'Disponible' ? 'No Disponible' : 'Disponible';
         } else {
-            if(currentStatus === 'En Cirugía') { newStatus = 'Disponible'; } 
-            else if (currentStatus === 'No Disponible') { newStatus = 'Disponible'; } 
+            if(currentStatus === 'En Cirugía') { newStatus = 'Disponible'; }
+            else if (currentStatus === 'No Disponible') { newStatus = 'Disponible'; }
             else { newStatus = 'En Cirugía'; }
         }
-        
         setLoading(prev => ({ ...prev, [userId]: true }));
         try {
-          const result = await updateUserOperationalStatusAction(userId, newStatus);
-          if (result.success) {
-            toast({ title: 'Estado Actualizado', description: `El estado del personal ha sido actualizado.` });
-            if (isEco && newStatus === 'Disponible' && (currentProfile?.rol === 'administrador' || currentProfile?.rol === 'transcriptora')) {
-              setAssignRadiologistOpen(true);
+            const result = await updateUserOperationalStatusAction(userId, newStatus);
+            if (result.success) {
+                toast({ title: 'Estado Actualizado', description: `El estado del personal ha sido actualizado.` });
+                if (isEco && newStatus === 'Disponible' && (currentProfile?.rol === 'administrador' || currentProfile?.rol === 'transcriptora')) {
+                    setAssignRadiologistOpen(true);
+                }
+                if (currentProfile && userId === currentProfile.uid) { onStatusChange(newStatus); }
+            } else {
+                toast({ variant: 'destructive', title: 'Error', description: result.error });
             }
-            if (currentProfile && userId === currentProfile.uid) { onStatusChange(newStatus); }
-          } else {
-            toast({ variant: 'destructive', title: 'Error', description: result.error });
-          }
         } catch (error) {
-          if (!handleActionError(error, 'la actualización del estado operativo')) {
-            toast({ variant: 'destructive', title: 'Error', description: 'Ocurrió un problema al actualizar el estado.' });
-          }
+            if (!handleActionError(error, 'la actualización del estado operativo')) {
+                toast({ variant: 'destructive', title: 'Error', description: 'Ocurrió un problema al actualizar el estado.' });
+            }
         } finally {
-          setLoading(prev => ({ ...prev, [userId]: false }));
+            setLoading(prev => ({ ...prev, [userId]: false }));
         }
     };
 
-
-
-
-    const handleAssignOperator = async (role: 'tecnologo' | 'transcriptora', operatorName: string) => {
-        const userToUpdate = role === 'tecnologo' ? dutyUsers.rxTechnologist : dutyUsers.ecoTranscriptionist;
+    const handleAssignRxOperator = async (operatorName: string) => {
+        const userToUpdate = dutyUsers.rxTechnologist;
         if (!userToUpdate) return;
-        
-        setLoading(prev => ({ ...prev, [userToUpdate.uid]: true }));
-
+        setAssignLoading(true);
         try {
-          const result = await setActiveOperatorAction(userToUpdate.uid, operatorName);
-          if (result.success) {
-            toast({ title: 'Operador Asignado', description: `${operatorName} ahora está de turno.` });
-          } else {
-            toast({ variant: 'destructive', title: 'Error', description: result.error });
-          }
+            const result = await setActiveOperatorAction(userToUpdate.uid, operatorName);
+            if (result.success) {
+                toast({ title: 'Operador Asignado', description: `${operatorName} ahora está de turno.` });
+                setRxShiftDialogOpen(false);
+            } else {
+                toast({ variant: 'destructive', title: 'Error', description: result.error });
+            }
         } catch (error) {
-          if (!handleActionError(error, 'la asignación del operador')) {
-            toast({ variant: 'destructive', title: 'Error', description: 'No se pudo asignar el operador seleccionado.' });
-          }
+            if (!handleActionError(error, 'la asignación del operador')) {
+                toast({ variant: 'destructive', title: 'Error', description: 'No se pudo asignar el operador.' });
+            }
         } finally {
-          setLoading(prev => ({ ...prev, [userToUpdate.uid]: false }));
-          setAssignTechnologistOpen(false);
-          setAssignRadiologistOpen(false);
+            setAssignLoading(false);
         }
-    }
+    };
+
+    const handleAssignEcoOperator = async (operatorName: string) => {
+        const userToUpdate = dutyUsers.ecoTranscriptionist;
+        if (!userToUpdate) return;
+        setLoading(prev => ({ ...prev, [userToUpdate.uid]: true }));
+        try {
+            const result = await setActiveOperatorAction(userToUpdate.uid, operatorName);
+            if (result.success) {
+                toast({ title: 'Operador Asignado', description: `${operatorName} ahora está de turno.` });
+                setAssignRadiologistOpen(false);
+            } else {
+                toast({ variant: 'destructive', title: 'Error', description: result.error });
+            }
+        } catch (error) {
+            if (!handleActionError(error, 'la asignación del operador')) {
+                toast({ variant: 'destructive', title: 'Error', description: 'No se pudo asignar el operador.' });
+            }
+        } finally {
+            setLoading(prev => ({ ...prev, [userToUpdate.uid]: false }));
+        }
+    };
 
     const rxTechnologist = dutyUsers.rxTechnologist;
     const ecoTranscriptionist = dutyUsers.ecoTranscriptionist;
-    
-    // Allow admin to manage both, or specific roles to manage their own
+
     const canManageTechnologist = currentProfile?.rol === 'administrador' || currentProfile?.rol === 'tecnologo';
     const canManageRadiologist = currentProfile?.rol === 'administrador' || currentProfile?.rol === 'transcriptora';
 
@@ -435,28 +579,11 @@ function DailySummaryWidget({ dutyUsers, allUsers, onStatusChange, onStatusFilte
         const Wrapper = isButton && onClick ? 'button' : 'div';
         const shadowColor = color.includes('red') ? 'shadow-red-100' : color.includes('green') ? 'shadow-emerald-100' : 'shadow-amber-100';
         const bgColor = color.includes('red') ? 'bg-red-600' : color.includes('green') ? 'bg-emerald-600' : 'bg-orange-500';
-
         return (
-            <Wrapper 
-                onClick={onClick} 
-                className={cn(
-                    "relative flex flex-col p-3.5 rounded-[1.2rem] transition-all duration-500 group overflow-hidden border-none text-left h-full w-full",
-                    isButton ? "cursor-pointer hover:-translate-y-1" : "",
-                    isActive ? cn(bgColor, "text-white shadow-2xl", shadowColor) : "bg-white text-zinc-900 shadow-xl shadow-zinc-100 hover:shadow-2xl"
-                )}
-            >
-                {/* Decorative Icon Background */}
-                <div className="absolute top-[-5px] right-[-5px] p-1 opacity-5 scale-125 rotate-12 pointer-events-none group-hover:scale-105 group-hover:opacity-10 transition-all duration-700">
-                    <Icon className="h-20 w-20" />
-                </div>
-
+            <Wrapper onClick={onClick} className={cn("relative flex flex-col p-3.5 rounded-[1.2rem] transition-all duration-500 group overflow-hidden border-none text-left h-full w-full", isButton ? "cursor-pointer hover:-translate-y-1" : "", isActive ? cn(bgColor, "text-white shadow-2xl", shadowColor) : "bg-white text-zinc-900 shadow-xl shadow-zinc-100 hover:shadow-2xl")}>
+                <div className="absolute top-[-5px] right-[-5px] p-1 opacity-5 scale-125 rotate-12 pointer-events-none group-hover:scale-105 group-hover:opacity-10 transition-all duration-700"><Icon className="h-20 w-20" /></div>
                 <div className="relative z-10 flex flex-col h-full justify-between">
-                    <div className={cn(
-                        "p-1.5 w-fit rounded-lg mb-2 transition-all duration-500",
-                        isActive ? "bg-white/20 text-white" : cn("bg-zinc-100", color)
-                    )}>
-                        <Icon className="h-5 w-5" />
-                    </div>
+                    <div className={cn("p-1.5 w-fit rounded-lg mb-2 transition-all duration-500", isActive ? "bg-white/20 text-white" : cn("bg-zinc-100", color))}><Icon className="h-5 w-5" /></div>
                     <div>
                         <p className={cn("text-[9px] font-black uppercase tracking-widest", isActive ? "text-white/70" : "text-zinc-400")}>{title}</p>
                         <p className={cn("text-2xl font-black tracking-tighter leading-none mt-0.5")}>{value}</p>
@@ -466,134 +593,76 @@ function DailySummaryWidget({ dutyUsers, allUsers, onStatusChange, onStatusFilte
         );
     };
 
-    const StatusButton = ({ user, serviceName }: { user: UserProfile | undefined, serviceName: string}) => {
+    const StatusButton = ({ user, serviceName }: { user: UserProfile | undefined, serviceName: string }) => {
         const isRx = serviceName === 'Rayos X';
         const isEco = serviceName === 'Ecografía';
         const status = user?.operationalStatus || 'NO ASIGNADO';
-        
         let bgColor = 'bg-gray-400';
         if (status === 'Disponible') bgColor = 'bg-emerald-600';
         else if (status === 'En Cirugía') bgColor = 'bg-orange-500 hover:bg-orange-600';
         else if (status === 'No Disponible') bgColor = 'bg-red-600 hover:bg-red-700';
-        
-        let buttonText = status === 'Disponible' ? 'DISPONIBLE' : status.toUpperCase();
-
+        const buttonText = status === 'Disponible' ? 'DISPONIBLE' : status.toUpperCase();
         const canToggle = (canManageTechnologist && isRx) || (canManageRadiologist && isEco);
-        
-        const handleClick = () => {
-            if (canToggle && user) {
-                handleStatusToggle(user.uid, user.operationalStatus!, isEco);
-            }
-        };
-
         const IconToUse = isRx ? (props: any) => <ModalityIcon modality="RX" {...props} /> : (props: any) => <ModalityIcon modality="ECO" {...props} />;
-
         return (
             <button
                 disabled={!canToggle || !user || loading[user.uid]}
-                onClick={handleClick}
-                className={cn(
-                    "flex flex-1 items-center gap-3 p-3 rounded-2xl text-white transition-all duration-300 shadow-md relative group overflow-hidden border-none text-left uppercase font-black tracking-tighter text-xs h-14",
-                    bgColor,
-                    !canToggle && "cursor-not-allowed opacity-80",
-                    status === 'Disponible' && "hover:-translate-y-0.5"
-                )}
+                onClick={() => { if (canToggle && user) handleStatusToggle(user.uid, user.operationalStatus!, isEco); }}
+                className={cn("flex flex-1 items-center gap-3 p-3 rounded-2xl text-white transition-all duration-300 shadow-md relative group overflow-hidden border-none text-left uppercase font-black tracking-tighter text-xs h-14", bgColor, !canToggle && "cursor-not-allowed opacity-80", status === 'Disponible' && "hover:-translate-y-0.5")}
             >
-                <div className="bg-white/20 p-1.5 rounded-lg shadow-inner">
-                    <IconToUse className="h-4 w-4" />
-                </div>
+                <div className="bg-white/20 p-1.5 rounded-lg shadow-inner"><IconToUse className="h-4 w-4" /></div>
                 <div className="flex items-center gap-3 flex-grow">
-                    <div className="flex flex-col border-r border-white/20 pr-3">
-                        <span className="text-[10px] opacity-80 font-black tracking-widest leading-none">{serviceName.toUpperCase()}</span>
-                    </div>
+                    <div className="flex flex-col border-r border-white/20 pr-3"><span className="text-[10px] opacity-80 font-black tracking-widest leading-none">{serviceName.toUpperCase()}</span></div>
                     <span className="flex-1 text-[13px] font-black tracking-wide leading-none">{buttonText}</span>
                 </div>
-                {loading[user?.uid || ''] && (
-                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                    </div>
-                )}
+                {loading[user?.uid || ''] && (<div className="absolute inset-0 bg-black/20 flex items-center justify-center"><Loader2 className="h-4 w-4 animate-spin" /></div>)}
             </button>
         );
     };
-    
-
-
-    const OperatorDisplay = ({ operator, onClick, role, canChange, serviceAvailable = true }: { operator?: string | null, onClick: () => void, role: 'tecnologo' | 'transcriptora', canChange: boolean, serviceAvailable?: boolean }) => {
-      const isTechnologist = role === 'tecnologo';
-      const canInteract = canChange && (isTechnologist || serviceAvailable);
-      const formatName = (name?: string | null) => name ? name.toUpperCase() : name;
-      const displayValue = serviceAvailable
-        ? (formatName(operator) || (canInteract ? 'Asignar' : 'No Asignado'))
-        : 'No Disponible';
-
-      if (isTechnologist) {
-        return (
-          <div className="flex items-center gap-2">
-            <div className="bg-amber-400 text-amber-950 p-1.5 rounded-full shadow-sm shadow-amber-200">
-              <ModalityIcon modality="RX" className="h-4 w-4" />
-            </div>
-            <span className="text-zinc-500 font-bold uppercase tracking-widest text-[11px]">RAYOS X: </span>
-            {canInteract ? (
-              <button onClick={onClick} className="font-black text-zinc-900 hover:text-amber-600 hover:underline disabled:text-zinc-400 text-xs transition-colors" disabled={!onClick}>
-                {displayValue}
-              </button>
-            ) : (
-              <span className="font-black text-zinc-900 text-xs">{displayValue}</span>
-            )}
-          </div>
-        );
-      }
-
-      return (
-        <div className="flex items-center gap-2">
-            <div className="bg-zinc-100 text-zinc-500 p-1.5 rounded-full">
-              <ModalityIcon modality="ECO" className="h-4 w-4" />
-            </div>
-          <span className="text-zinc-500 font-bold uppercase tracking-widest text-[11px]">ECO: </span>
-          {canInteract ? (
-            <button onClick={onClick} className="font-black text-zinc-900 hover:text-emerald-600 hover:underline disabled:text-zinc-400 text-xs transition-colors" disabled={!serviceAvailable}>
-              {displayValue}
-            </button>
-          ) : (
-            <span className={cn('font-black text-xs', !serviceAvailable ? 'text-zinc-400' : 'text-zinc-900')}>
-              {displayValue}
-            </span>
-          )}
-        </div>
-      );
-    };
-    
 
     return (
         <>
-        <Card className="shadow-2xl border-none h-full flex flex-col rounded-[2rem] overflow-hidden bg-white/50 backdrop-blur-xl">
+        <Card className="shadow-2xl border-none h-full flex flex-col rounded-[2rem] overflow-hidden bg-white/50 backdrop-blur-xl relative">
             <CardHeader className="px-4 pt-3 pb-1">
                 <div className="flex justify-between items-end sm:items-center gap-2">
                     <CardTitle className="font-black text-lg tracking-tight text-zinc-900 uppercase italic shrink-0">Resumen Operativo</CardTitle>
-                    <div className="flex flex-row items-center justify-end flex-wrap gap-x-5 gap-y-1">
-                   {rxTechnologist && (
-                    <OperatorDisplay
-                      operator={onDutyRxOperator}
-                      onClick={() => setAssignTechnologistOpen(true)}
-                      role="tecnologo"
-                      canChange={currentProfile?.rol === 'administrador'}
-                    />
-                   )}
-                     {ecoTranscriptionist && ecoServiceAvailable && (
-                      <OperatorDisplay
-                        operator={onDutyEcoOperator}
-                        onClick={() => setAssignRadiologistOpen(true)}
-                        role="transcriptora"
-                        canChange={canManageRadiologist}
-                        serviceAvailable={ecoServiceAvailable}
-                      />
-                     )}
+                    <div className="flex flex-row items-center justify-end flex-wrap gap-x-4 gap-y-1">
+                        {/* RX Technologist — clickable name opens shift relay dialog */}
+                        {rxTechnologist && (
+                            <div className="flex items-center gap-2">
+                                <div className="bg-amber-400 text-amber-950 p-1.5 rounded-full shadow-sm shadow-amber-200">
+                                    <ModalityIcon modality="RX" className="h-4 w-4" />
+                                </div>
+                                <span className="text-zinc-500 font-bold uppercase tracking-widest text-[11px]">RAYOS X:</span>
+                                <button
+                                    onClick={() => setRxShiftDialogOpen(true)}
+                                    className="font-black text-zinc-900 hover:text-amber-600 hover:underline text-xs transition-colors uppercase tracking-tight"
+                                >
+                                    {onDutyRxOperator || 'Asignar'}
+                                </button>
+                            </div>
+                        )}
+                        {/* ECO Transcriptionist */}
+                        {ecoTranscriptionist && ecoServiceAvailable && (
+                            <div className="flex items-center gap-2">
+                                <div className="bg-zinc-100 text-zinc-500 p-1.5 rounded-full">
+                                    <ModalityIcon modality="ECO" className="h-4 w-4" />
+                                </div>
+                                <span className="text-zinc-500 font-bold uppercase tracking-widest text-[11px]">ECO:</span>
+                                {canManageRadiologist ? (
+                                    <button onClick={() => setAssignRadiologistOpen(true)} className="font-black text-zinc-900 hover:text-emerald-600 hover:underline text-xs transition-colors uppercase tracking-tight">
+                                        {onDutyEcoOperator || 'Asignar'}
+                                    </button>
+                                ) : (
+                                    <span className="font-black text-zinc-900 text-xs uppercase tracking-tight">{onDutyEcoOperator || 'No Asignado'}</span>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
             </CardHeader>
             <CardContent className="p-4 pt-1 flex-grow space-y-4">
-                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     <InfoCard title="Pendientes" value={filteredSummary.pending} icon={Hourglass} color="text-red-500" onClick={() => onStatusFilterToggle('Pendiente')} isButton={true} isActive={activeFilters.status.includes('Pendiente')}/>
                     <InfoCard title="Completados" value={filteredSummary.completed} icon={ListChecks} color="text-emerald-600" onClick={() => onStatusFilterToggle('Completado')} isButton={true} isActive={activeFilters.status.includes('Completado')}/>
                     <InfoCard title="Pend. Lectura" value={reportSummary.pending} icon={FileClock} color="text-orange-600" onClick={() => onStatusFilterToggle('Completado')} isButton={true} isActive={activeFilters.status.length === 1 && activeFilters.status[0] === 'Completado'}/>
@@ -603,32 +672,45 @@ function DailySummaryWidget({ dutyUsers, allUsers, onStatusChange, onStatusFilte
                     <StatusButton user={rxTechnologist} serviceName="Rayos X" />
                     <StatusButton user={ecoTranscriptionist} serviceName="Ecografía" />
                 </div>
-            </CardContent>
+        </CardContent>
+            {/* Toggle collapse button — bottom-right corner */}
+            <button
+                onClick={() => setIsSummaryVisible(!isSummaryVisible)}
+                title={isSummaryVisible ? "Ocultar Paneles" : "Ver Paneles"}
+                className="absolute bottom-3 right-3 h-7 w-7 rounded-xl bg-zinc-100 border border-zinc-200 text-zinc-400 hover:text-amber-600 hover:bg-amber-50 hover:border-amber-200 flex items-center justify-center transition-all duration-200 z-10 shadow-sm"
+            >
+                {isSummaryVisible ? <ChevronsUp className="h-3.5 w-3.5" /> : <ChevronsDown className="h-3.5 w-3.5" />}
+            </button>
         </Card>
-          {assignTechnologistOpen && (
-            <AssignOperatorDialog
-              open={assignTechnologistOpen}
-              onOpenChange={setAssignTechnologistOpen}
-              title="Asignar Tecnólogo de Turno"
-              description="Seleccione el tecnólogo que estará a cargo de los estudios de Rayos X."
-              operators={[...new Set(allUsers.filter(u => u.rol === 'tecnologo').flatMap(u => (u.operadores as any) || []))] as string[]}
-              onAssign={op => handleAssignOperator('tecnologo', op)}
-            />
-          )}
 
-          {assignRadiologistOpen && (
+        {/* RX Shift Relay Dialog */}
+        <RxShiftDialog
+            open={rxShiftDialogOpen}
+            onClose={() => setRxShiftDialogOpen(false)}
+            rxTeam={rxTeam || {}}
+            allUsers={allUsers}
+            canAssign={canManageTechnologist}
+            onAssign={handleAssignRxOperator}
+            assignLoading={assignLoading}
+        />
+
+        {/* ECO Assign Dialog */}
+        {assignRadiologistOpen && (
             <AssignOperatorDialog
-              open={assignRadiologistOpen}
-              onOpenChange={setAssignRadiologistOpen}
-              title="Asignar Radiólogo de Turno"
-              description="Seleccione el radiólogo que estará a cargo de las ecografías."
-              operators={[...new Set(allUsers.filter(u => u.rol === 'transcriptora').flatMap(u => (u.operadores as any) || []))] as string[]}
-              onAssign={op => handleAssignOperator('transcriptora', op)}
+                open={assignRadiologistOpen}
+                onOpenChange={setAssignRadiologistOpen}
+                title="Asignar Radiólogo de Turno"
+                description="Seleccione el radiólogo que estará a cargo de las ecografías."
+                operators={[...new Set(allUsers.filter((u: UserProfile) => u.rol === 'transcriptora').flatMap((u: any) => (u.operadores as any) || []))] as string[]}
+                onAssign={handleAssignEcoOperator}
             />
-          )}
+        )}
         </>
     );
 }
+
+
+
 
 function ShiftReminderDialog({ show, onConfirm, onOpenHandover, isTechnologist }: { show: boolean; onConfirm: () => void; onOpenHandover?: () => void; isTechnologist?: boolean }) {
   return (
@@ -751,6 +833,7 @@ export default function DashboardPage() {
   const [liveStudies, setLiveStudies] = useState<StudyWithCompletedBy[]>([]);
   const [searchedStudies, setSearchedStudies] = useState<StudyWithCompletedBy[] | null>(null);
   const [dutyUsers, setDutyUsers] = useState<{ rxTechnologist: UserProfile | undefined, ecoTranscriptionist: UserProfile | undefined }>({ rxTechnologist: undefined, ecoTranscriptionist: undefined });
+  const [rxTeam, setRxTeam] = useState<{ prev?: string, current?: string, next?: string }>({});
   const [allUsers, setAllUsers] = useState<UserProfile[]>([]);
   
   const [loading, setLoading] = useState(true);
@@ -767,6 +850,7 @@ export default function DashboardPage() {
   const { showReminder, confirmReminder, openHandoverDialog, shiftType } = useShiftChangeReminder(!!user);
   const [shiftHandoverOpen, setShiftHandoverOpen] = useState(false);
   const [shiftReceiptOpen, setShiftReceiptOpen] = useState(false);
+
   const [latestHandover, setLatestHandover] = useState<any>(null);
   
   const getInitialFilters = useCallback((profile: UserProfile | null) => {
@@ -845,28 +929,74 @@ export default function DashboardPage() {
         setDutyUsers({ rxTechnologist: undefined, ecoTranscriptionist: undefined });
         return;
     }
-    const usersQuery = query(collection(db, "users"));
-    const unsubscribeUsers = onSnapshot(usersQuery, (querySnapshot) => {
-      const allUsersData: UserProfile[] = [];
-      let tech: UserProfile | undefined, trans: UserProfile | undefined;
+    let usersData: UserProfile[] = [];
+    let shiftData: TechnologistShift[] = [];
+
+    const nowTime = new Date();
+    const todayStr = format(nowTime, 'yyyy-MM-dd');
+    const yesterdayStr = format(subDays(nowTime, 1), 'yyyy-MM-dd');
+    const tomorrowStr = format(addDays(nowTime, 1), 'yyyy-MM-dd');
+
+    const updateDutyUsers = () => {
+      const now = new Date();
+      let tech: UserProfile | undefined;
+      let trans: UserProfile | undefined;
       let rxTechs: UserProfile[] = [];
-      querySnapshot.forEach((doc) => {
-        const user = { uid: doc.id, ...doc.data() } as UserProfile;
-        allUsersData.push(user);
+
+      usersData.forEach(user => {
         if (user.rol === 'tecnologo' && user.servicioAsignado === 'RX' && user.activo) { rxTechs.push(user); }
         if (user.rol === 'transcriptora' && user.servicioAsignado === 'ECO' && user.activo) { trans = user; }
       });
-      // Priorizar tecnólogo RX con operadorActivo igual al nombre del usuario actual
-      if (rxTechs.length > 0 && currentProfile) {
+
+      // Lógica de Equipo RX (Previo, Actual, Siguiente)
+      const rxShifts = shiftData.filter(s => {
+        const m = s.modality?.toUpperCase();
+        return m === 'RX' || m === 'GENERAL' || s.modality === undefined;
+      }).map(s => {
+        const start = s.startTime?.toDate?.() || new Date(s.startTime);
+        const end = s.endTime?.toDate?.() || new Date(s.endTime);
+        return { ...s, start, end };
+      }).sort((a, b) => a.start.getTime() - b.start.getTime());
+
+      const workingShifts = ['CORRIDO', 'NOCHE', 'MANANA_TARDE', 'MANANA'];
+      
+      const currentShift = rxShifts.find(s => workingShifts.includes(s.shiftType) && now >= s.start && now <= s.end);
+      const nextShift = rxShifts.find(s => workingShifts.includes(s.shiftType) && s.start > now);
+      const prevShift = [...rxShifts].reverse().find(s => workingShifts.includes(s.shiftType) && s.end < now);
+
+      if (currentShift) {
+        const foundTech = rxTechs.find(t => t.uid === currentShift.assignedUserId) || 
+                          rxTechs.find(t => t.nombre.toLowerCase().trim() === currentShift.assignedUserName?.toLowerCase().trim()) || 
+                          rxTechs[0];
+        if (foundTech) {
+          tech = { 
+            ...foundTech, 
+            operadorActivo: currentShift.assignedUserName || foundTech.nombre 
+          };
+        }
+      } else if (rxTechs.length > 0 && currentProfile) {
         tech = rxTechs.find(t => t.operadorActivo === currentProfile.nombre) || rxTechs[0];
       }
-      setAllUsers(allUsersData);
+
+      setAllUsers(usersData);
       setDutyUsers({ rxTechnologist: tech, ecoTranscriptionist: trans });
-    }, (error) => {
-        if (error.code === 'permission-denied') return;
-        console.error("Error fetching users:", error);
+      setRxTeam({
+        prev: prevShift?.assignedUserName,
+        current: currentShift?.assignedUserName,
+        next: nextShift?.assignedUserName
+      });
+    };
+
+    const unsubscribeUsers = onSnapshot(query(collection(db, "users")), (snapshot) => {
+      usersData = snapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() } as UserProfile));
+      updateDutyUsers();
     });
-    
+
+    const unsubscribeShifts = onSnapshot(query(collection(db, "technologistShifts"), where("date", "in", [yesterdayStr, todayStr, tomorrowStr])), (snapshot) => {
+      shiftData = snapshot.docs.map(doc => doc.data() as TechnologistShift);
+      updateDutyUsers();
+    });
+
     let unsubscribeAlarms = () => {};
     if (currentProfile?.rol === 'enfermero') {
         const alarmsQuery = query(collection(db, 'generalAlarms'), where('createdAt', '>', Timestamp.fromDate(new Date(Date.now() - 5 * 60 * 1000))), orderBy('createdAt', 'desc'), firestoreLimit(1));
@@ -877,7 +1007,7 @@ export default function DashboardPage() {
             console.error("Error fetching alarms:", error);
         });
     }
-    return () => { unsubscribeUsers(); unsubscribeAlarms(); };
+    return () => { unsubscribeUsers(); unsubscribeShifts(); unsubscribeAlarms(); };
   }, [user, currentProfile]);
 
   // Load latest handover when shift handover is closed
@@ -1354,6 +1484,9 @@ export default function DashboardPage() {
                     reportSummary={reportSummary}
                     activeFilters={activeFilters}
                     selectedOperator={selectedOperator}
+                    rxTeam={rxTeam}
+                    isSummaryVisible={isSummaryVisible}
+                    setIsSummaryVisible={setIsSummaryVisible}
                 />
               </div>
         </div>

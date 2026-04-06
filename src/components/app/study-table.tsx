@@ -1868,26 +1868,12 @@ export function StudyTable({
         open={!!nursingNoteStudy}
         onOpenChange={(open) => { if (!open) setNursingNoteStudy(null); }}
       />
-      <div className="rounded-2xl border-none shadow-xl bg-white overflow-hidden ring-1 ring-zinc-200/50">
+      <div className="rounded-[2.5rem] border-none shadow-[0_32px_64px_-16px_rgba(0,0,0,0.06)] bg-white/80 backdrop-blur-3xl overflow-hidden ring-1 ring-zinc-200/50">
         <Table style={{ tableLayout: 'fixed' }}>
           <TableHeader>
             <TableRow className="bg-zinc-50/80 hover:bg-zinc-50 border-b-2 border-zinc-100">
               <TableHead className="p-2" style={{ width: '130px' }}>
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className='font-black text-[11px] w-full h-full justify-start px-2 text-zinc-900 uppercase tracking-widest'>ESTADO</Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start">
-                        <DropdownMenuLabel>Filtrar por estado</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        {statusOptions.map(status => (
-                            <DropdownMenuItem key={status} onSelect={() => setActiveStatusFilters(status)} className="flex justify-between">
-                                {status}
-                                {activeStatusFilters.includes(status) && <Check className="h-4 w-4" />}
-                            </DropdownMenuItem>
-                        ))}
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                <div className="font-black text-[11px] w-full text-center text-zinc-900 uppercase tracking-widest">ESTADO</div>
               </TableHead>
               <TableHead style={{ minWidth: '280px', width: '24%' }} className="px-2">
                  {(isAdmin || isAdmission) && !isPatientProfile ? (
@@ -1921,22 +1907,12 @@ export function StudyTable({
                         setDate={setDateRange}
                         onApply={onSearch}
                         align="start"
-                        triggerClassName="font-black text-[11px] px-3 uppercase tracking-widest text-zinc-900 bg-transparent border-transparent shadow-none hover:bg-zinc-100 hover:border-zinc-200 h-9 w-full rounded-xl"
+                        triggerClassName="font-black text-[11px] px-3 uppercase tracking-widest text-zinc-900 bg-transparent border-transparent shadow-none hover:bg-zinc-100 hover:border-zinc-200 hover:text-zinc-900 h-9 w-full rounded-xl"
                         showMonths={1}
                     />
                 </div>
               </TableHead>
-              <TableHead style={{ width: '40px' }} className="text-right px-2">
-                <Button 
-                    variant="ghost" 
-                    size="icon"
-                    onClick={() => setIsSummaryVisible(!isSummaryVisible)}
-                    title={isSummaryVisible ? "Ocultar Paneles" : "Ver Paneles"}
-                    className="h-8 w-8 rounded-full text-zinc-400 hover:text-amber-600 hover:bg-amber-50"
-                >
-                    {isSummaryVisible ? <ChevronsUp className="h-4 w-4" /> : <ChevronsDown className="h-4 w-4" />}
-                </Button>
-              </TableHead>
+              <TableHead style={{ width: '40px' }} className="text-right px-2"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -1996,7 +1972,7 @@ export function StudyTable({
                     key={study.id}
                     data-state={study.status === 'Cancelado' ? 'inactive' : 'active'}
                     className={cn(
-                      'hover:bg-amber-50/40 transition-colors group',
+                      'hover:bg-amber-50/50 transition-all duration-300 group z-10 relative cursor-default hover:scale-[1.002] hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)]',
                       'data-[state=inactive]:opacity-60',
                        isNew && 'animate-fade-in-row'
                     )}

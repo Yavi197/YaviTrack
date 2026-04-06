@@ -739,7 +739,7 @@ export function RemissionsTable({ statusFilter, onStatusSummaryChange, onCountsC
 
 
   return (
-    <div className="rounded-2xl border-none shadow-xl bg-white overflow-hidden ring-1 ring-zinc-200/50">
+    <div className="rounded-[2.5rem] border-none shadow-[0_32px_64px_-16px_rgba(0,0,0,0.06)] bg-white/80 backdrop-blur-3xl overflow-hidden ring-1 ring-zinc-200/50">
       <Table style={{ tableLayout: "fixed" }}>
         <TableHeader>
           <TableRow className="bg-zinc-50/80 hover:bg-zinc-50 border-b-2 border-zinc-100">
@@ -805,7 +805,7 @@ export function RemissionsTable({ statusFilter, onStatusSummaryChange, onCountsC
             <TableRow
               key={rem.id}
               data-state={isInactive ? 'inactive' : 'active'}
-              className="data-[state=inactive]:opacity-60 border-b border-zinc-100 bg-white hover:bg-zinc-50 last:border-0"
+              className="data-[state=inactive]:opacity-60 border-b border-zinc-50 bg-white hover:bg-white hover:scale-[1.002] hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 group z-10 relative cursor-default last:border-0"
             >
               <TableCell className="p-2">
                 <div className="w-full h-full flex flex-col items-center justify-center">

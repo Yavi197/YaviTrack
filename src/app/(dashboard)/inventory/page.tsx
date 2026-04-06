@@ -188,16 +188,16 @@ export default function InventoryPage() {
             </div>
 
             {/* Stats Dashboard */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {/* 1. BALANCE DE CONTRASTE */}
-                <Card className="border-none shadow-md bg-emerald-600 text-white overflow-hidden relative">
+                <Card className="border-none shadow-[0_20px_50px_-12px_rgba(16,185,129,0.15)] bg-emerald-600 text-white overflow-hidden relative rounded-[2rem] transition-transform hover:scale-[1.02] duration-500">
                     <Beaker className="absolute -right-4 -bottom-4 h-24 w-24 opacity-20 rotate-12" />
                     <CardHeader className="pb-2">
-                        <CardDescription className="text-emerald-100 font-bold uppercase text-[10px] tracking-widest">Contraste (Neto)</CardDescription>
-                        <CardTitle className="text-3xl font-black">{Math.round(stats.netMl)} <span className="text-sm font-normal opacity-80">ml</span></CardTitle>
+                        <CardDescription className="text-emerald-100 font-black uppercase text-[9px] tracking-[0.2em]">Contraste (Neto)</CardDescription>
+                        <CardTitle className="text-4xl font-black tracking-tighter">{Math.round(stats.netMl)} <span className="text-sm font-medium opacity-70">ml</span></CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-xs font-medium text-emerald-100 bg-white/10 w-fit px-2 py-1 rounded-full">
+                        <div className="text-[10px] font-black uppercase tracking-widest text-emerald-100 bg-white/10 w-fit px-3 py-1.5 rounded-full backdrop-blur-sm shadow-inner">
                             Disponible en sala
                         </div>
                     </CardContent>
@@ -205,53 +205,53 @@ export default function InventoryPage() {
 
                 {/* 2. ALERTAS */}
                 <Card className={cn(
-                    "border-none shadow-md transition-all duration-500",
-                    stats.lowStockCount > 0 ? (showPulse ? "bg-amber-500 text-white animate-pulse" : "bg-amber-500 text-white") : "bg-white border border-zinc-100"
+                    "border-none shadow-xl transition-all duration-500 rounded-[2rem] hover:scale-[1.02]",
+                    stats.lowStockCount > 0 ? (showPulse ? "bg-amber-500 text-white animate-pulse" : "bg-amber-500 text-white shadow-amber-200/40") : "bg-white border-2 border-zinc-100"
                 )}>
 
                     <CardHeader className="pb-2">
                         <CardDescription className={cn(
-                            "font-bold uppercase text-[10px] tracking-widest",
+                            "font-black uppercase text-[9px] tracking-[0.2em]",
                             stats.lowStockCount > 0 ? "text-amber-100" : "text-zinc-400"
                         )}>Stock Crítico</CardDescription>
-                        <CardTitle className="text-2xl font-black">{stats.lowStockCount} <span className="text-sm font-normal opacity-80">items</span></CardTitle>
+                        <CardTitle className="text-3xl font-black tracking-tighter">{stats.lowStockCount} <span className="text-sm font-medium opacity-70">items</span></CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className={cn(
-                            "flex items-center gap-1 font-bold text-xs opacity-90",
-                            stats.lowStockCount > 0 ? "text-white" : "text-amber-600"
+                            "flex items-center gap-2 font-black text-[10px] uppercase tracking-widest px-3 py-1.5 rounded-full w-fit",
+                            stats.lowStockCount > 0 ? "bg-white/10" : "bg-amber-50 text-amber-600"
                         )}>
-                            <AlertTriangle className="h-3 w-3" />
+                            <AlertTriangle className="h-3.5 w-3.5" />
                             Requieren reposición
                         </div>
                     </CardContent>
                 </Card>
 
                 {/* 3. ULTIMA ENTRADA */}
-                <Card className="border-none shadow-md bg-white border border-zinc-100">
+                <Card className="border-none shadow-xl bg-white border-2 border-zinc-100 rounded-[2rem] hover:scale-[1.02] transition-transform duration-500">
                     <CardHeader className="pb-2">
-                        <CardDescription className="text-zinc-400 font-bold uppercase text-[10px] tracking-widest">Recorrido Reciente</CardDescription>
-                        <CardTitle className="text-[13px] font-black text-zinc-900 truncate leading-tight h-8 flex items-center">
+                        <CardDescription className="text-zinc-400 font-black uppercase text-[9px] tracking-[0.2em]">Recorrido Reciente</CardDescription>
+                        <CardTitle className="text-[14px] font-black text-zinc-900 truncate leading-tight h-8 flex items-center tracking-tight">
                             {stats.lastEntry?.itemName || "Sin registros"}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-xs text-zinc-500 flex items-center gap-1 font-medium italic">
-                            <History className="h-3 w-3" />
-                            {stats.lastEntry?.date ? format(stats.lastEntry.date.toDate(), 'PPP') : '---'}
+                        <div className="text-[10px] text-zinc-500 flex items-center gap-2 font-black uppercase tracking-widest bg-zinc-50 px-3 py-1.5 rounded-full w-fit">
+                            <History className="h-3.5 w-3.5 text-zinc-400" />
+                            {stats.lastEntry?.date ? format(stats.lastEntry.date.toDate(), 'dd MMM yyyy') : '---'}
                         </div>
                     </CardContent>
                 </Card>
 
                 {/* 4. VALOR TOTAL (AL FINAL) */}
-                <Card className="border-none shadow-md bg-zinc-900 text-white">
+                <Card className="border-none shadow-xl bg-zinc-900 text-white rounded-[2rem] hover:scale-[1.02] transition-transform duration-500">
                     <CardHeader className="pb-2">
-                        <CardDescription className="text-zinc-400 font-bold uppercase text-[10px] tracking-widest">Valorización</CardDescription>
-                        <CardTitle className="text-2xl font-black text-white">{formatCurrency(stats.totalValue)}</CardTitle>
+                        <CardDescription className="text-zinc-500 font-black uppercase text-[9px] tracking-[0.2em]">Valorización</CardDescription>
+                        <CardTitle className="text-3xl font-black tracking-tighter">{formatCurrency(stats.totalValue)}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="flex items-center gap-1 text-emerald-400 font-bold text-xs">
-                            <TrendingUp className="h-3 w-3" />
+                        <div className="flex items-center gap-2 text-emerald-400 font-black text-[10px] uppercase tracking-widest bg-white/5 px-3 py-1.5 rounded-full w-fit">
+                            <TrendingUp className="h-3.5 w-3.5" />
                             Costo total pedidos
                         </div>
                     </CardContent>
@@ -259,21 +259,23 @@ export default function InventoryPage() {
             </div>
 
             {/* Main Content - History Table */}
-            <Card className="border-none shadow-xl bg-white overflow-hidden rounded-2xl">
-                <CardHeader className="border-b border-zinc-50 bg-zinc-50/20">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                            <History className="h-5 w-5 text-emerald-600" />
+            <Card className="border-none shadow-2xl bg-white/80 backdrop-blur-3xl overflow-hidden rounded-[2.5rem] ring-1 ring-zinc-200/50">
+                <CardHeader className="border-b border-zinc-100 bg-zinc-50/30 p-8">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <div className="flex items-center gap-4">
+                            <div className="h-12 w-12 rounded-2xl bg-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-200 ring-4 ring-emerald-50">
+                                <History className="h-6 w-6 text-white" />
+                            </div>
                             <div>
-                                <CardTitle className="text-lg font-black text-zinc-900">Historial de Movimientos</CardTitle>
-                                <CardDescription className="text-zinc-500 font-medium">Cronología de entradas y recepciones de insumos.</CardDescription>
+                                <CardTitle className="text-xl font-black text-zinc-900 tracking-tight uppercase italic italic-title">Historial de Movimientos</CardTitle>
+                                <CardDescription className="text-zinc-400 font-black uppercase text-[10px] tracking-[0.1em] mt-0.5">Entradas y recepciones registradas</CardDescription>
                             </div>
                         </div>
-                        <div className="relative w-full md:w-80">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+                        <div className="relative w-full md:w-96 group">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400 group-focus-within:text-emerald-500 transition-colors" />
                             <Input 
-                                placeholder="Buscar por insumo o lote..." 
-                                className="pl-10 h-10 border-zinc-200 rounded-xl bg-white focus:bg-white transition-all text-xs font-medium"
+                                placeholder="Filtrar por insumo o lote..." 
+                                className="pl-11 h-12 border-2 border-zinc-100 rounded-2xl bg-white focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all text-xs font-bold shadow-sm"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
@@ -295,49 +297,49 @@ export default function InventoryPage() {
                         ) : (
                             <Table>
                                 <TableHeader className="bg-zinc-50/50">
-                                    <TableRow className="hover:bg-transparent">
-                                        <TableHead className="w-[150px] font-extrabold text-[10px] uppercase tracking-wider pl-6">Fecha</TableHead>
+                                    <TableRow className="hover:bg-transparent border-b-2 border-zinc-100">
+                                        <TableHead className="w-[160px] font-black text-[10px] uppercase tracking-[0.2em] pl-8 text-zinc-400 py-6">Fecha / Hora</TableHead>
 
-                                        <TableHead className="font-extrabold text-[10px] uppercase tracking-wider">Insumo Recibido</TableHead>
-                                        <TableHead className="font-extrabold text-[10px] uppercase tracking-wider">Servicio</TableHead>
-                                        <TableHead className="font-extrabold text-[10px] uppercase tracking-wider">Lote / Vence</TableHead>
-                                        <TableHead className="font-extrabold text-[10px] uppercase tracking-wider text-right">Cantidad</TableHead>
-                                        <TableHead className="font-extrabold text-[10px] uppercase tracking-wider text-right pr-6">Costo</TableHead>
+                                        <TableHead className="font-black text-[10px] uppercase tracking-[0.2em] text-zinc-400">Insumo Recibido</TableHead>
+                                        <TableHead className="font-black text-[10px] uppercase tracking-[0.2em] text-zinc-400">Servicio</TableHead>
+                                        <TableHead className="font-black text-[10px] uppercase tracking-[0.2em] text-zinc-400">Lote / Vence</TableHead>
+                                        <TableHead className="font-black text-[10px] uppercase tracking-[0.2em] text-zinc-400 text-right">Cantidad</TableHead>
+                                        <TableHead className="font-black text-[10px] uppercase tracking-[0.2em] text-zinc-400 text-right pr-8">Valor Total</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {filteredHistory.map((entry) => (
-                                        <TableRow key={entry.id} className="hover:bg-zinc-50/50 transition-colors group">
-                                            <TableCell className="py-4 pl-6">
-                                                <div className="font-mono text-[10px] font-bold text-zinc-400 italic">
+                                        <TableRow key={entry.id} className="hover:bg-emerald-50/30 transition-all duration-300 group border-b border-zinc-50 last:border-0 cursor-default">
+                                            <TableCell className="py-6 pl-8">
+                                                <div className="font-mono text-[10px] font-black text-zinc-400 tracking-tighter">
                                                     {entry.date ? format(entry.date.toDate(), 'dd/MM/yyyy') : '---'}
                                                 </div>
-                                                <div className="text-[11px] font-black text-zinc-900">
+                                                <div className="text-xs font-black text-zinc-900 mt-0.5">
                                                     {entry.date ? format(entry.date.toDate(), 'HH:mm:ss') : '---'}
                                                 </div>
                                             </TableCell>
                                             <TableCell>
-                                                <div className="font-black text-zinc-900 text-sm">{entry.itemName}</div>
-                                                <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-tight">{entry.presentation}</div>
+                                                <div className="font-black text-zinc-900 text-sm tracking-tight">{entry.itemName}</div>
+                                                <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mt-0.5">{entry.presentation}</div>
                                             </TableCell>
                                             <TableCell>
                                                 <Badge className={cn(
-                                                    "border-none font-black text-[9px] px-2 py-0.5 rounded-md shadow-sm",
+                                                    "border-none font-black text-[9px] px-2.5 py-1 rounded-lg shadow-sm transition-transform group-hover:scale-105",
                                                     entry.service === 'TAC' ? "bg-blue-600 text-white" :
                                                     entry.service === 'RX' ? "bg-red-600 text-white" :
                                                     entry.service === 'ECO' ? "bg-emerald-600 text-white" :
-                                                    "bg-zinc-800 text-white"
+                                                    "bg-zinc-900 text-white"
                                                 )}>
                                                     {entry.service}
                                                 </Badge>
                                             </TableCell>
                                             <TableCell>
-                                                <div className="flex flex-col">
-                                                    <span className="text-[10px] font-bold text-zinc-500">LT: <span className="text-zinc-900">{entry.lote || 'N/A'}</span></span>
+                                                <div className="flex flex-col gap-0.5">
+                                                    <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Lote: <span className="text-zinc-900">{entry.lote || 'N/A'}</span></span>
                                                     {entry.fechaVencimiento && (
                                                         <span className={cn(
-                                                            "text-[9px] font-extrabold",
-                                                            new Date(entry.fechaVencimiento) < new Date() ? "text-red-500" : "text-zinc-400"
+                                                            "text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md w-fit mt-1",
+                                                            new Date(entry.fechaVencimiento) < new Date() ? "bg-red-100 text-red-600" : "bg-zinc-100 text-zinc-500"
                                                         )}>
                                                             EXP: {entry.fechaVencimiento}
                                                         </span>
@@ -345,16 +347,16 @@ export default function InventoryPage() {
                                                 </div>
                                             </TableCell>
                                             <TableCell className="text-right">
-                                                <div className="font-black text-emerald-600 text-lg">
+                                                <div className="font-black text-emerald-600 text-xl tracking-tighter">
                                                     +{entry.amountAdded}
                                                 </div>
-                                                <span className="text-[9px] font-bold text-zinc-400 uppercase leading-none">{entry.presentation}</span>
+                                                <span className="text-[9px] font-black text-zinc-300 uppercase tracking-widest leading-none">{entry.presentation}</span>
                                             </TableCell>
-                                            <TableCell className="text-right py-4 pr-6">
-                                                <div className="font-black text-zinc-900">
+                                            <TableCell className="text-right py-4 pr-8">
+                                                <div className="font-black text-zinc-900 text-base tracking-tighter">
                                                     {formatCurrency((Number(entry.priceAtEntry) || 0) * (Number(entry.amountAdded) || 0))}
                                                 </div>
-                                                <div className="text-[10px] font-bold text-zinc-400">
+                                                <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mt-0.5">
                                                     {formatCurrency(Number(entry.priceAtEntry) || 0)} / u
                                                 </div>
                                             </TableCell>
