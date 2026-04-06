@@ -620,7 +620,7 @@ export async function createStudyAction(
                     admissionNumber: data.admissionNumber || 'INGRESO MANUAL',
                     referenceNumber: options.referenceNumber || data.referenceNumber || null,
                     bedNumber: isAdmissionist ? (currentTurnStr || null) : (options.bedNumber || data.bedNumber || null),
-                    turnNumber: isAdmissionist ? (currentTurnStr || null) : undefined,
+                    turnNumber: isAdmissionist ? (currentTurnStr || null) : null,
                     bajoSedacion: options.bajoSedacion ?? data.bajoSedacion ?? false,
                 };
 
