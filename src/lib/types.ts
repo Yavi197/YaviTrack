@@ -89,6 +89,8 @@ export type TechnologistShift = {
     notes?: string;
     assignedUserId?: string;
     assignedUserName?: string;
+    assignedUserDocument?: string;
+    assignedUserPhone?: string;
     assignedRole?: ShiftAssignableRole;
     modality?: CalendarModality;
     metadata?: Record<string, string | number | boolean>;

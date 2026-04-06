@@ -164,7 +164,7 @@ const remissionStatusStyles: Record<string, { icon: React.ComponentType<{ classN
 // Componente para cambiar el estado manualmente
 function StatusButton({ currentStatus, remissionId }: { currentStatus: string, remissionId: string }) {
   const { currentProfile } = useAuth();
-  const isAdmin = currentProfile?.rol === 'administrador';
+  const isAdmin = currentProfile?.rol === 'administrador' || currentProfile?.rol === 'admisionista';
   const allowed = [
     "Pendiente Aut",
     "Cupo Solicitado",
@@ -752,7 +752,7 @@ export function RemissionsTable({ statusFilter, onStatusSummaryChange, onCountsC
             </TableHead>
             <TableHead style={{ minWidth: "280px", width: "24%" }} className="px-2">
                   <div className="relative">
-                    {currentProfile?.rol === 'administrador' ? (
+                    {(currentProfile?.rol === 'administrador' || currentProfile?.rol === 'admisionista') ? (
                       <>
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
@@ -970,7 +970,7 @@ export function RemissionsTable({ statusFilter, onStatusSummaryChange, onCountsC
                     <DropdownMenuSeparator />
                     <RemissionAuthorizationActions
                       remission={rem}
-                      enabled={currentProfile?.rol === 'administrador'}
+                      enabled={currentProfile?.rol === 'administrador' || currentProfile?.rol === 'admisionista'}
                       onEdit={onEditRemission}
                     />
                   </DropdownMenuContent>

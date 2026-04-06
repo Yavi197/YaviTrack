@@ -36,6 +36,8 @@ export type GenerateTechnologistShiftsOptions = {
     manualOverrides?: ManualShiftOverride[];
     baseModality?: CalendarModality;
     assignedRole?: 'tecnologo' | 'transcriptora';
+    assignedUserDocument?: string;
+    assignedUserPhone?: string;
 };
 
 const pad = (value: number) => value.toString().padStart(2, '0');
@@ -139,6 +141,8 @@ export const generateTechnologistShiftsInRange = (options: GenerateTechnologistS
             holiday: holidaySet.has(dateStr),
             status: 'assigned',
             modality: finalModality || baseModality,
+            assignedUserDocument: options.assignedUserDocument,
+            assignedUserPhone: options.assignedUserPhone,
         };
 
         const finalNote = (manualOverride?.note ?? noteFromForm)?.trim();

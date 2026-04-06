@@ -1790,7 +1790,7 @@ export function StudyTable({
     const isNurse = rol === 'enfermero';
     const isTech = rol === 'tecnologo';
 
-    const canEdit = isAdmin;
+    const canEdit = isAdmin || rol === 'admisionista';
     const canCancel = (isAdmin || rol === 'tecnologo' || rol === 'transcriptora' || rol === 'admisionista') && status === 'Pendiente';
     const canDelete = isAdmin;
     const canRevert = isAdmin && status !== 'Pendiente';
@@ -1890,7 +1890,7 @@ export function StudyTable({
                 </DropdownMenu>
               </TableHead>
               <TableHead style={{ minWidth: '280px', width: '24%' }} className="px-2">
-                 {isAdmin && !isPatientProfile ? (
+                 {(isAdmin || isAdmission) && !isPatientProfile ? (
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
@@ -2043,7 +2043,7 @@ export function StudyTable({
                                         <span className="font-mono font-bold cursor-pointer hover:underline text-[10px] leading-none">{abbreviateSubService(study.subService)}</span>
                                     </EditServiceDialog>
                                      {study.service === 'C.EXT' ? (
-                                        <TurnNumberInput study={study} isAdmin={isAdmin} canAssignTurn={permissions.assignTurn}/>
+                                        <TurnNumberInput study={study} isAdmin={isAdmin || isAdmission} canAssignTurn={permissions.assignTurn}/>
                                     ) : (
                                         <BedNumberInput study={study} canEdit={permissions.editBed} />
                                     )}
@@ -2249,7 +2249,7 @@ export function StudyTable({
 
                                       {/* Group 2: External/Administrative */}
                                       <DropdownMenuSeparator />
-                                      {isAdmin && (
+                                      {(isAdmin || isAdmission) && (
                                         <DropdownMenuItem onClick={() => handleRequestAuthorization(study)}>
                                             <Mail className="mr-2 h-4 w-4" />
                                             <span>Solicitar a EPS</span>
