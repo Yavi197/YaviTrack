@@ -203,12 +203,14 @@ export default function TechnologistShiftPage() {
 
         const unsubscribe = onSnapshot(staffQuery, (snapshot) => {
             const data: StaffOption[] = snapshot.docs.map((doc) => {
-                const staffData = doc.data() as Partial<StaffOption> & { nombre?: string; rol?: ShiftAssignableRole; servicioAsignado?: string };
+                const staffData = doc.data() as Partial<StaffOption> & { nombre?: string; rol?: ShiftAssignableRole; servicioAsignado?: string; documento?: string; telefono?: string };
                 return {
                     uid: doc.id,
                     nombre: staffData.nombre || 'Sin nombre',
                     rol: (staffData.rol || 'tecnologo') as ShiftAssignableRole,
                     servicioAsignado: staffData.servicioAsignado,
+                    documento: staffData.documento || '',
+                    telefono: staffData.telefono || '',
                 } as any;
             }).filter((staff: any) => {
                 if (staff.rol === 'tecnologo' && staff.servicioAsignado === 'RX') return true;
@@ -474,6 +476,8 @@ export default function TechnologistShiftPage() {
                 assignedUserId: staff.uid,
                 assignedUserName: staff.nombre,
                 assignedRole: staff.rol,
+                assignedUserDocument: (staff as any).documento,
+                assignedUserPhone: (staff as any).telefono,
                 notes: selectedNote.trim() || undefined,
             });
             if (result.success) {
@@ -543,6 +547,8 @@ export default function TechnologistShiftPage() {
                 notesByDate: notesByDateMap,
                 assignedUserName: selectedTech.nombre,
                 assignedRole: selectedTech.rol,
+                assignedUserDocument: (selectedTech as any).documento,
+                assignedUserPhone: (selectedTech as any).telefono,
                 baseModality: generationModality,
             });
 

@@ -133,7 +133,9 @@ function HeaderContrastIndicator() {
 }
 
 
-function AdverseEventReporter({ onQualityReport }: { onQualityReport: () => void }) {
+function AdverseEventReporter({ onQualityReport, currentProfile }: { onQualityReport: () => void, currentProfile: UserProfile }) {
+    const isTechnicalRole = ['administrador', 'tecnologo', 'transcriptora'].includes(currentProfile.rol);
+    
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -160,29 +162,34 @@ function AdverseEventReporter({ onQualityReport }: { onQualityReport: () => void
                         </div>
                     </div>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator className="my-1 opacity-50" />
-                <DropdownMenuItem asChild className="cursor-pointer rounded-lg focus:bg-violet-50 focus:text-violet-700 transition-colors p-2 mt-1">
-                    <a href="/docs/formato_farmacovigilancia.docx" download className="flex items-center w-full">
-                        <div className="h-10 w-10 rounded-lg bg-violet-100 flex items-center justify-center mr-3 group-hover:bg-violet-200 transition-colors">
-                            <FileText className="h-5 w-5 text-violet-600" />
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="font-bold text-sm leading-tight">Fármacovigilancia</span>
-                            <span className="text-[10px] text-zinc-500">Formato FO-GSF-12</span>
-                        </div>
-                    </a>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild className="cursor-pointer rounded-lg focus:bg-rose-50 focus:text-rose-700 transition-colors p-2 mt-1">
-                    <a href="https://docs.google.com/forms/d/1l-Pi7tMeUa9cfjIcBoZo5sFlkglutOKuxLKYQyM5azU/viewform?edit_requested=true" target="_blank" rel="noopener noreferrer" className="flex items-center w-full">
-                        <div className="h-10 w-10 rounded-lg bg-rose-100 flex items-center justify-center mr-3 group-hover:bg-rose-200 transition-colors">
-                            <FileBarChart className="h-5 w-5 text-rose-600" />
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="font-bold text-sm leading-tight">Evento Adverso</span>
-                            <span className="text-[10px] text-zinc-500">Formato GSP-FT-06</span>
-                        </div>
-                    </a>
-                </DropdownMenuItem>
+                
+                {isTechnicalRole && (
+                    <>
+                        <DropdownMenuSeparator className="my-1 opacity-50" />
+                        <DropdownMenuItem asChild className="cursor-pointer rounded-lg focus:bg-violet-50 focus:text-violet-700 transition-colors p-2 mt-1">
+                            <a href="/docs/formato_farmacovigilancia.docx" download className="flex items-center w-full">
+                                <div className="h-10 w-10 rounded-lg bg-violet-100 flex items-center justify-center mr-3 group-hover:bg-violet-200 transition-colors">
+                                    <FileText className="h-5 w-5 text-violet-600" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="font-bold text-sm leading-tight">Fármacovigilancia</span>
+                                    <span className="text-[10px] text-zinc-500">Formato FO-GSF-12</span>
+                                </div>
+                            </a>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild className="cursor-pointer rounded-lg focus:bg-rose-50 focus:text-rose-700 transition-colors p-2 mt-1">
+                            <a href="https://docs.google.com/forms/d/1l-Pi7tMeUa9cfjIcBoZo5sFlkglutOKuxLKYQyM5azU/viewform?edit_requested=true" target="_blank" rel="noopener noreferrer" className="flex items-center w-full">
+                                <div className="h-10 w-10 rounded-lg bg-rose-100 flex items-center justify-center mr-3 group-hover:bg-rose-200 transition-colors">
+                                    <FileBarChart className="h-5 w-5 text-rose-600" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="font-bold text-sm leading-tight">Evento Adverso</span>
+                                    <span className="text-[10px] text-zinc-500">Formato GSP-FT-06</span>
+                                </div>
+                            </a>
+                        </DropdownMenuItem>
+                    </>
+                )}
             </DropdownMenuContent>
         </DropdownMenu>
     );
@@ -373,7 +380,9 @@ export default function AppHeader() {
                     <ShiftRequestsMenu />
                 )}
 
-                {userProfile?.rol === 'administrador' && <AdverseEventReporter onQualityReport={() => setIsQualityDialogOpen(true)} />}
+                {(isTechnologist || canChangeOperator || ['administrador', 'enfermero', 'admisionista'].includes(currentProfile?.rol)) && (
+                    <AdverseEventReporter onQualityReport={() => setIsQualityDialogOpen(true)} currentProfile={currentProfile} />
+                )}
               </div>
               
               <Separator orientation="vertical" className="h-8" />

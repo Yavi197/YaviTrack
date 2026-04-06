@@ -107,7 +107,7 @@ function ModuleSelectionContent() {
                 </div>
                 <h1 className="text-5xl font-black text-zinc-900 tracking-tight leading-tight mb-4">
                     Bienvenido de nuevo, <br/>
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 tracking-normal">{currentProfile?.nombre}</span>
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 tracking-normal">{currentProfile?.nombre?.split(' ')[0]}</span>
                 </h1>
                 <p className="text-lg text-zinc-500 font-medium">Gestiona tu flujo de trabajo seleccionando un centro de operaciones.</p>
             </div>

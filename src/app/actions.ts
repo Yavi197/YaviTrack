@@ -112,6 +112,8 @@ const technologistShiftInputSchema = z.object({
     assignedUserName: z.string().min(1).optional(),
     assignedRole: z.enum(['tecnologo', 'transcriptora'] as const).optional(),
     baseModality: z.enum(CalendarModalities).default('RX'),
+    assignedUserDocument: z.string().optional(),
+    assignedUserPhone: z.string().optional(),
 });
 
 export async function generateTechnologistShiftsAction(input: z.infer<typeof technologistShiftInputSchema>) {
@@ -131,6 +133,8 @@ export async function generateTechnologistShiftsAction(input: z.infer<typeof tec
             manualOverrides: params.data.manualOverrides,
             baseModality: params.data.baseModality,
             assignedRole: params.data.assignedRole,
+            assignedUserDocument: params.data.assignedUserDocument,
+            assignedUserPhone: params.data.assignedUserPhone,
         });
 
         if (!shifts.length) {
@@ -168,6 +172,8 @@ export async function generateTechnologistShiftsAction(input: z.infer<typeof tec
                 assignedUserId: params.data.technologistId,
                 assignedUserName: params.data.assignedUserName,
                 assignedRole: params.data.assignedRole ?? 'tecnologo',
+                assignedUserDocument: params.data.assignedUserDocument || undefined,
+                assignedUserPhone: params.data.assignedUserPhone || undefined,
                 createdAt: serverTimestamp() as any,
                 updatedAt: serverTimestamp() as any,
             } satisfies TechnologistShift);
@@ -226,6 +232,8 @@ const calendarShiftSchema = z.object({
     assignedUserName: z.string().min(1),
     assignedRole: z.enum(['tecnologo', 'transcriptora'] as const),
     notes: z.string().max(280).optional(),
+    assignedUserDocument: z.string().optional(),
+    assignedUserPhone: z.string().optional(),
 });
 
 export async function upsertCalendarShiftAction(input: z.infer<typeof calendarShiftSchema>) {
@@ -235,7 +243,7 @@ export async function upsertCalendarShiftAction(input: z.infer<typeof calendarSh
     }
 
     try {
-        const { shiftId, date, shiftType, modality, assignedUserId, assignedUserName, assignedRole, notes } = parsed.data;
+        const { shiftId, date, shiftType, modality, assignedUserId, assignedUserName, assignedRole, notes, assignedUserDocument, assignedUserPhone } = parsed.data;
         const { startTime, endTime, hours } = getShiftTimingForDate(date, shiftType);
         const baseData: Partial<TechnologistShift> = {
             technologistId: assignedUserId,
@@ -251,6 +259,9 @@ export async function upsertCalendarShiftAction(input: z.infer<typeof calendarSh
             hours,
             holiday: false,
             status: 'assigned',
+            notes: notes || undefined,
+            assignedUserDocument: assignedUserDocument || undefined,
+            assignedUserPhone: assignedUserPhone || undefined,
             metadata: {
                 modality,
                 manualEntry: true,
@@ -1257,6 +1268,51 @@ export async function toggleUserStatusAction(userId: string, currentStatus: bool
         return { success: false, error: `Failed to toggle user status: ${error.message}` };
     }
 }
+
+export async function updateUserAction(userId: string, data: Partial<UserProfile>) {
+    try {
+        const userRef = doc(db, 'users', userId);
+        const updateData: any = { ...data };
+        delete updateData.uid; // Unnecessary and shouldn't be updated
+        
+        await updateDoc(userRef, {
+            ...updateData,
+            updatedAt: serverTimestamp()
+        });
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error updating user:", error);
+        return { success: false, error: `Failed to update user: ${error.message}` };
+    }
+}
+
+export async function createUserProfileAction(data: UserProfile) {
+    try {
+        if (!data.uid) return { success: false, error: "UID es obligatorio" };
+        
+        const userRef = doc(db, 'users', data.uid);
+        const userSnap = await getDoc(userRef);
+        
+        if (userSnap.exists()) {
+            return { success: false, error: "Este UID ya tiene un perfil asignado." };
+        }
+
+        await setDoc(userRef, {
+            ...data,
+            activo: true,
+            operadores: [],
+            operationalStatus: 'Disponible',
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        });
+        
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error creating user profile:", error);
+        return { success: false, error: `Error: ${error.message}` };
+    }
+}
+
 
 
 export async function sendMessageAction(sender: UserProfile, recipientRole: 'tecnologo' | 'transcriptora', content: string) {
