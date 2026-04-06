@@ -124,8 +124,8 @@ export type Study = {
     subService: SubServiceArea;
     patient: Patient;
     orderingPhysician?: {
-        name: string;
-        register: string;
+        name: string | null;
+        register: string | null;
     };
     specialist?: string;
     medicalRecord?: string;

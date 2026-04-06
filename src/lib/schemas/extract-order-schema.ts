@@ -27,9 +27,9 @@ export const OrderDataSchema = z.object({
     sex: z.string().optional().describe("Sexo del paciente si está disponible (M o F).")
   }),
   orderingPhysician: z.object({
-    name: z.string().describe("Nombre completo del médico que solicita el estudio."),
-    register: z.string().describe("Número de registro médico del profesional que solicita."),
-  }).optional().describe("Información del médico que ordena el estudio. Extraer si está disponible en la orden."),
+    name: z.string().nullable().describe("Nombre completo del médico que solicita el estudio."),
+    register: z.string().nullable().describe("Número de registro médico del profesional que solicita."),
+  }).nullable().optional().describe("Información del médico que ordena el estudio. Extraer si está disponible en la orden."),
   studies: z.array(
     z.object({
       nombre: z.string().describe("Nombre descriptivo completo del estudio solicitado."),
