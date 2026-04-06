@@ -25,9 +25,11 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="bg-gray-100 min-h-screen flex flex-col">
-      <AppHeader />
-      <div className="w-full px-4 md:px-8 flex-1">{children}</div>
+    <div className="bg-gray-100 min-h-screen flex flex-col print:bg-white">
+      <div className="print:hidden">
+        <AppHeader />
+      </div>
+      <div className="w-full px-4 md:px-8 flex-1 print:p-0 print:m-0">{children}</div>
     </div>
   );
 }

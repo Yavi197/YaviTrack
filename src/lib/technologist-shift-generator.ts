@@ -35,6 +35,7 @@ export type GenerateTechnologistShiftsOptions = {
     notesByDate?: Record<string, string>;
     manualOverrides?: ManualShiftOverride[];
     baseModality?: CalendarModality;
+    assignedRole?: 'tecnologo' | 'transcriptora';
 };
 
 const pad = (value: number) => value.toString().padStart(2, '0');
@@ -75,7 +76,8 @@ export const generateTechnologistShiftsInRange = (options: GenerateTechnologistS
         holidays, 
         notesByDate, 
         manualOverrides, 
-        baseModality = 'RX' 
+        baseModality = 'RX',
+        assignedRole = 'tecnologo'
     } = options;
 
     const start = new Date(`${startDate}T00:00:00`);
@@ -96,12 +98,30 @@ export const generateTechnologistShiftsInRange = (options: GenerateTechnologistS
 
     const shifts: TechnologistShift[] = [];
     let sequenceIndex = startSequenceIndex % SHIFT_SEQUENCE.length;
+    let weekendToggle = (startSequenceIndex % 2) === 0;
 
     for (let i = 0; i < totalDays; i++) {
         const currentDate = new Date(start.getTime() + i * 24 * 60 * 60 * 1000);
         const dateStr = currentDate.toISOString().split('T')[0];
         
-        const baseShiftType = SHIFT_SEQUENCE[sequenceIndex];
+        let baseShiftType: ShiftType;
+        
+        if (assignedRole === 'transcriptora') {
+            const dayOfWeek = currentDate.getDay(); // 0 is Sunday, 6 is Saturday
+            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+            
+            if (isWeekend) {
+                baseShiftType = weekendToggle ? 'MANANA_TARDE' : 'LIBRE';
+                if (dayOfWeek === 0) {
+                    weekendToggle = !weekendToggle; // Toggle for next weekend after Sunday ends
+                }
+            } else {
+                baseShiftType = 'MANANA_TARDE'; // Lunes a Viernes
+            }
+        } else {
+            baseShiftType = SHIFT_SEQUENCE[sequenceIndex];
+        }
+
         const manualOverride = manualOverrideMap.get(dateStr);
         const finalShiftType = manualOverride?.shiftType ?? baseShiftType;
         const { startTime, endTime, hours } = getShiftTimingForDate(dateStr, finalShiftType);
@@ -134,7 +154,10 @@ export const generateTechnologistShiftsInRange = (options: GenerateTechnologistS
         }
 
         shifts.push(shift);
-        sequenceIndex = (sequenceIndex + 1) % SHIFT_SEQUENCE.length;
+        
+        if (assignedRole !== 'transcriptora') {
+            sequenceIndex = (sequenceIndex + 1) % SHIFT_SEQUENCE.length;
+        }
     }
 
     return shifts;

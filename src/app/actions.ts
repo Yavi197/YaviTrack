@@ -8,7 +8,7 @@ import { extractReportText as extractReportTextFlow } from "@/ai/flows/extract-r
 import { generateSilenceRequestAudio as generateSilenceRequestAudioFlow, generateTurnCallAudio as generateTurnCallAudioFlow } from "@/ai/flows/tts-flow";
 import { transcribeAudio as transcribeAudioFlow, type TranscribeInput } from "@/ai/flows/stt-flow";
 import { db, storage } from "@/lib/firebase";
-import type { Study, UserProfile, OrderData, StudyStatus, GeneralService, SubServiceArea, OperationalStatus, StudyWithCompletedBy, Message, ContrastType, InventoryItem, InventoryCategory, OperationalExpense, ConsumedItem, Specialist, InventoryStockEntry, InventoryConsumption, RemissionStatus, Remission, TechnologistShift, ShiftAssignableRole, QualityReport } from '@/lib/types';
+import type { Patient, Study, UserProfile, OrderData, StudyStatus, GeneralService, SubServiceArea, OperationalStatus, StudyWithCompletedBy, Message, ContrastType, InventoryItem, InventoryCategory, OperationalExpense, ConsumedItem, Specialist, InventoryStockEntry, InventoryConsumption, RemissionStatus, Remission, TechnologistShift, ShiftAssignableRole, QualityReport } from '@/lib/types';
 import { addDoc, collection, doc, serverTimestamp, updateDoc, setDoc, deleteDoc, deleteField, getDocs, query, where, Timestamp, getDoc, arrayUnion, arrayRemove, orderBy, runTransaction, increment, writeBatch, or, limit } from "firebase/firestore";
 import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import { z } from "zod";
@@ -33,9 +33,52 @@ const REMISSIONS_SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID_REMISSIONS;
 const INVENTORY_SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID_INVENTORY;
 const QUALITY_REPORTS_SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID_QUALITY_REPORTS;
 
+/**
+ * Obtiene el ID de ventana de turno basado en la hora de Colombia (UTC-5).
+ * Se reinicia a medianoche (00:00) y al mediodía (12:00).
+ */
+const getTurnWindow = () => {
+    const timeZone = 'America/Bogota';
+    const now = new Date();
+    const dateStr = formatInTimeZone(now, timeZone, 'yyyy-MM-dd');
+    const hour = parseInt(formatInTimeZone(now, timeZone, 'H'));
+    const window = hour < 12 ? 'W1' : 'W2';
+    return `${dateStr}-${window}`;
+}
+
+
 export async function extractOrderDataAction(input: { medicalOrderDataUri: string, orderType?: 'ADES' | 'EMEDICO' }) {
     try {
         const result = await extractOrderFlow(input);
+        
+        // --- Cruce de Pacientes (70k DB) ---
+        if (result && result.patient && result.patient.id && result.patient.id !== 'Unknown') {
+            try {
+                const patientId = result.patient.id.toString().trim();
+                const patientRef = doc(db, 'patients', patientId);
+                const patientSnap = await getDoc(patientRef);
+                
+                if (patientSnap.exists()) {
+                    const masterData = patientSnap.data();
+                    console.log(`[Patient DB] Match found for ${patientId}:`, masterData.fullName);
+                    
+                    // Sobrescribir datos de la IA con datos maestros (más confiables)
+                    result.patient = {
+                        ...result.patient,
+                        fullName: masterData.fullName || result.patient.fullName,
+                        birthDate: masterData.birthDate || result.patient.birthDate,
+                        entidad: masterData.entidad || result.patient.entidad,
+                        idType: masterData.idType || result.patient.idType,
+                        sex: masterData.sex || result.patient.sex,
+                        fromDatabase: true // Flag para indicar que viene de la DB maestra
+                    } as any;
+                }
+            } catch (dbError) {
+                console.error("[Patient DB] Error during background lookup:", dbError);
+                // No fallar la acción principal si falla la búsqueda en DB
+            }
+        }
+        
         return { success: true, data: result };
     } catch(error: any) {
         console.error("AI extraction error:", error);
@@ -87,6 +130,7 @@ export async function generateTechnologistShiftsAction(input: z.infer<typeof tec
             notesByDate: params.data.notesByDate,
             manualOverrides: params.data.manualOverrides,
             baseModality: params.data.baseModality,
+            assignedRole: params.data.assignedRole,
         });
 
         if (!shifts.length) {
@@ -96,6 +140,27 @@ export async function generateTechnologistShiftsAction(input: z.infer<typeof tec
         const batch = writeBatch(db);
         const collectionRef = collection(db, 'technologistShifts');
 
+        // Buscar turnos existentes para este usuario en este rango de fechas
+        const existingQuery = query(
+            collectionRef,
+            where('date', '>=', params.data.startDate),
+            where('date', '<=', params.data.endDate)
+        );
+        const existingDocs = await getDocs(existingQuery);
+        
+        // Filtrar en memoria por ID de tecnólogo para evitar crear índices compuestos en Firebase
+        const existingToDelete = existingDocs.docs.filter(docSnap => {
+            const data = docSnap.data();
+            const id = data.assignedUserId || data.technologistId;
+            return id === params.data.technologistId;
+        });
+
+        // Eliminar los turnos existentes
+        for (const docSnap of existingToDelete) {
+            batch.delete(docSnap.ref);
+        }
+
+        // Insertar los nuevos turnos
         for (const shift of shifts) {
             const docRef = doc(collectionRef);
             batch.set(docRef, {
@@ -114,6 +179,41 @@ export async function generateTechnologistShiftsAction(input: z.infer<typeof tec
     } catch (error: any) {
         console.error('Failed to generate technologist shifts:', error);
         return { success: false, error: error.message || 'No se pudieron generar los turnos.' };
+    }
+}
+
+export async function clearTechnologistShiftsAction(technologistId: string, startDate: string, endDate: string) {
+    if (!technologistId || !startDate || !endDate) {
+        return { success: false, error: 'Faltan parámetros' };
+    }
+
+    try {
+        const batch = writeBatch(db);
+        const collectionRef = collection(db, 'technologistShifts');
+
+        const existingQuery = query(
+            collectionRef,
+            where('date', '>=', startDate),
+            where('date', '<=', endDate)
+        );
+        const existingDocs = await getDocs(existingQuery);
+        
+        const existingToDelete = existingDocs.docs.filter(docSnap => {
+            const data = docSnap.data();
+            const id = data.assignedUserId || data.technologistId;
+            return id === technologistId;
+        });
+
+        for (const docSnap of existingToDelete) {
+            batch.delete(docSnap.ref);
+        }
+
+        await batch.commit();
+
+        return { success: true, deleted: existingToDelete.length };
+    } catch (error: any) {
+        console.error('Failed to clear technologist shifts:', error);
+        return { success: false, error: error.message || 'No se pudieron borrar los turnos.' };
     }
 }
 
@@ -396,6 +496,7 @@ type CreateStudyOptions = {
     service?: GeneralService;
     subService?: SubServiceArea;
     bedNumber?: string;
+    referenceNumber?: string;
     bajoSedacion?: boolean;
     skipDuplicateCheck?: boolean;
 };
@@ -468,84 +569,102 @@ export async function createStudyAction(
             subService = "AMB";
         }
         
-        const batch = writeBatch(db);
         const sheetSyncQueue: Study[] = [];
+        
+        // --- Turn Generation for Admissionists ---
+        const isAdmissionist = userProfile.rol === 'admisionista';
+        const windowId = isAdmissionist ? getTurnWindow() : '';
 
-        for (const singleStudy of studiesToCreate) {
-            const newStudyRef = doc(collection(db, "studies"));
-            
-            const studyData: Partial<Study> & {patient: OrderData['patient']} = {
-                patient: {
-                    ...data.patient,
-                    idType: data.patient.idType,
-                },
-                diagnosis: data.diagnosis,
-                studies: [singleStudy], 
-                service,
-                subService: options.subService || subService,
-                status: "Pendiente",
-                requestDate: serverTimestamp() as Timestamp,
-                admissionNumber: data.admissionNumber || 'INGRESO MANUAL',
-                referenceNumber: data.referenceNumber || undefined,
-                bedNumber: options.bedNumber || data.bedNumber || undefined,
-                bajoSedacion: options.bajoSedacion ?? data.bajoSedacion ?? false,
-            };
+        // Usamos una transacción para asegurar que el correlativo del turno sea único y atómico
+        await runTransaction(db, async (transaction) => {
+            const turnCache: Record<string, number> = {};
 
-            if (data.orderDate) {
-                const parseOrderDate = (raw: string) => {
-                    const candidates = ['dd/MM/yyyy', 'd/M/yyyy', 'yyyy-MM-dd', 'dd-MM-yyyy'];
-                    for (const mask of candidates) {
-                        try {
-                            const parsed = parse(raw.trim(), mask, new Date());
-                            if (!isNaN(parsed.getTime())) {
-                                return parsed;
-                            }
-                        } catch {/* ignore and try next format */}
+            for (const singleStudy of studiesToCreate) {
+                const newStudyRef = doc(collection(db, "studies"));
+                
+                // Lógica de Turno si es Admisionista
+                let currentTurnStr: string | null = null;
+                if (isAdmissionist) {
+                    const mod = (singleStudy.modality || 'RX').toUpperCase().trim();
+                    const counterRef = doc(db, 'turnCounters', `${windowId}_${mod}`);
+                    
+                    if (turnCache[mod] === undefined) {
+                        const counterSnap = await transaction.get(counterRef);
+                        turnCache[mod] = counterSnap.exists() ? counterSnap.data().current : 0;
                     }
-                    return null;
+                    
+                    turnCache[mod]++;
+                    const turnVal = turnCache[mod];
+                    currentTurnStr = turnVal.toString().padStart(3, '0');
+                    
+                    // Actualizar contador en DB
+                    transaction.set(counterRef, { 
+                        current: turnVal, 
+                        updatedAt: serverTimestamp(),
+                        lastPatientId: data.patient.id,
+                        lastPatientName: data.patient.fullName
+                    });
+                }
+
+                const studyData: any = {
+                    patient: {
+                        ...data.patient,
+                        idType: data.patient.idType || null,
+                    },
+                    diagnosis: data.diagnosis,
+                    studies: [singleStudy], 
+                    service,
+                    subService: options.subService || subService,
+                    status: "Pendiente",
+                    requestDate: serverTimestamp() as Timestamp,
+                    admissionNumber: data.admissionNumber || 'INGRESO MANUAL',
+                    referenceNumber: options.referenceNumber || data.referenceNumber || null,
+                    bedNumber: isAdmissionist ? (currentTurnStr || null) : (options.bedNumber || data.bedNumber || null),
+                    turnNumber: isAdmissionist ? (currentTurnStr || null) : undefined,
+                    bajoSedacion: options.bajoSedacion ?? data.bajoSedacion ?? false,
                 };
 
-                const parsedDate = parseOrderDate(data.orderDate);
-                if (parsedDate) {
-                    parsedDate.setUTCHours(12, 0, 0, 0); // keep same calendar day regardless of viewer timezone
-                    studyData.orderDate = Timestamp.fromDate(parsedDate);
-                } else {
-                    console.warn(`Could not parse orderDate: ${data.orderDate}`);
+                if (data.orderDate) {
+                    const parsedDate = ((raw: string) => {
+                        const candidates = ['dd/MM/yyyy', 'd/M/yyyy', 'yyyy-MM-dd', 'dd-MM-yyyy'];
+                        for (const mask of candidates) {
+                            try {
+                                const p = parse(raw.trim(), mask, new Date());
+                                if (!isNaN(p.getTime())) return p;
+                            } catch {}
+                        }
+                        return null;
+                    })(data.orderDate);
+
+                    if (parsedDate) {
+                        parsedDate.setUTCHours(12, 0, 0, 0);
+                        studyData.orderDate = Timestamp.fromDate(parsedDate);
+                    }
                 }
-            }
 
-            if (data.orderingPhysician) {
-                studyData.orderingPhysician = data.orderingPhysician;
-            }
-            
-            if (data.requiresCreatinine && options.creatinine) {
-                studyData.contrastType = 'IV';
-                studyData.creatinine = options.creatinine;
-                const age = getAgeFromBirthDate(data.patient.birthDate);
-                studyData.contrastBilledMl = (age !== null && age < 10) ? 50 : 100;
-            }
+                if (data.orderingPhysician) studyData.orderingPhysician = data.orderingPhysician;
+                
+                if (data.requiresCreatinine && options.creatinine) {
+                    studyData.contrastType = 'IV';
+                    studyData.creatinine = options.creatinine;
+                    const age = getAgeFromBirthDate(data.patient.birthDate);
+                    studyData.contrastBilledMl = (age !== null && age < 10) ? 50 : 100;
+                }
 
-            batch.set(newStudyRef, studyData);
+                transaction.set(newStudyRef, studyData);
 
-            const sheetPayload: Study = {
-                ...(studyData as Study),
-                id: newStudyRef.id,
-                requestDate: serverTimestamp() as any,
-                completionDate: undefined,
-                readingDate: undefined,
-            };
-            sheetSyncQueue.push(sheetPayload);
-        }
+                const sheetPayload: Study = {
+                    ...(studyData as Study),
+                    id: newStudyRef.id,
+                    requestDate: new Date() as any, // Simple fallback for sheets
+                };
+                sheetSyncQueue.push(sheetPayload);
+            }
+        });
         
-        await batch.commit();
-
         if (sheetSyncQueue.length > 0) {
             const syncResults = await Promise.allSettled(sheetSyncQueue.map(study => appendOrderToSheet(study)));
-            syncResults.forEach(result => {
-                if (result.status === 'rejected') {
-                    console.error('[ACTION LOG] Error creating Sheets entry during study creation:', result.reason);
-                }
-            });
+            syncResults.forEach(r => { if (r.status === 'rejected') console.error('[ACTION LOG] Error creating Sheets entry:', r.reason); });
         }
         
         return { success: true, studyCount: studiesToCreate.length };
@@ -609,7 +728,7 @@ export async function updateStudyAction(studyId: string, data: OrderData) {
                 status: 'Pendiente',
                 requestDate: serverTimestamp() as Timestamp,
                 admissionNumber: existingData.admissionNumber || 'INGRESO MANUAL',
-                referenceNumber: existingData.referenceNumber || undefined,
+                referenceNumber: existingData.referenceNumber || null,
             };
 
             if (existingData.orderDate) newStudyData.orderDate = existingData.orderDate;
@@ -2724,5 +2843,33 @@ export async function syncStaffShiftsToSheetAction(shifts: TechnologistShift[], 
         return await syncStaffShiftsToSheet(shifts, monthName, year);
     } catch (error: any) {
         return { success: false, error: error.message };
+    }
+}
+
+/**
+ * Cruce de Pacientes (70k DB)
+ * Busca un paciente en la colección 'patients' usando el ID (Cédula)
+ */
+export async function getPatientByIdAction(id: string): Promise<{ success: boolean; data?: Patient | null; error?: string }> {
+    if (!id || id === 'Unknown') return { success: true, data: null };
+    
+    try {
+        const patientRef = doc(db, 'patients', id.toString().trim());
+        const patientSnap = await getDoc(patientRef);
+        
+        if (patientSnap.exists()) {
+            return { 
+                success: true, 
+                data: { 
+                    id: patientSnap.id, 
+                    ...patientSnap.data() 
+                } as Patient 
+            };
+        }
+        
+        return { success: true, data: null };
+    } catch (error: any) {
+        console.error(`[Patient DB] Error searching for patient ${id}:`, error);
+        return { success: false, error: 'Error al consultar la base de datos de pacientes.' };
     }
 }

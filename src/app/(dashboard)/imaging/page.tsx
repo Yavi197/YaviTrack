@@ -7,7 +7,7 @@ import { collection, query, onSnapshot, orderBy, where, Timestamp, limit as fire
 import { db } from '@/lib/firebase';
 import type { Study, GeneralService, UserProfile, Modality, StudyStatus, OperationalStatus, StudyWithCompletedBy, ContrastType, OrderData, SubServiceArea } from '@/lib/types';
 import { useAuth } from '@/context/auth-context';
-import { GeneralServices, Modalities, UserRoles } from '@/lib/types';
+import { GeneralServices, Modalities, UserRoles, SubServiceAreas } from '@/lib/types';
 import { startOfDay, endOfDay } from 'date-fns';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -202,7 +202,7 @@ function UnifiedControlPanel({
 
     const canEnterId = useMemo(() => {
         if (!currentProfile) return false;
-        const allowedRoles: UserProfile['rol'][] = ['administrador', 'admisionista', 'tecnologo', 'transcriptora', 'enfermero'];
+        const allowedRoles: UserProfile['rol'][] = ['administrador', 'admisionista', 'tecnologo', 'transcriptora'];
         return allowedRoles.includes(currentProfile.rol);
     }, [currentProfile]);
     
@@ -975,7 +975,14 @@ export default function DashboardPage() {
                 setPendingOrderData(result);
                 setInitialRemissionFile(file); // Keep file for potential RMN remission
 
-                setSelectStudiesOpen(true);
+                if (currentProfile.rol === 'enfermero' || currentProfile.rol === 'admisionista') {
+                    // Automatic registration
+                    const targetService = currentProfile.rol === 'admisionista' ? 'C.EXT' : (currentProfile.servicioAsignado as GeneralService);
+                    const targetSubService = currentProfile.rol === 'admisionista' ? 'AMB' : (currentProfile.subServicioAsignado as SubServiceArea || (currentProfile.servicioAsignado ? (SubServiceAreas as any)[currentProfile.servicioAsignado][0] : 'AMB'));
+                    await handleCreateStudy(result, { service: targetService, subService: targetSubService });
+                } else {
+                    setSelectStudiesOpen(true);
+                }
             } catch (error: any) {
                 console.error("AI Extraction Error:", error);
                 toast({ variant: 'destructive', title: 'Error de Extracción', description: error.message || 'Ocurrió un error inesperado al procesar el archivo.' });

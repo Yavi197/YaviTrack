@@ -1,9 +1,8 @@
-
 "use client"
 
 import * as React from 'react';
 import { format } from 'date-fns';
-import { MoreHorizontal, Edit, XCircle, FileText, Search, Calendar as CalendarIcon, AlertTriangle, CheckCircle, Ban, ChevronsUp, ChevronsDown, Trash2, Download, Loader2, Check, RotateCcw, Beaker, Droplets, Minus, Plus, User, Building, Fingerprint, CalendarDays, Stethoscope, Briefcase, FileHeart, FileQuestion, FilePlus2, FileCheck, X, Mail, Bed, Bell, Mic, FileUp, Play, StopCircle, CornerDownLeft, Clipboard } from 'lucide-react';
+import { MoreHorizontal, Edit, XCircle, FileText, Search, Calendar as CalendarIcon, AlertTriangle, CheckCircle, Ban, ChevronsUp, ChevronsDown, Trash2, Download, Loader2, Check, RotateCcw, Beaker, Droplets, Minus, Plus, User, Building, Fingerprint, CalendarDays, Stethoscope, Briefcase, FileHeart, FileQuestion, FilePlus2, FileCheck, X, Mail, Bed, Bell, Mic, FileUp, Play, StopCircle, CornerDownLeft, Clipboard, Activity, Package, Settings2, Info, CheckCircle2, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import {
   Table,
@@ -91,7 +90,7 @@ function SelectOperatorDialog({ onConfirm, children }: { onConfirm: (operator: s
     const [operators, setOperators] = React.useState<string[]>([]);
     const [selectedOperator, setSelectedOperator] = React.useState<string | null>(null);
     const [loading, setLoading] = React.useState(false);
-  const { toast } = useToast();
+    const { toast } = useToast();
 
     React.useEffect(() => {
     if (!isOpen) return;
@@ -126,41 +125,97 @@ function SelectOperatorDialog({ onConfirm, children }: { onConfirm: (operator: s
     return (
         <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
             <AlertDialogTrigger asChild onClick={(e) => e.stopPropagation()}>{children}</AlertDialogTrigger>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Seleccionar Radiólogo</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        Por favor, seleccione el radiólogo que realizó este estudio para continuar.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <div className="py-4">
+            <AlertDialogContent className="p-0 overflow-hidden bg-white border-2 border-zinc-200 shadow-2xl max-w-sm">
+                <div className="bg-gradient-to-r from-amber-500 via-amber-600 to-orange-700 p-4 text-white relative">
+                    <div className="absolute top-0 right-0 p-4 opacity-10 scale-125 rotate-12 pointer-events-none">
+                        <User className="h-14 w-14" />
+                    </div>
+                    <AlertDialogHeader className="relative z-10 text-left">
+                        <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-zinc-900/40 rounded-full border border-white/10 mb-2 backdrop-blur-md">
+                            <Stethoscope className="h-2.5 w-2.5 text-amber-300" />
+                            <span className="text-[7px] font-black uppercase tracking-[0.2em] text-white">Validación de Especialista</span>
+                        </div>
+                        <AlertDialogTitle className="text-lg font-black tracking-tight leading-none mb-0.5">
+                            Seleccionar Operador
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-white font-bold text-[9px] opacity-90">
+                           Elija el profesional que realizó el estudio para continuar.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                </div>
+
+                <div className="p-4 space-y-4 bg-zinc-50/10 min-h-[120px] flex flex-col justify-center">
                     {loading ? (
-                        <div className="flex justify-center items-center h-24">
-                            <Loader2 className="animate-spin" />
+                        <div className="flex flex-col items-center justify-center py-8 gap-3">
+                            <Loader2 className="h-8 w-8 text-amber-500 animate-spin" />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Cargando especialistas...</span>
                         </div>
                     ) : (
                         <RadioGroup
                             value={selectedOperator ?? undefined}
                             onValueChange={setSelectedOperator}
-                            className="flex flex-col gap-3"
+                            className="grid gap-2"
                         >
-                            {operators.map((op) => (
-                                <div key={op} className="flex items-center space-x-3 p-3 border rounded-md has-[:checked]:bg-accent has-[:checked]:border-primary">
-                                    <RadioGroupItem value={op} id={`op-table-${op.replace(/\s+/g, '-')}`} />
-                                    <Label htmlFor={`op-table-${op.replace(/\s+/g, '-')}`} className="text-base font-medium w-full cursor-pointer">
-                                        {op}
-                                    </Label>
+                            {operators.length === 0 ? (
+                                <div className="text-center py-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest italic">
+                                    No se encontraron especialistas activos
                                 </div>
-                            ))}
+                            ) : (
+                                operators.map((op) => {
+                                    const isSelected = selectedOperator === op;
+                                    return (
+                                        <div key={op}>
+                                            <RadioGroupItem value={op} id={`op-table-${op.replace(/\s+/g, '-')}`} className="sr-only" />
+                                            <Label 
+                                                htmlFor={`op-table-${op.replace(/\s+/g, '-')}`} 
+                                                className={cn(
+                                                    "flex items-center gap-3 p-3 rounded-xl border-2 transition-all cursor-pointer group",
+                                                    isSelected 
+                                                        ? "bg-amber-50 border-amber-500 shadow-sm" 
+                                                        : "bg-white border-zinc-100 hover:border-amber-200 hover:bg-zinc-50"
+                                                )}
+                                            >
+                                                <div className={cn(
+                                                    "p-1.5 rounded-lg transition-colors",
+                                                    isSelected ? "bg-amber-500 text-white" : "bg-zinc-100 text-zinc-400 group-hover:bg-amber-100 group-hover:text-amber-600"
+                                                )}>
+                                                    <User className="h-3.5 w-3.5" />
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className={cn(
+                                                        "text-xs font-black uppercase transition-colors leading-none",
+                                                        isSelected ? "text-amber-900" : "text-zinc-600 group-hover:text-amber-800"
+                                                    )}>
+                                                        {op}
+                                                    </span>
+                                                    <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-wider mt-0.5">Radiólogo Especialista</span>
+                                                </div>
+                                                {isSelected && (
+                                                    <div className="ml-auto">
+                                                        <CheckCircle2 className="h-4 w-4 text-amber-500" />
+                                                    </div>
+                                                )}
+                                            </Label>
+                                        </div>
+                                    );
+                                })
+                            )}
                         </RadioGroup>
                     )}
                 </div>
-                <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleConfirm} disabled={!selectedOperator || loading}>
-                        Confirmar y Completar
-                    </AlertDialogAction>
-                </AlertDialogFooter>
+
+                <div className="p-4 bg-zinc-50 border-t border-zinc-100 flex items-center justify-end gap-2.5 rounded-b-xl">
+                    <AlertDialogCancel className="h-9 px-5 rounded-xl font-black text-[10px] uppercase tracking-widest border border-zinc-200 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-all mt-0 border-none shadow-none">
+                        Cerrar
+                    </AlertDialogCancel>
+                    <Button 
+                        onClick={handleConfirm}
+                        disabled={!selectedOperator || loading}
+                        className="h-9 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest px-6 shadow-lg shadow-amber-100 hover:shadow-amber-200 transition-all flex items-center gap-1.5 group"
+                    >
+                        Confirmar <ChevronRight className="h-3.5 w-3.5 shrink-0 transition-transform group-hover:translate-x-0.5" />
+                    </Button>
+                </div>
             </AlertDialogContent>
         </AlertDialog>
     );
@@ -347,6 +402,7 @@ const abbocathSchema = z.object({
   id: z.string().min(1, 'Debe seleccionar un calibre.'),
   name: z.string(),
   amount: z.coerce.number().min(1, 'Debe ser > 0'),
+  customGauge: z.string().optional(),
 });
 
 const completionSchema = z.object({
@@ -368,7 +424,7 @@ function CompletionDialog({ study, onConfirm, children }: { study: Study; onConf
     const isContrastedIV = study.contrastType === 'IV';
     const showSupplyRegistration = isContrastedIV && study.service === 'C.EXT';
     const suggestion = studyDoseSuggestions[studyName] || { kV: 70, mA: 10, timeMs: 10 };
-  const { toast } = useToast();
+    const { toast } = useToast();
     
     const [isOpen, setIsOpen] = React.useState(false);
     
@@ -443,7 +499,14 @@ function CompletionDialog({ study, onConfirm, children }: { study: Study; onConf
         if (showSupplyRegistration) {
             data.abbocaths?.forEach(abbocath => {
                 if (abbocath.id && abbocath.amount > 0) {
-                    consumedItems.push({ id: abbocath.id, name: abbocath.name, amount: abbocath.amount });
+                    const finalName = abbocath.id === 'OTHER' ? `ABBOCATH ${abbocath.customGauge}` : abbocath.name;
+                    // If it was a number selection, we try to match the ID from availableAbbocaths again just in case
+                    let finalId = abbocath.id;
+                    if (['18', '20', '22', '24'].includes(abbocath.id)) {
+                        const match = availableAbbocaths.find(a => a.specification?.includes(abbocath.id));
+                        if (match) finalId = match.id;
+                    }
+                    consumedItems.push({ id: finalId, name: finalName, amount: abbocath.amount });
                 }
             });
             
@@ -453,9 +516,18 @@ function CompletionDialog({ study, onConfirm, children }: { study: Study; onConf
             }
             const extensionAmount = parseInt(data.extensionAmount || '0') || 0;
             if (extensionItem && extensionAmount > 0) {
-                consumedItems.push({ id: extensionItem.id, name: extensionItem.name, amount: extensionAmount });
+                 consumedItems.push({ id: extensionItem.id, name: extensionItem.name, amount: extensionAmount });
             }
         }
+        
+        const dedupedConsumedItems: ConsumedItem[] = [];
+        const seenIds = new Set();
+        consumedItems.forEach(item => {
+            if (!seenIds.has(item.id)) {
+                dedupedConsumedItems.push(item);
+                seenIds.add(item.id);
+            }
+        });
 
         const finalParams: CompletionParams = {
             kV: parseFloat((data.kV || "0").replace(',', '.')) || undefined,
@@ -463,7 +535,7 @@ function CompletionDialog({ study, onConfirm, children }: { study: Study; onConf
             timeMs: parseFloat((data.timeMs || "0").replace(',', '.')) || undefined,
             ctdi: parseFloat((data.ctdi || "0").replace(',', '.')) || undefined,
             dlp: parseFloat((data.dlp || "0").replace(',', '.')) || undefined,
-            consumedItems: consumedItems.length > 0 ? consumedItems : undefined,
+            consumedItems: dedupedConsumedItems.length > 0 ? dedupedConsumedItems : undefined,
             contrastAdministeredMl: contrastMl > 0 ? contrastMl : undefined,
         };
         
@@ -476,14 +548,14 @@ function CompletionDialog({ study, onConfirm, children }: { study: Study; onConf
             control={form.control}
             name={name}
             render={({ field }) => (
-                <FormItem>
-                    <FormLabel>{label}</FormLabel>
-                    <div className="flex items-center">
-                        <Button type="button" size="icon" variant="outline" className="h-8 w-8 rounded-r-none" onClick={() => form.setValue(name, String(Math.max(0, parseInt(String(field.value || '0')) - 1)) as any)}><Minus className="h-4 w-4" /></Button>
+                <FormItem className="space-y-1">
+                    <FormLabel className="text-[9px] font-black uppercase text-zinc-400">{label}</FormLabel>
+                    <div className="flex items-center bg-zinc-100/80 rounded-xl border border-zinc-200 overflow-hidden group focus-within:border-emerald-500 transition-all">
+                        <Button type="button" size="icon" variant="ghost" className="h-8 w-8 hover:bg-emerald-50 hover:text-emerald-700" onClick={() => form.setValue(name, String(Math.max(0, parseInt(String(field.value || '0')) - 1)) as any)}><Minus className="h-3 w-3" /></Button>
                         <FormControl>
-                            <Input type="number" {...field} id={name} name={name} aria-label={label} className="h-8 w-12 rounded-none p-0 text-center" />
+                            <Input type="number" {...field} id={name} name={name} aria-label={label} className="h-8 w-12 border-none bg-transparent text-center font-black text-xs p-0 focus-visible:ring-0" />
                         </FormControl>
-                        <Button type="button" size="icon" variant="outline" className="h-8 w-8 rounded-l-none" onClick={() => form.setValue(name, String(parseInt(String(field.value || '0')) + 1) as any)}><Plus className="h-4 w-4" /></Button>
+                        <Button type="button" size="icon" variant="ghost" className="h-8 w-8 hover:bg-emerald-50 hover:text-emerald-700" onClick={() => form.setValue(name, String(parseInt(String(field.value || '0')) + 1) as any)}><Plus className="h-3 w-3" /></Button>
                     </div>
                 </FormItem>
             )}
@@ -493,86 +565,203 @@ function CompletionDialog({ study, onConfirm, children }: { study: Study; onConf
     return (
         <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
             <AlertDialogTrigger asChild onClick={(e) => e.stopPropagation()}>{children}</AlertDialogTrigger>
-            <AlertDialogContent className="max-w-2xl">
+            <AlertDialogContent className="p-0 overflow-hidden bg-white border-2 border-zinc-200 shadow-2xl max-w-lg">
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(handleConfirm)}>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Finalizar Estudio y Registrar Insumos</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Ingrese los valores de adquisición y los insumos utilizados para completar el estudio.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <div className="max-h-[60vh] overflow-y-auto">
-                        <div className="space-y-4 py-3 px-1">
-                            {modality === 'RX' && (
-                                <div className="grid grid-cols-3 gap-4">
-                                    <FormField control={form.control} name="kV" render={({ field }) => ( <FormItem><FormLabel className="text-xs">kV</FormLabel><FormControl><Input autoFocus {...field} className="text-center text-sm h-8" /></FormControl></FormItem> )}/>
-                                    <FormField control={form.control} name="mA" render={({ field }) => ( <FormItem><FormLabel className="text-xs">mA</FormLabel><FormControl><Input {...field} className="text-center text-sm h-8" /></FormControl></FormItem> )}/>
-                                    <FormField control={form.control} name="timeMs" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Tiempo (ms)</FormLabel><FormControl><Input {...field} className="text-center text-sm h-8" /></FormControl></FormItem> )}/>
-                                </div>
-                            )}
-                            {modality === 'TAC' && (
-                                 <div className="grid grid-cols-2 gap-4">
-                                    <FormField control={form.control} name="ctdi" render={({ field }) => ( <FormItem><FormLabel className="text-xs">CTDI (mGy)</FormLabel><FormControl><Input autoFocus placeholder="0" {...field} className="text-center text-sm h-8" /></FormControl></FormItem> )}/>
-                                    <FormField control={form.control} name="dlp" render={({ field }) => ( <FormItem><FormLabel className="text-xs">DLP (mGy-cm)</FormLabel><FormControl><Input {...field} placeholder="0" className="text-center text-sm h-8" /></FormControl></FormItem> )}/>
-                                </div>
-                            )}
-                            {isContrastedIV && (
-                                <div className="grid grid-cols-2 gap-3 border-t pt-3">
-                                    <div className="space-y-1">
-                                      <Label className="text-xs">Creatinina</Label>
-                                      <Input value={study.creatinine || 'N/A'} readOnly className="text-center font-bold text-sm h-8" />
-                                    </div>
-                                    <FormField control={form.control} name="contrastAdministeredMl" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Contraste Adminis. (ml)</FormLabel><FormControl><Input {...field} placeholder="Ej: 70" className="text-center text-sm h-8"/></FormControl></FormItem> )}/>
-                                </div>
-                            )}
-                            {showSupplyRegistration && (
-                                <div className="space-y-3 border-t pt-3">
-                                    <div className="grid grid-cols-3 gap-2 items-end">
-                                        <Button type="button" variant="outline" size="sm" className="h-8 text-xs" onClick={() => append({ id: '', name: 'ABBOCATH', amount: 1 })}>
-                                            <Plus className="mr-1 h-3 w-3" /> Abbocath
-                                        </Button>
-                                        <QuantityInput name="jeringaAmount" label="Jeringas" />
-                                        <QuantityInput name="extensionAmount" label="Extensiones"/>
-                                    </div>
-                                    <div className="space-y-2">
-                                        {fields.map((item, index) => (
-                                            <div key={item.id} className="grid grid-cols-[1fr,auto,auto] gap-2 items-end p-2 border rounded-md bg-muted/50 text-sm">
-                                                <FormField
-                                                    control={form.control}
-                                                    name={`abbocaths.${index}.id`}
-                                                    render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel className="text-xs">Abbocath #{index + 1}</FormLabel>
-                                                            <Select 
-                                                                onValueChange={(value) => {
-                                                                    const selectedAbbocath = availableAbbocaths.find(a => a.id === value);
-                                                                    field.onChange(value);
-                                                                    form.setValue(`abbocaths.${index}.name`, selectedAbbocath?.name || 'ABBOCATH');
-                                                                }} 
-                                                                value={field.value}
-                                                            >
-                                                                <FormControl><SelectTrigger className="h-8"><SelectValue placeholder="Calibre..." /></SelectTrigger></FormControl>
-                                                                <SelectContent>
-                                                                    {availableAbbocaths.map(a => <SelectItem key={a.id} value={a.id}>{a.specification}</SelectItem>)}
-                                                                </SelectContent>
-                                                            </Select>
-                                                        </FormItem>
-                                                    )}
-                                                />
-                                                <QuantityInput name={`abbocaths.${index}.amount`} label="Cantidad" />
-                                                <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => remove(index)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
+                    <div className="bg-gradient-to-r from-emerald-600 via-emerald-700 to-emerald-900 p-4 text-white relative">
+                        <div className="absolute top-0 right-0 p-4 opacity-10 scale-110 rotate-12 pointer-events-none">
+                            <CheckCircle2 className="h-16 w-16" />
                         </div>
+                        <AlertDialogHeader className="relative z-10 text-left">
+                            <div className="inline-flex items-center gap-2 px-2 py-0.5 bg-zinc-900/40 rounded-full border border-white/10 mb-2 backdrop-blur-md">
+                                <Activity className="h-3 w-3 text-emerald-300" />
+                                <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white">Finalización de Estudio</span>
+                            </div>
+                            <AlertDialogTitle className="text-lg font-black tracking-tight leading-none mb-0.5">
+                                Registrar Resultado
+                            </AlertDialogTitle>
+                            <AlertDialogDescription className="text-emerald-100 font-bold text-[10px] opacity-90 truncate max-w-[400px]">
+                              {study.studies[0]?.nombre.toUpperCase()}
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
                     </div>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <Button type="submit">Confirmar y Completar</Button>
-                    </AlertDialogFooter>
+
+                    <div className="p-4 space-y-4 max-h-[60vh] overflow-y-auto bg-zinc-50/10">
+                        {/* Section 01: Adquisición */}
+                        {(modality === 'RX' || modality === 'TAC') && (
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-2 border-b pb-1.5 font-black text-zinc-900 uppercase tracking-widest text-[9px]">
+                                    <div className="p-1 bg-emerald-100 text-emerald-700 rounded-md">
+                                        <Settings2 className="h-3 w-3" />
+                                    </div>
+                                    01. Parámetros de Adquisición
+                                </div>
+                                
+                                {modality === 'RX' ? (
+                                    <div className="grid grid-cols-3 gap-3">
+                                        <FormField control={form.control} name="kV" render={({ field }) => ( 
+                                            <FormItem className="space-y-1">
+                                                <FormLabel className="text-[9px] font-black uppercase text-zinc-400">kV</FormLabel>
+                                                <FormControl><Input autoFocus {...field} className="h-8 bg-white border border-zinc-200 focus:bg-emerald-50/50 focus:border-emerald-500 transition-all text-center font-black text-xs shadow-sm rounded-lg" /></FormControl>
+                                            </FormItem> 
+                                        )}/>
+                                        <FormField control={form.control} name="mA" render={({ field }) => ( 
+                                            <FormItem className="space-y-1">
+                                                <FormLabel className="text-[9px] font-black uppercase text-zinc-400">mA</FormLabel>
+                                                <FormControl><Input {...field} className="h-8 bg-white border border-zinc-200 focus:bg-emerald-50/50 focus:border-emerald-500 transition-all text-center font-black text-xs shadow-sm rounded-lg" /></FormControl>
+                                            </FormItem> 
+                                        )}/>
+                                        <FormField control={form.control} name="timeMs" render={({ field }) => ( 
+                                            <FormItem className="space-y-1">
+                                                <FormLabel className="text-[9px] font-black uppercase text-zinc-400">Tiempo (ms)</FormLabel>
+                                                <FormControl><Input {...field} className="h-8 bg-white border border-zinc-200 focus:bg-emerald-50/50 focus:border-emerald-500 transition-all text-center font-black text-xs shadow-sm rounded-lg" /></FormControl>
+                                            </FormItem> 
+                                        )}/>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <FormField control={form.control} name="ctdi" render={({ field }) => ( 
+                                            <FormItem className="space-y-1">
+                                                <FormLabel className="text-[9px] font-black uppercase text-zinc-400">CTDI (mGy)</FormLabel>
+                                                <FormControl><Input autoFocus placeholder="0" {...field} className="h-8 bg-white border border-zinc-200 focus:bg-emerald-50/50 focus:border-emerald-500 transition-all text-center font-black text-xs shadow-sm rounded-lg" /></FormControl>
+                                            </FormItem> 
+                                        )}/>
+                                        <FormField control={form.control} name="dlp" render={({ field }) => ( 
+                                            <FormItem className="space-y-1">
+                                                <FormLabel className="text-[9px] font-black uppercase text-zinc-400">DLP (mGy-cm)</FormLabel>
+                                                <FormControl><Input {...field} placeholder="0" className="h-8 bg-white border border-zinc-200 focus:bg-emerald-50/50 focus:border-emerald-500 transition-all text-center font-black text-xs shadow-sm rounded-lg" /></FormControl>
+                                            </FormItem> 
+                                        )}/>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Section 02: Medio de Contraste */}
+                        {isContrastedIV && (
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-2 border-b pb-1.5 font-black text-zinc-900 uppercase tracking-widest text-[9px]">
+                                    <div className="p-1 bg-rose-100 text-rose-700 rounded-md">
+                                        <SyringeIcon className="h-3 w-3" />
+                                    </div>
+                                    02. Medio de Contraste
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-1">
+                                      <Label className="text-[9px] font-black uppercase text-zinc-400">Creatinina</Label>
+                                      <div className="h-8 bg-zinc-100 border border-zinc-200 rounded-lg flex items-center justify-center font-black text-zinc-600 text-xs shadow-inner">
+                                        {study.creatinine ? `${study.creatinine} mg/dL` : 'N/A'}
+                                      </div>
+                                    </div>
+                                    <FormField control={form.control} name="contrastAdministeredMl" render={({ field }) => ( 
+                                        <FormItem className="space-y-1">
+                                            <FormLabel className="text-[9px] font-black uppercase text-zinc-400 tracking-tighter text-nowrap">Cant. Adminis. (ml)</FormLabel>
+                                            <FormControl><Input {...field} placeholder="Ej: 70" className="h-8 bg-white border border-zinc-200 focus:bg-rose-50/50 focus:border-rose-500 transition-all text-center font-black text-xs shadow-sm rounded-lg"/></FormControl>
+                                        </FormItem> 
+                                    )}/>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Section 03: Insumos */}
+                        {showSupplyRegistration && (
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-2 border-b pb-1.5 font-black text-zinc-900 uppercase tracking-widest text-[9px]">
+                                    <div className="p-1 bg-zinc-900 text-white rounded-md">
+                                        <Package className="h-3 w-3" />
+                                    </div>
+                                    03. Registro de Insumos
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3 bg-zinc-100/50 p-3 rounded-xl border border-zinc-200">
+                                    <QuantityInput name="jeringaAmount" label="Jeringas" />
+                                    <QuantityInput name="extensionAmount" label="Extensiones"/>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between px-1">
+                                        <span className="text-[8px] font-black uppercase text-zinc-400 tracking-tighter">Abbocaths</span>
+                                        <Button type="button" variant="ghost" size="sm" className="h-6 rounded-md text-emerald-700 hover:bg-emerald-50 font-black text-[8px] uppercase tracking-widest px-2" onClick={() => append({ id: '', name: 'ABBOCATH', amount: 1, customGauge: '' })}>
+                                            <Plus className="mr-1 h-2.5 w-2.5" /> Agregar
+                                        </Button>
+                                    </div>
+                                    <div className="grid gap-2">
+                                        {fields.length === 0 && (
+                                            <div className="h-10 border border-dashed border-zinc-200 rounded-xl flex items-center justify-center text-[9px] font-bold text-zinc-300 uppercase tracking-widest">
+                                                Sin Abbocaths registrados
+                                            </div>
+                                        )}
+                                        {fields.map((item, index) => {
+                                            const isOther = form.watch(`abbocaths.${index}.id`) === 'OTHER';
+                                            return (
+                                            <div key={item.id} className="grid grid-cols-[1fr,auto,auto] gap-2 items-end p-2 bg-white border border-zinc-100 rounded-xl shadow-sm animate-in slide-in-from-top-1 duration-200">
+                                                <div className="space-y-2">
+                                                    <FormField
+                                                        control={form.control}
+                                                        name={`abbocaths.${index}.id`}
+                                                        render={({ field }) => (
+                                                            <FormItem className="space-y-1">
+                                                                <FormLabel className="text-[8px] font-black uppercase text-zinc-400 tracking-tighter">Calibre #{index + 1}</FormLabel>
+                                                                <Select 
+                                                                    onValueChange={(value) => {
+                                                                        field.onChange(value);
+                                                                        if (value !== 'OTHER') {
+                                                                            const selectedAbbocath = availableAbbocaths.find(a => 
+                                                                                a.id === value || a.specification?.includes(value)
+                                                                            );
+                                                                            form.setValue(`abbocaths.${index}.name`, selectedAbbocath?.name || `ABBOCATH #${value}`);
+                                                                            if (selectedAbbocath) form.setValue(`abbocaths.${index}.id`, selectedAbbocath.id);
+                                                                        }
+                                                                    }} 
+                                                                    value={field.value}
+                                                                >
+                                                                    <FormControl><SelectTrigger className="h-8 bg-zinc-50/50 rounded-lg border border-zinc-100 font-bold text-xs"><SelectValue placeholder="Calibre..." /></SelectTrigger></FormControl>
+                                                                    <SelectContent>
+                                                                        {["18", "20", "22", "24"].map(g => (
+                                                                            <SelectItem key={g} value={g}>#{g}</SelectItem>
+                                                                        ))}
+                                                                        <SelectItem value="OTHER">OTRO</SelectItem>
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                    {isOther && (
+                                                        <FormField
+                                                            control={form.control}
+                                                            name={`abbocaths.${index}.customGauge`}
+                                                            render={({ field }) => (
+                                                                <FormItem className="space-y-1">
+                                                                    <FormControl>
+                                                                        <Input {...field} placeholder="Escriba calibre..." className="h-7 text-[10px] font-bold py-0 rounded-md" />
+                                                                    </FormControl>
+                                                                </FormItem>
+                                                            )}
+                                                        />
+                                                    )}
+                                                </div>
+                                                <QuantityInput name={`abbocaths.${index}.amount`} label="Cant." />
+                                                <Button type="button" variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors" onClick={() => remove(index)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                                            </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="p-4 bg-zinc-50 border-t border-zinc-100 flex items-center justify-end gap-3 rounded-b-xl">
+                        <AlertDialogCancel className="h-9 px-6 rounded-xl font-black text-[10px] uppercase tracking-widest border border-zinc-200 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-all mt-0 shadow-none">
+                            Cancelar
+                        </AlertDialogCancel>
+                        <Button 
+                            type="submit" 
+                            className="h-9 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black text-[10px] uppercase tracking-widest px-6 shadow-lg shadow-emerald-100 hover:shadow-emerald-200 transition-all flex items-center gap-1.5"
+                        >
+                            Completar <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+                        </Button>
+                    </div>
                 </form>
               </Form>
             </AlertDialogContent>
@@ -599,35 +788,69 @@ function CreatinineDialog({ onConfirm, children }: { onConfirm: (creatinine: num
             setCreatinine('');
         }
     };
-    
-    const handleChange = (value: string) => {
-        if (value === '' || /^[0-9]*[.,]?[0-9]*$/.test(value)) {
-            setCreatinine(value);
-        }
-    };
 
     return (
         <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
-            <AlertDialogTrigger asChild onClick={(e) => e.stopPropagation()}>{children}</AlertDialogTrigger>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Registrar Creatinina para Contraste IV</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        Por favor, ingrese el valor de creatinina del paciente antes de continuar.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <div className="grid grid-cols-1 gap-4 py-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="creatinine-input">Creatinina (mg/dL)</Label>
-                        <Input ref={inputRef} id="creatinine-input" type="text" value={creatinine} onChange={(e) => handleChange(e.target.value)} placeholder="Ej: 0.9" className="text-center"/>
+            <AlertDialogTrigger asChild onClick={(e) => e.stopPropagation()}>
+                {children}
+            </AlertDialogTrigger>
+            <AlertDialogContent className="p-0 overflow-hidden bg-white border-2 border-zinc-200 shadow-2xl max-w-sm">
+                <div className="bg-gradient-to-r from-amber-500 via-orange-600 to-orange-800 p-4 text-white relative">
+                    <div className="absolute top-0 right-0 p-4 opacity-10 scale-125 rotate-12 pointer-events-none">
+                        <SyringeIcon className="h-14 w-14" />
+                    </div>
+                    <AlertDialogHeader className="relative z-10 text-left">
+                        <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-zinc-900/40 rounded-full border border-white/10 mb-2 backdrop-blur-md">
+                            <Droplets className="h-2.5 w-2.5 text-amber-300" />
+                            <span className="text-[7px] font-black uppercase tracking-[0.2em] text-white">Seguridad del Paciente</span>
+                        </div>
+                        <AlertDialogTitle className="text-lg font-black tracking-tight leading-none mb-0.5">
+                            Valor de Creatinina
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-white font-bold text-[9px] opacity-90">
+                            Requerido para administración de contraste.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                </div>
+
+                <div className="p-5 space-y-4 bg-zinc-50/10">
+                    <div className="space-y-2.5">
+                        <div className="flex items-center justify-between px-1">
+                            <Label htmlFor="creatinine-input" className="text-[8px] font-black uppercase text-zinc-400 tracking-wider">
+                                Creatinina (mg/dL)
+                            </Label>
+                        </div>
+                        <div className="relative group">
+                            <Input
+                                id="creatinine-input"
+                                ref={inputRef}
+                                type="text"
+                                value={creatinine}
+                                onChange={(e) => setCreatinine(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleConfirm()}
+                                className="h-10 bg-white border border-zinc-200 focus:bg-amber-50/30 focus:border-amber-500 transition-all text-center font-black text-xl shadow-inner rounded-xl group-hover:border-zinc-300"
+                                placeholder="0.00"
+                                autoFocus
+                            />
+                            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-zinc-300 font-black text-[10px] group-focus-within:text-amber-500 transition-colors">
+                                mg/dL
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleConfirm} disabled={!creatinine}>
-                        Guardar Creatinina
-                    </AlertDialogAction>
-                </AlertDialogFooter>
+
+                <div className="p-4 bg-zinc-50 border-t border-zinc-100 flex items-center justify-end gap-2.5 rounded-b-xl">
+                    <AlertDialogCancel className="h-9 px-5 rounded-xl font-black text-[10px] uppercase tracking-widest border border-zinc-200 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-all mt-0 border-none shadow-none">
+                        Cerrar
+                    </AlertDialogCancel>
+                    <Button 
+                        onClick={handleConfirm}
+                        disabled={!creatinine || isNaN(parseFloat(creatinine.replace(',', '.')))}
+                        className="h-9 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest px-6 shadow-lg shadow-amber-100 hover:shadow-amber-200 transition-all flex items-center gap-1.5 group"
+                    >
+                        Guardar <CheckCircle2 className="h-3 w-3 shrink-0" />
+                    </Button>
+                </div>
             </AlertDialogContent>
         </AlertDialog>
     );
@@ -1192,7 +1415,7 @@ function TurnNumberInput({ study, isAdmin, canAssignTurn }: { study: Study; isAd
 
     const handleTurnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value.replace(/[^0-9]/g, '');
-        if (value.length <= 2) {
+        if (value.length <= 3) {
             setTurn(value);
         }
     };
@@ -1202,7 +1425,7 @@ function TurnNumberInput({ study, isAdmin, canAssignTurn }: { study: Study; isAd
             e.preventDefault();
             if (turn) {
           try {
-            const result = await updateStudyTurnNumberAction(study.id, turn.padStart(2, '0'));
+            const result = await updateStudyTurnNumberAction(study.id, turn.padStart(3, '0'));
             if (result.success) {
               setIsEditing(false);
               toast({ title: 'Turno Asignado' });

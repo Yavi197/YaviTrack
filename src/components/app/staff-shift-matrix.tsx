@@ -9,6 +9,7 @@ type StaffShiftMatrixProps = {
     month: number;
     staff: UserProfile[];
     assignments: Record<string, MatrixShiftAssignment[]>;
+    holidays: Set<string>;
     onCellClick: (date: string, staffId: string, assignmentId?: string) => void;
 };
 
@@ -45,6 +46,7 @@ export const StaffShiftMatrix = memo(function StaffShiftMatrix({
     month,
     staff,
     assignments,
+    holidays,
     onCellClick,
 }: StaffShiftMatrixProps) {
     const daysInMonth = new Date(year, month, 0).getDate();
@@ -73,11 +75,12 @@ export const StaffShiftMatrix = memo(function StaffShiftMatrix({
                             <th className="sticky left-0 z-30 bg-zinc-50 p-3 min-w-[180px] font-black uppercase text-zinc-500 border-r">Personal</th>
                             {days.map(day => {
                                 const date = new Date(year, month - 1, day);
-                                const isSunday = date.getDay() === 0;
+                                const dateStr = `${year}-${pad(month)}-${pad(day)}`;
+                                const isHoliday = date.getDay() === 0 || holidays.has(dateStr);
                                 return (
                                     <th key={day} className={cn(
-                                        "p-2 text-center min-w-[35px] font-black border-r border-zinc-100",
-                                        isSunday ? "bg-rose-50 text-rose-600" : "text-zinc-600"
+                                        "p-2 text-center min-w-[35px] font-black border-r border-zinc-100 transition-colors duration-200",
+                                        isHoliday ? "bg-rose-100 text-rose-700" : "text-zinc-600 hover:bg-zinc-50"
                                     )}>
                                         <div className="text-[8px] opacity-60 uppercase">{new Intl.DateTimeFormat('es', { weekday: 'short' }).format(date)}</div>
                                         <div>{day}</div>

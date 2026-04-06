@@ -122,7 +122,7 @@ export const TechnologistShiftCalendar = memo(function TechnologistShiftCalendar
                 className={`min-h-[140px] w-full border-r border-b border-zinc-100 p-2 text-left transition relative group ${
                     isCurrentMonth ? "bg-white" : "bg-zinc-50/50 text-zinc-300"
                 } ${isWeekend && isCurrentMonth ? "bg-zinc-50/30" : ""} ${
-                    (isHoliday || (highlightSundays && isSunday)) && isCurrentMonth ? "bg-rose-50/30" : ""
+                    (isHoliday || (highlightSundays && isSunday)) && isCurrentMonth ? "bg-rose-100/50 outline outline-1 outline-rose-200/50 -outline-offset-1" : ""
                 } hover:bg-zinc-50/80`}
                 disabled={!isCurrentMonth}
                 onClick={() => date && onDayClick?.(date)}

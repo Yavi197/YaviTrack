@@ -159,21 +159,50 @@ export function SelectStudiesDialog({ open, onOpenChange, orderData, userProfile
         onEscapeKeyDown={handleCancel}
         onPointerDownOutside={handleCancel}
       >
-        <div className="bg-zinc-900 px-7 py-4 flex items-center gap-3">
-          <div className="p-2 bg-amber-400/20 rounded-xl">
-            <Plus className="h-5 w-5 text-amber-400" />
+        <div className="bg-zinc-900 px-7 py-5 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-amber-400/20 rounded-xl">
+              <Plus className="h-5 w-5 text-amber-400" />
+            </div>
+            <div>
+              <DialogTitle className="text-base font-black tracking-tight uppercase text-white leading-none">
+                Procesar Nueva Solicitud
+              </DialogTitle>
+              <DialogDescription className="sr-only">
+                Verificación y validación de datos para el estudio médico seleccionado.
+              </DialogDescription>
+              <div className="flex items-center gap-2 mt-1">
+                {(orderData?.patient as any)?.fromDatabase ? (
+                  <div className="flex items-center gap-1 bg-emerald-500/20 text-emerald-400 text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md border border-emerald-500/30">
+                    <CheckCircle2 className="h-2.5 w-2.5" />
+                    Paciente Verificado
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1 bg-amber-500/20 text-amber-400 text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md border border-amber-500/30">
+                    <Info className="h-2.5 w-2.5" />
+                    Extracción IA
+                  </div>
+                )}
+                <span className="text-zinc-500 font-bold uppercase tracking-widest text-[9px]">
+                  Verifica los estudios antes de confirmar.
+                </span>
+              </div>
+            </div>
           </div>
-          <div>
-            <DialogTitle className="text-base font-black tracking-tight uppercase text-white leading-none">
-              Procesar Nueva Solicitud
-            </DialogTitle>
-            <DialogDescription className="sr-only">
-              Verificación y validación de datos para el estudio médico seleccionado.
-            </DialogDescription>
-            <DialogDescription className="text-zinc-500 font-bold uppercase tracking-widest text-[9px] mt-0.5">
-              Verifica los estudios y elige el destino antes de confirmar.
-            </DialogDescription>
-          </div>
+
+          {orderData?.patient && (
+            <div className="flex flex-col items-end">
+              <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest leading-none mb-1">Paciente</span>
+              <div className="flex flex-col items-end">
+                <span className="text-white font-black text-sm uppercase tracking-tight leading-none">
+                  {orderData.patient.fullName}
+                </span>
+                <span className="text-zinc-500 font-mono text-[10px] mt-1">
+                  ID: {orderData.patient.id}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
         <Form {...form}>
@@ -333,25 +362,27 @@ export function SelectStudiesDialog({ open, onOpenChange, orderData, userProfile
                   )} />
                 )}
 
-                <div className="mt-auto pt-2">
-                  <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-2">¿A dónde enviar esta solicitud?</p>
-                  <div className="grid grid-cols-3 rounded-xl overflow-hidden border border-zinc-200">
-                    {DESTINATIONS.map(({ id, icon, label }) => {
-                      const isActive = targetModule === id;
-                      return (
-                        <button key={id} type="button" onClick={() => setTargetModule(id)}
-                          className={cn(
-                            "flex flex-col items-center gap-0.5 py-3 text-[9px] font-black uppercase tracking-wider transition-all border-r border-zinc-100 last:border-0",
-                            isActive ? "bg-zinc-900 text-white" : "bg-white text-zinc-400 hover:bg-zinc-50 hover:text-zinc-700"
-                          )}>
-                          <span className="text-lg leading-none">{icon}</span>
-                          <span className="mt-0.5">{label}</span>
-                          {isActive && <Check className="h-3 w-3 mt-0.5" />}
-                        </button>
-                      );
-                    })}
+                {userProfile?.rol === 'administrador' && (
+                  <div className="mt-auto pt-2">
+                    <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-2">¿A dónde enviar esta solicitud?</p>
+                    <div className="grid grid-cols-3 rounded-xl overflow-hidden border border-zinc-200">
+                      {DESTINATIONS.map(({ id, icon, label }) => {
+                        const isActive = targetModule === id;
+                        return (
+                          <button key={id} type="button" onClick={() => setTargetModule(id)}
+                            className={cn(
+                              "flex flex-col items-center gap-0.5 py-3 text-[9px] font-black uppercase tracking-wider transition-all border-r border-zinc-100 last:border-0",
+                              isActive ? "bg-zinc-900 text-white" : "bg-white text-zinc-400 hover:bg-zinc-50 hover:text-zinc-700"
+                            )}>
+                            <span className="text-lg leading-none">{icon}</span>
+                            <span className="mt-0.5">{label}</span>
+                            {isActive && <Check className="h-3 w-3 mt-0.5" />}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
 

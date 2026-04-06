@@ -95,6 +95,16 @@
 }
 
 @layer base {
+  ::selection {
+    background-color: #0c0a09 !important;
+    color: #ffffff !important;
+  }
+
+  ::-moz-selection {
+    background-color: #0c0a09 !important;
+    color: #ffffff !important;
+  }
+
   * {
     @apply border-border;
   }
@@ -130,6 +140,20 @@
 
   .animate-fade-in-row {
     animation: fade-in-row 0.4s ease-out forwards;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #e4e4e7;
+    border-radius: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #d4d4d8;
   }
 }
 

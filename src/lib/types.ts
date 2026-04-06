@@ -62,6 +62,8 @@ export type UserProfile = {
     servicioAsignado: Modality | GeneralService | "General"; 
     subServicioAsignado?: SubServiceArea;
     activo: boolean;
+    documento?: string;
+    telefono?: string;
     operationalStatus?: OperationalStatus;
     operadores?: string[];
     operadorActivo?: string | null;
@@ -141,8 +143,8 @@ export type Study = {
         description: string;
     };
     orderDate?: Timestamp;
-    admissionNumber?: string;
-    referenceNumber?: string;
+    admissionNumber?: string | null;
+    referenceNumber?: string | null;
     requestDate: Timestamp;
     completionDate?: Timestamp;
     readingDate?: Timestamp;
@@ -161,7 +163,7 @@ export type Study = {
     reportText?: string;
     reportUrl?: string;
     turnNumber?: string;
-    bedNumber?: string;
+    bedNumber?: string | null;
     bajoSedacion?: boolean;
     assignedSpecialistId?: string;
 };

@@ -9,18 +9,21 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { TechnologistShiftCalendar, CALENDAR_MODALITY_COLORS } from '@/components/app/technologist-shift-calendar';
 import { StaffShiftMatrix } from '@/components/app/staff-shift-matrix';
 import { db } from '@/lib/firebase';
 import { CalendarModalities, type CalendarModality, type ShiftAssignableRole, type ShiftType, ShiftTypes, type TechnologistShift, type UserProfile, type CalendarShiftAssignment, type MatrixShiftAssignment } from '@/lib/types';
-import { deleteCalendarShiftAction, generateTechnologistShiftsAction, upsertCalendarShiftAction, syncStaffShiftsToSheetAction } from '@/app/actions';
-import { ChevronLeft, ChevronRight, Loader2, Calendar as CalendarIcon, CloudUpload, LayoutGrid, Table } from 'lucide-react';
+import { deleteCalendarShiftAction, generateTechnologistShiftsAction, upsertCalendarShiftAction, syncStaffShiftsToSheetAction, clearTechnologistShiftsAction } from '@/app/actions';
+import { ChevronLeft, ChevronRight, Loader2, Calendar as CalendarIcon, CloudUpload, LayoutGrid, Table, Plus, Printer, BarChart2 } from 'lucide-react';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { type DateRange } from 'react-day-picker';
 import { format, startOfDay, endOfDay } from 'date-fns';
 import { cn } from '@/lib/utils';
+import Holidays from 'date-holidays';
 import { useToast } from '@/hooks/use-toast';
 
 const months = [
@@ -98,11 +101,28 @@ export default function TechnologistShiftPage() {
 
     const sundayDates = useMemo(() => computeSundayDates(year, month), [year, month]);
     const sundaySet = useMemo(() => new Set(sundayDates), [sundayDates]);
+
+    // Calcular dinámicamente los festivos de Colombia
+    const { colombiaHolidayDates, colombiaHolidayDetails } = useMemo(() => {
+        try {
+            const hd = new Holidays('CO');
+            const hols = hd.getHolidays(year);
+            // date-holidays devuelve 'YYYY-MM-DD HH:MM:SS', nos quedamos con la fecha
+            const details = hols.filter(h => h.date.startsWith(`${year}-${pad(month)}`)).map(h => ({ name: h.name, date: h.date.split(' ')[0] }));
+            const dates = hols.map(h => h.date.split(' ')[0]);
+            return { colombiaHolidayDates: dates, colombiaHolidayDetails: details };
+        } catch (e) {
+            console.error('Error calculando festivos:', e);
+            return { colombiaHolidayDates: [], colombiaHolidayDetails: [] };
+        }
+    }, [year, month]);
+
     const holidayDatesSet = useMemo(() => {
         const combined = new Set<string>(sundayDates);
+        colombiaHolidayDates.forEach((date) => combined.add(date));
         customHolidayDates.forEach((date) => combined.add(date));
         return combined;
-    }, [sundayDates, customHolidayDates]);
+    }, [sundayDates, customHolidayDates, colombiaHolidayDates]);
 
     useEffect(() => {
         setCustomHolidayDates(new Set<string>());
@@ -121,7 +141,7 @@ export default function TechnologistShiftPage() {
     const [monthShifts, setMonthShifts] = useState<CalendarShiftDoc[]>([]);
     const [shiftsLoading, setShiftsLoading] = useState(true);
 
-    const technologistOptions = useMemo(() => staffOptions.filter((staff) => staff.rol === 'tecnologo'), [staffOptions]);
+    const technologistOptions = useMemo(() => staffOptions, [staffOptions]);
     const selectedTechnologist = useMemo(() => technologistOptions.find((staff) => staff.uid === technologistId) || null, [technologistId, technologistOptions]);
     const personDisplayOrder = useMemo(() => {
         type OrderEntry = { key: string; priority: number; seq: number };
@@ -170,11 +190,12 @@ export default function TechnologistShiftPage() {
     const [selectedModality, setSelectedModality] = useState<CalendarModality>('RX');
     const [selectedShiftType, setSelectedShiftType] = useState<ShiftType>('CORRIDO');
     const [selectedNote, setSelectedNote] = useState('');
+    const [showNoteField, setShowNoteField] = useState(false);
     const [savingShift, setSavingShift] = useState(false);
     const [deletingShift, setDeletingShift] = useState(false);
 
     useEffect(() => {
-        const rolesFilter: string[] = ['tecnologo', 'transcriptora', 'enfermero'];
+        const rolesFilter: string[] = ['tecnologo', 'transcriptora'];
         const staffQuery = query(
             collection(db, 'users'),
             where('rol', 'in', rolesFilter)
@@ -182,13 +203,18 @@ export default function TechnologistShiftPage() {
 
         const unsubscribe = onSnapshot(staffQuery, (snapshot) => {
             const data: StaffOption[] = snapshot.docs.map((doc) => {
-                const staffData = doc.data() as Partial<StaffOption> & { nombre?: string; rol?: ShiftAssignableRole };
+                const staffData = doc.data() as Partial<StaffOption> & { nombre?: string; rol?: ShiftAssignableRole; servicioAsignado?: string };
                 return {
                     uid: doc.id,
                     nombre: staffData.nombre || 'Sin nombre',
                     rol: (staffData.rol || 'tecnologo') as ShiftAssignableRole,
-                };
-            }).sort((a, b) => a.nombre.localeCompare(b.nombre));
+                    servicioAsignado: staffData.servicioAsignado,
+                } as any;
+            }).filter((staff: any) => {
+                if (staff.rol === 'tecnologo' && staff.servicioAsignado === 'RX') return true;
+                if (staff.rol === 'transcriptora' && staff.servicioAsignado === 'ECO') return true;
+                return false;
+            }).sort((a: any, b: any) => a.nombre.localeCompare(b.nombre));
             setStaffOptions(data);
             setStaffLoading(false);
         }, (error) => {
@@ -209,8 +235,16 @@ export default function TechnologistShiftPage() {
     }, [staffOptions]);
 
     useEffect(() => {
-        if (technologistId && !technologistOptions.find((staff) => staff.uid === technologistId)) {
+        const staff = technologistOptions.find((staff) => staff.uid === technologistId);
+        if (technologistId && !staff) {
             setTechnologistId('');
+        } else if (staff) {
+            if ((staff as any).servicioAsignado === 'RX') setGenerationModality('RX');
+            else if ((staff as any).servicioAsignado === 'ECO') setGenerationModality('ECO');
+            else {
+                if (staff.rol === 'tecnologo') setGenerationModality('RX');
+                if (staff.rol === 'transcriptora') setGenerationModality('ECO');
+            }
         }
     }, [technologistId, technologistOptions]);
 
@@ -281,6 +315,31 @@ export default function TechnologistShiftPage() {
         return map;
     }, [monthShifts, personDisplayOrder, staffNameById, staffRoleById]);
 
+    const workloadStats = useMemo(() => {
+        const stats: Record<string, { total: number, name: string, diurno: number, nocturno: number, festivoDiurno: number, festivoNocturno: number }> = {};
+        staffOptions.forEach(s => {
+            stats[s.uid] = { total: 0, name: s.nombre, diurno: 0, nocturno: 0, festivoDiurno: 0, festivoNocturno: 0 };
+        });
+        const workTypes = ['CORRIDO', 'NOCHE', 'MANANA_TARDE', 'MANANA'];
+        monthShifts.forEach(shift => {
+            if (workTypes.includes(shift.shiftType)) {
+                const resId = shift.assignedUserId || shift.technologistId;
+                if (resId && stats[resId]) {
+                    stats[resId].total += 1;
+                    const dateObj = new Date(shift.date + 'T00:00:00');
+                    const isHoliday = holidayDatesSet.has(shift.date) || dateObj.getDay() === 0;
+                    const isNight = shift.shiftType === 'NOCHE';
+                    
+                    if (isHoliday && isNight) stats[resId].festivoNocturno += 1;
+                    else if (isHoliday && !isNight) stats[resId].festivoDiurno += 1;
+                    else if (!isHoliday && isNight) stats[resId].nocturno += 1;
+                    else stats[resId].diurno += 1;
+                }
+            }
+        });
+        return Object.values(stats).filter(s => s.total > 0).sort((a, b) => b.total - a.total);
+    }, [monthShifts, staffOptions, holidayDatesSet]);
+
     const matrixAssignmentsMap = useMemo(() => {
         const map: Record<string, MatrixShiftAssignment[]> = {};
         monthShifts.forEach(shift => {
@@ -289,7 +348,7 @@ export default function TechnologistShiftPage() {
             if (!resId) return;
 
             if (!map[shift.date]) map[shift.date] = [];
-            
+
             map[shift.date].push({
                 id: shift.id,
                 shiftType: shift.shiftType,
@@ -324,7 +383,25 @@ export default function TechnologistShiftPage() {
         setSelectedModality('RX');
         setSelectedShiftType('CORRIDO');
         setSelectedNote('');
+        setShowNoteField(false);
         setIsDayDialogOpen(true);
+    };
+
+    const handleDialogStaffChange = (staffId: string) => {
+        setSelectedStaffId(staffId);
+        const staff = staffOptions.find(s => s.uid === staffId);
+        if (staff) {
+            if ((staff as any).servicioAsignado === 'RX') setSelectedModality('RX');
+            else if ((staff as any).servicioAsignado === 'ECO') setSelectedModality('ECO');
+            else {
+                if (staff.rol === 'tecnologo') setSelectedModality('RX');
+                if (staff.rol === 'transcriptora') setSelectedModality('ECO');
+            }
+            if (!selectedShiftId) {
+                if (staff.rol === 'transcriptora') setSelectedShiftType('MANANA_TARDE');
+                else setSelectedShiftType('CORRIDO');
+            }
+        }
     };
 
     const toggleCustomHoliday = (day: number) => {
@@ -355,6 +432,7 @@ export default function TechnologistShiftPage() {
         setSelectedModality(derivedModality);
         setSelectedShiftType(shift.shiftType);
         setSelectedNote(shift.notes ?? '');
+        setShowNoteField(!!shift.notes);
         setIsDayDialogOpen(true);
     };
 
@@ -371,6 +449,7 @@ export default function TechnologistShiftPage() {
             setSelectedShiftId(null);
             setSelectedStaffId('');
             setSelectedNote('');
+            setShowNoteField(false);
             setSelectedDate(null);
         }
     };
@@ -479,6 +558,32 @@ export default function TechnologistShiftPage() {
         }
     };
 
+    const handleClearShifts = async () => {
+        if (!technologistId) {
+            toast({ variant: 'destructive', title: 'Aviso', description: 'Selecciona al tecnólogo/a primero.' });
+            return;
+        }
+        if (!generationDateRange?.from || !generationDateRange?.to) {
+            toast({ variant: 'destructive', title: 'Aviso', description: 'Selecciona un rango de fechas válido.' });
+            return;
+        }
+        setLoadingGeneration(true);
+        try {
+            const startStr = format(generationDateRange.from, 'yyyy-MM-dd');
+            const endStr = format(generationDateRange.to, 'yyyy-MM-dd');
+            const result = await clearTechnologistShiftsAction(technologistId, startStr, endStr);
+            if (result.success) {
+                toast({ title: 'Limpieza exitosa', description: `Se eliminaron turnos existentes en ese rango para el personal seleccionado.` });
+            } else {
+                toast({ variant: 'destructive', title: 'Error', description: result.error });
+            }
+        } catch (error: any) {
+            toast({ variant: 'destructive', title: 'Error interno', description: error.message });
+        } finally {
+            setLoadingGeneration(false);
+        }
+    };
+
     const handleSyncToDrive = async () => {
         if (monthShifts.length === 0) {
             toast({ variant: 'destructive', title: 'No hay datos', description: 'No hay turnos registrados en este mes para sincronizar.' });
@@ -536,15 +641,18 @@ export default function TechnologistShiftPage() {
 
     return (
         <div className="space-y-6">
-            <Card>
-                <CardHeader>
+            <Card className="print:border-0 print:shadow-none print:bg-transparent">
+                <CardHeader className="print:hidden">
                     <CardTitle>Calendario maestro de turnos</CardTitle>
                     <p className="text-sm text-muted-foreground">
                         Haz clic en un día para crear o editar turnos, asigna tecnólogos o transcriptoras y colorea según modalidad (RX azul · ECO rojo · TAC verde).
                     </p>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <CardContent className="space-y-6 print:space-y-2 print:p-0">
+                    <h2 className="text-2xl font-black text-center mb-6 hidden print:block uppercase tracking-widest text-zinc-900 border-b-2 border-zinc-900 pb-2">
+                        Cuadrante de Turnos - {monthLabel}
+                    </h2>
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 print:hidden">
                         <div className="flex items-center gap-2">
                             <Button variant="outline" size="sm" onClick={goToToday} className="font-bold text-xs uppercase tracking-widest rounded-xl px-4">
                                 Hoy
@@ -561,7 +669,7 @@ export default function TechnologistShiftPage() {
                         </div>
 
                         <div className="flex items-center gap-2">
-                             <Select value={String(month)} onValueChange={(value) => setMonth(Number(value))}>
+                            <Select value={String(month)} onValueChange={(value) => setMonth(Number(value))}>
                                 <SelectTrigger className="w-[140px] h-10 border-0 bg-zinc-100 rounded-xl font-bold text-xs uppercase hover:bg-zinc-200 transition-all">
                                     <SelectValue placeholder="Mes" />
                                 </SelectTrigger>
@@ -571,20 +679,60 @@ export default function TechnologistShiftPage() {
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <Input 
-                                type="number" 
-                                value={year} 
-                                onChange={(event) => setYear(Number(event.target.value))} 
+                            <Input
+                                type="number"
+                                value={year}
+                                onChange={(event) => setYear(Number(event.target.value))}
                                 className="w-[100px] h-10 border-0 bg-zinc-100 rounded-xl font-bold text-xs text-center"
                             />
                             <Button
                                 variant="outline"
                                 onClick={handleSyncToDrive}
                                 disabled={syncingToDrive}
-                                className="h-10 border-zinc-100 shadow-sm font-black text-[10px] uppercase hover:bg-zinc-50 transition-all rounded-xl gap-2 active:scale-95"
+                                className="h-10 border-zinc-100 shadow-sm font-black text-[10px] uppercase hover:bg-zinc-50 transition-all rounded-xl gap-2 active:scale-95 print:hidden"
                             >
                                 {syncingToDrive ? <Loader2 className="h-3 w-3 animate-spin text-blue-600" /> : <CloudUpload className="h-3 w-3 text-blue-600" />}
                                 Sincronizar
+                            </Button>
+
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button variant="outline" className="h-10 border-zinc-100 shadow-sm font-black text-[10px] uppercase hover:bg-zinc-50 transition-all rounded-xl gap-2 active:scale-95 ml-2 print:hidden">
+                                        <BarChart2 className="h-3 w-3 text-emerald-600" />
+                                        Cargos
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[320px] p-4 rounded-xl shadow-xl border-zinc-100 mr-4">
+                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-4">Detalle de Carga Laboral</h4>
+                                    <ScrollArea className="max-h-[350px] pr-3">
+                                        <div className="space-y-4">
+                                            {workloadStats.map(stat => (
+                                                <div key={stat.name} className="flex flex-col gap-2 group border-b border-zinc-50 pb-3 last:border-0 last:pb-0">
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="font-bold text-zinc-900 text-[11px] truncate pr-3">{stat.name}</span>
+                                                        <span className="font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md text-[10px] font-black border border-emerald-100 shadow-sm">Total: {stat.total}</span>
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-1.5 text-[9px] font-semibold text-zinc-500 uppercase tracking-wider">
+                                                        <div className="bg-zinc-50 rounded px-2 py-1.5 flex justify-between items-center"><span>D. Ord:</span> <span className="text-zinc-900 font-black">{stat.diurno}</span></div>
+                                                        <div className="bg-zinc-50 rounded px-2 py-1.5 flex justify-between items-center"><span>N. Ord:</span> <span className="text-zinc-900 font-black">{stat.nocturno}</span></div>
+                                                        <div className="bg-rose-50/50 text-rose-600 rounded px-2 py-1.5 flex justify-between items-center"><span>D. Fest:</span> <span className="font-black">{stat.festivoDiurno}</span></div>
+                                                        <div className="bg-rose-50/50 text-rose-600 rounded px-2 py-1.5 flex justify-between items-center"><span>N. Fest:</span> <span className="font-black">{stat.festivoNocturno}</span></div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            {workloadStats.length === 0 && <p className="text-[10px] text-zinc-400 font-bold text-center py-2">Sin turnos activos</p>}
+                                        </div>
+                                    </ScrollArea>
+                                </PopoverContent>
+                            </Popover>
+
+                            <Button
+                                variant="outline"
+                                onClick={() => window.print()}
+                                className="h-10 border-zinc-100 shadow-sm font-black text-[10px] uppercase hover:bg-zinc-50 transition-all rounded-xl gap-2 active:scale-95 ml-2 print:hidden"
+                            >
+                                <Printer className="h-3 w-3 text-zinc-600" />
+                                Imprimir
                             </Button>
 
                             <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as any)} className="ml-2">
@@ -602,7 +750,7 @@ export default function TechnologistShiftPage() {
                         </div>
                     </div>
 
-                    <div className="rounded-xl border border-dashed bg-muted/40">
+                    <div className="rounded-xl border border-dashed bg-muted/40 print:hidden">
                         <button
                             type="button"
                             className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left transition hover:bg-muted/50"
@@ -612,7 +760,14 @@ export default function TechnologistShiftPage() {
                             <div>
                                 <p className="text-sm font-semibold text-foreground">Festivos del mes</p>
                                 <p className="text-xs text-muted-foreground">
-                                    {customHolidayDates.size > 0 ? `${customHolidayDates.size} festivo(s) extra seleccionado(s).` : 'Sin festivos adicionales.'}
+                                    {colombiaHolidayDetails.length > 0 ? (
+                                        <span className="text-orange-600 font-bold mr-2">
+                                            {colombiaHolidayDetails.map(h => h.name).join(', ')}
+                                        </span>
+                                    ) : (
+                                        'Ningún festivo fijo.'
+                                    )}
+                                    {customHolidayDates.size > 0 && ` + ${customHolidayDates.size} extra.`}
                                 </p>
                             </div>
                             <span className="text-xs font-semibold text-primary">
@@ -672,14 +827,15 @@ export default function TechnologistShiftPage() {
                                     setIsDayDialogOpen(true);
                                 }
                             }}
-                            holidayDates={customHolidayDates}
+                            holidayDates={holidayDatesSet}
                         />
                     ) : (
-                        <StaffShiftMatrix 
+                        <StaffShiftMatrix
                             year={year}
                             month={month}
                             staff={staffOptions as any[]}
                             assignments={matrixAssignmentsMap}
+                            holidays={holidayDatesSet}
                             onCellClick={(date, staffId, assignmentId) => {
                                 if (assignmentId) {
                                     const shift = monthShifts.find((s) => s.id === assignmentId);
@@ -716,7 +872,7 @@ export default function TechnologistShiftPage() {
                 </CardContent>
             </Card>
 
-            <Card>
+            <Card className="print:hidden">
                 <CardHeader>
                     <CardTitle>Generar secuencia automática (opcional)</CardTitle>
                     <p className="text-sm text-muted-foreground">Mantuvimos la herramienta de generación masiva para crear plantillas rápidas y luego ajustar en el calendario.</p>
@@ -755,15 +911,17 @@ export default function TechnologistShiftPage() {
                             <Label className="text-[10px] font-black uppercase text-zinc-500 ml-1">Rango de Generación</Label>
                             <div className="flex items-center gap-2 bg-white border border-zinc-100 rounded-xl px-3 h-12 shadow-sm">
                                 <CalendarIcon className="h-4 w-4 text-zinc-400 shrink-0" />
-                                <DateRangePicker 
-                                    date={generationDateRange} 
-                                    setDate={setGenerationDateRange} 
-                                    onApply={() => {}} 
+                                <DateRangePicker
+                                    date={generationDateRange}
+                                    setDate={setGenerationDateRange}
+                                    onApply={() => { }}
                                 />
                             </div>
                         </div>
                         <div className="grid gap-2">
-                            <Label className="text-[10px] font-black uppercase text-zinc-500 ml-1">Iniciar Ciclo con</Label>
+                            <Label className="text-[10px] font-black uppercase text-zinc-500 ml-1">
+                                {selectedTechnologist?.rol === 'transcriptora' ? 'Finde 1 (De la Secuencia)' : 'Iniciar Ciclo con'}
+                            </Label>
                             <div className="grid grid-cols-2 gap-1 bg-zinc-100 p-1 rounded-xl h-12">
                                 {['CORRIDO', 'NOCHE', 'POSTURNO', 'LIBRE'].map((type, index) => (
                                     <button
@@ -772,19 +930,26 @@ export default function TechnologistShiftPage() {
                                         onClick={() => setStartSequenceIndex(index)}
                                         className={cn(
                                             "rounded-lg text-[9px] font-black uppercase transition-all",
-                                            startSequenceIndex === index 
-                                                ? "bg-white text-zinc-900 shadow-sm" 
+                                            startSequenceIndex === index
+                                                ? "bg-white text-zinc-900 shadow-sm"
                                                 : "text-zinc-400 hover:text-zinc-600"
                                         )}
+                                        disabled={selectedTechnologist?.rol === 'transcriptora' && index > 1}
                                     >
-                                        {type === 'CORRIDO' ? 'C' : type === 'NOCHE' ? 'N' : type === 'POSTURNO' ? 'P' : 'L'}
+                                        {selectedTechnologist?.rol === 'transcriptora'
+                                            ? (index === 0 ? 'TRAB' : index === 1 ? 'DESC' : '-')
+                                            : (type === 'CORRIDO' ? 'C' : type === 'NOCHE' ? 'N' : type === 'POSTURNO' ? 'P' : 'L')}
                                     </button>
                                 ))}
                             </div>
                             <div className="flex justify-between px-1">
-                                {['Corrido', 'Noche', 'Pos', 'Libre'].map((label, i) => (
-                                    <span key={label} className={cn("text-[8px] font-bold uppercase", startSequenceIndex === i ? "text-zinc-900" : "text-zinc-300")}>{label}</span>
-                                ))}
+                                {selectedTechnologist?.rol === 'transcriptora' ? (
+                                    <span className="text-[8px] font-bold uppercase text-zinc-400 text-center w-full">Mañana/Tarde L-V. Fines de Semana Alternados</span>
+                                ) : (
+                                    ['Corrido', 'Noche', 'Pos', 'Libre'].map((label, i) => (
+                                        <span key={label} className={cn("text-[8px] font-bold uppercase", startSequenceIndex === i ? "text-zinc-900" : "text-zinc-300")}>{label}</span>
+                                    ))
+                                )}
                             </div>
                         </div>
                     </div>
@@ -792,22 +957,32 @@ export default function TechnologistShiftPage() {
                     <div className="flex flex-col md:flex-row items-center gap-6 pt-4 border-t border-zinc-50">
                         <div className="grid gap-2 flex-1 w-full">
                             <Label className="text-[10px] font-black uppercase text-zinc-500 ml-1">Notas y Ajustes Rápidos (YYYY-MM-DD: texto)</Label>
-                            <Textarea 
-                                value={notes} 
-                                onChange={(event) => setNotes(event.target.value)} 
-                                placeholder="Ej: 2025-01-15: cubrir turno especial" 
-                                rows={1} 
+                            <Textarea
+                                value={notes}
+                                onChange={(event) => setNotes(event.target.value)}
+                                placeholder="Ej: 2025-01-15: cubrir turno especial"
+                                rows={1}
                                 className="bg-zinc-50 border-zinc-100 rounded-xl resize-none focus:ring-zinc-900 transition-all font-medium min-h-[48px]"
                             />
                         </div>
-                        <Button 
-                            onClick={handleGenerate} 
-                            disabled={loadingGeneration} 
-                            className="w-full md:w-[240px] h-12 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white font-black uppercase tracking-widest shadow-xl shadow-zinc-200 transition-all active:scale-95 shrink-0"
-                        >
-                            {loadingGeneration ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                            {loadingGeneration ? 'Procesando...' : 'Aplicar Secuencia'}
-                        </Button>
+                        <div className="flex gap-2 w-full md:w-auto shrink-0">
+                            <Button
+                                variant="outline"
+                                onClick={handleClearShifts}
+                                disabled={loadingGeneration}
+                                className="w-full md:w-[140px] h-12 rounded-xl text-rose-500 border-rose-100 hover:bg-rose-50 hover:text-rose-600 font-black uppercase tracking-widest transition-all active:scale-95"
+                            >
+                                Limpiar Rango
+                            </Button>
+                            <Button
+                                onClick={handleGenerate}
+                                disabled={loadingGeneration}
+                                className="w-full md:w-[200px] h-12 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white font-black uppercase tracking-widest shadow-xl shadow-zinc-200 transition-all active:scale-95 shrink-0"
+                            >
+                                {loadingGeneration ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                                {loadingGeneration ? 'Procesando...' : 'Aplicar Secuencia'}
+                            </Button>
+                        </div>
                     </div>
                 </CardContent>
             </Card>
@@ -815,105 +990,131 @@ export default function TechnologistShiftPage() {
             <Dialog open={isDayDialogOpen} onOpenChange={handleDialogOpenChange}>
                 <DialogContent className="p-0 border-0 rounded-2xl shadow-2xl overflow-hidden max-w-lg">
                     <div className="bg-zinc-900 px-6 py-5">
-                      <DialogTitle className="text-white font-black text-lg">
-                        {selectedDate ? `Turno para ${formatDialogDate(selectedDate)}` : 'Gestionar Turno'}
-                      </DialogTitle>
-                      <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mt-1">Asigna personal y modalidad</p>
+                        <DialogTitle className="text-white font-black text-lg">
+                            {selectedDate ? `Turno para ${formatDialogDate(selectedDate)}` : 'Gestionar Turno'}
+                        </DialogTitle>
+                        <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mt-1">Asigna personal y modalidad</p>
                     </div>
 
-                    <div className="p-6 space-y-5">
+                    <div className="p-6 space-y-5 max-h-[85vh] overflow-y-auto custom-scrollbar">
                         {selectedDate && selectedDayAssignments.length > 0 && !selectedShiftId && (
                             <div className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50/50 p-4">
                                 <p className="text-[9px] font-black uppercase text-zinc-400 tracking-widest mb-3">Turnos ya registrados hoy</p>
-                                <div className="flex flex-col gap-2">
-                                    {selectedDayAssignments.map((assignment) => (
-                                        <button
-                                            key={assignment.id}
-                                            type="button"
-                                            className="flex items-center justify-between bg-white border border-zinc-100 rounded-xl px-4 py-2.5 text-left transition-all hover:border-zinc-300 hover:shadow-sm"
-                                            onClick={() => handleAssignmentClick(assignment.id)}
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <span className={`h-2 w-2 rounded-full ${CALENDAR_MODALITY_COLORS[assignment.modality].dot}`} />
-                                                <div className="flex flex-col">
-                                                  <p className="text-[10px] font-black text-zinc-900 uppercase leading-none mb-1">{assignment.personLabel}</p>
-                                                  <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-tighter">{assignment.shiftType} · {assignment.modality}</p>
+                                <ScrollArea className="max-h-[160px] pr-2">
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {selectedDayAssignments.map((assignment) => (
+                                            <button
+                                                key={assignment.id}
+                                                type="button"
+                                                className="flex items-center justify-between bg-white border border-zinc-100 rounded-xl px-3 py-2 text-left transition-all hover:border-zinc-300 hover:shadow-sm"
+                                                onClick={() => handleAssignmentClick(assignment.id)}
+                                            >
+                                                <div className="flex items-center gap-2 overflow-hidden">
+                                                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${CALENDAR_MODALITY_COLORS[assignment.modality].dot}`} />
+                                                    <div className="flex flex-col overflow-hidden">
+                                                        <p className="text-[9px] font-black text-zinc-900 uppercase leading-none mb-0.5 truncate">{assignment.personLabel}</p>
+                                                        <p className="text-[8px] font-bold text-zinc-400 uppercase tracking-tighter truncate">{assignment.shiftType} · {assignment.modality}</p>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <ChevronRight className="h-3 w-3 text-zinc-300" />
-                                        </button>
-                                    ))}
-                                </div>
+                                                <ChevronRight className="h-2.5 w-2.5 text-zinc-300 shrink-0" />
+                                            </button>
+                                        ))}
+                                    </div>
+                                </ScrollArea>
                             </div>
                         )}
-                    <div className="grid gap-4 py-2">
-                        <div className="grid gap-2">
-                            <Label className="text-[10px] font-black uppercase text-zinc-500 ml-1">Responsable</Label>
-                            <Select value={selectedStaffId} onValueChange={setSelectedStaffId} disabled={staffLoading}>
-                                <SelectTrigger className="h-11 bg-zinc-50 border-0 rounded-xl focus:ring-zinc-900 transition-all font-bold">
-                                    <SelectValue placeholder={staffLoading ? 'Cargando...' : 'Selecciona a quién asignar'} />
-                                </SelectTrigger>
-                                <SelectContent className="rounded-xl border-0 shadow-2xl">
-                                    {staffOptions.map((staff) => (
-                                        <SelectItem key={staff.uid} value={staff.uid} className="font-bold">
-                                            {staff.nombre} · <span className="opacity-50 font-normal">{staff.rol === 'tecnologo' ? 'Tec' : 'Trs'}</span>
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="grid gap-2">
-                              <Label className="text-[10px] font-black uppercase text-zinc-500 ml-1">Modalidad</Label>
-                              <Select value={selectedModality} onValueChange={(value) => setSelectedModality(value as CalendarModality)}>
-                                  <SelectTrigger className="h-11 bg-zinc-50 border-0 rounded-xl focus:ring-zinc-900 transition-all font-bold">
-                                      <SelectValue placeholder="Modalidad" />
-                                  </SelectTrigger>
-                                  <SelectContent className="rounded-xl border-0 shadow-2xl">
-                                      {calendarModalities.map((modality) => (
-                                          <SelectItem key={modality} value={modality} className="font-bold">{modality}</SelectItem>
-                                      ))}
-                                  </SelectContent>
-                              </Select>
-                          </div>
-                          <div className="grid gap-2">
-                              <Label className="text-[10px] font-black uppercase text-zinc-500 ml-1">Tipo de turno</Label>
-                              <Select value={selectedShiftType} onValueChange={(value) => setSelectedShiftType(value as ShiftType)}>
-                                  <SelectTrigger className="h-11 bg-zinc-50 border-0 rounded-xl focus:ring-zinc-900 transition-all font-bold uppercase text-xs">
-                                      <SelectValue placeholder="Tipo de turno" />
-                                  </SelectTrigger>
-                                  <SelectContent className="rounded-xl border-0 shadow-2xl">
-                                      {ShiftTypes.map((type) => (
-                                          <SelectItem key={type} value={type} className="uppercase text-xs font-bold">{type}</SelectItem>
-                                      ))}
-                                  </SelectContent>
-                              </Select>
-                          </div>
-                        </div>
+                        <div className="grid gap-4 py-2">
+                            <div className="grid gap-2">
+                                <Label className="text-[10px] font-black uppercase text-zinc-500 ml-1">Responsable</Label>
+                                <Select value={selectedStaffId} onValueChange={handleDialogStaffChange} disabled={staffLoading}>
+                                    <SelectTrigger className="h-11 bg-zinc-50 border-0 rounded-xl focus:ring-zinc-900 transition-all font-bold">
+                                        <SelectValue placeholder={staffLoading ? 'Cargando...' : 'Selecciona a quién asignar'} />
+                                    </SelectTrigger>
+                                    <SelectContent className="rounded-xl border-0 shadow-2xl">
+                                        {staffOptions.map((staff) => (
+                                            <SelectItem key={staff.uid} value={staff.uid} className="font-bold">
+                                                {staff.nombre} · <span className="opacity-50 font-normal">{staff.rol === 'tecnologo' ? 'Tec' : 'Trs'}</span>
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="grid gap-2">
+                                    <Label className="text-[10px] font-black uppercase text-zinc-500 ml-1">Modalidad</Label>
+                                    <Select value={selectedModality} onValueChange={(value) => setSelectedModality(value as CalendarModality)}>
+                                        <SelectTrigger className="h-11 bg-zinc-50 border-0 rounded-xl focus:ring-zinc-900 transition-all font-bold">
+                                            <SelectValue placeholder="Modalidad" />
+                                        </SelectTrigger>
+                                        <SelectContent className="rounded-xl border-0 shadow-2xl">
+                                            {calendarModalities.map((modality) => (
+                                                <SelectItem key={modality} value={modality} className="font-bold">{modality}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label className="text-[10px] font-black uppercase text-zinc-500 ml-1">Tipo de turno</Label>
+                                    <Select value={selectedShiftType} onValueChange={(value) => setSelectedShiftType(value as ShiftType)}>
+                                        <SelectTrigger className="h-11 bg-zinc-50 border-0 rounded-xl focus:ring-zinc-900 transition-all font-bold uppercase text-xs">
+                                            <SelectValue placeholder="Tipo de turno" />
+                                        </SelectTrigger>
+                                        <SelectContent className="rounded-xl border-0 shadow-2xl">
+                                            {ShiftTypes.map((type) => (
+                                                <SelectItem key={type} value={type} className="uppercase text-xs font-bold">{type}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
 
-                        <div className="grid gap-2">
-                            <Label className="text-[10px] font-black uppercase text-zinc-500 ml-1">Nota (opcional)</Label>
-                            <Textarea 
-                                value={selectedNote} 
-                                onChange={(event) => setSelectedNote(event.target.value)} 
-                                placeholder="Cobertura especial, recordatorios, etc." 
-                                rows={2} 
-                                className="bg-zinc-50 border-0 rounded-xl resize-none focus:ring-zinc-900 transition-all"
-                            />
+                            <div className="grid gap-2">
+                                {!showNoteField ? (
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setShowNoteField(true)}
+                                        className="w-fit text-[10px] font-black uppercase text-zinc-400 hover:text-zinc-900 h-7 px-2 rounded-lg gap-1.5"
+                                    >
+                                        <Plus className="h-3 w-3" />
+                                        Agregar nota
+                                    </Button>
+                                ) : (
+                                    <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                                        <div className="flex items-center justify-between px-1">
+                                            <Label className="text-[10px] font-black uppercase text-zinc-500">Nota (opcional)</Label>
+                                            <button
+                                                type="button"
+                                                onClick={() => { setShowNoteField(false); setSelectedNote(''); }}
+                                                className="text-[9px] font-bold text-red-400 hover:text-red-600 transition-colors uppercase"
+                                            >
+                                                Quitar
+                                            </button>
+                                        </div>
+                                        <Textarea
+                                            value={selectedNote}
+                                            onChange={(event) => setSelectedNote(event.target.value)}
+                                            placeholder="Cobertura especial, recordatorios, etc."
+                                            rows={2}
+                                            className="bg-zinc-50 border-0 rounded-xl resize-none focus:ring-zinc-900 transition-all text-xs font-medium"
+                                        />
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
-                </div>
 
                     <div className="px-6 pb-8 pt-2 flex flex-col gap-3">
-                        <Button 
-                            type="button" 
-                            onClick={handleSaveShift} 
+                        <Button
+                            type="button"
+                            onClick={handleSaveShift}
                             disabled={savingShift}
                             className="h-12 rounded-xl bg-amber-400 hover:bg-amber-500 text-zinc-900 font-black uppercase tracking-widest shadow-lg shadow-amber-100 transition-all active:scale-95"
                         >
                             {savingShift ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar turno'}
                         </Button>
-                        
+
                         {selectedShiftId && (
                             <Button
                                 type="button"

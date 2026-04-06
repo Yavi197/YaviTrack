@@ -137,29 +137,94 @@ function AdverseEventReporter({ onQualityReport }: { onQualityReport: () => void
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="destructive" size="icon" className="h-10 w-10 rounded-full bg-red-600 text-white shadow-lg shadow-red-200 hover:-translate-y-0.5 hover:bg-red-700 transition-all border-none group">
-                    <ShieldPlus className="h-5 w-5 group-hover:scale-110 transition-transform" />
+                <Button 
+                    variant="destructive" 
+                    size="icon" 
+                    className="h-10 w-10 rounded-full border border-red-100 shadow-sm shadow-red-500/10 hover:-translate-y-0.5 hover:shadow-md hover:shadow-red-500/20 hover:bg-red-50 transition-all group bg-white/50 backdrop-blur-sm"
+                    title="Seguridad y Calidad"
+                >
+                    <ShieldPlus className="h-5 w-5 text-red-600 group-hover:scale-110 transition-transform" />
                     <span className="sr-only">Reportar Evento Adverso o Novedad</span>
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64">
-                <DropdownMenuLabel>Seguridad y Calidad</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={onQualityReport} className="cursor-pointer">
-                    <AlertTriangle className="mr-2 h-4 w-4 text-amber-500" />
-                    <span className="font-semibold">Reportar Novedad / Sugerencia</span>
+            <DropdownMenuContent align="end" className="w-72 p-2 rounded-xl border-zinc-200 shadow-xl backdrop-blur-xl bg-white/90">
+                <DropdownMenuLabel className="px-2 py-1.5 text-xs font-bold uppercase tracking-wider text-zinc-500">Seguridad y Calidad</DropdownMenuLabel>
+                <DropdownMenuSeparator className="my-1 opacity-50" />
+                <DropdownMenuItem onClick={onQualityReport} className="cursor-pointer rounded-lg focus:bg-amber-50 focus:text-amber-700 transition-colors p-2">
+                    <div className="flex items-center w-full">
+                        <div className="h-10 w-10 rounded-lg bg-amber-100 flex items-center justify-center mr-3 group-hover:bg-amber-200 transition-colors">
+                            <AlertTriangle className="h-5 w-5 text-amber-500" />
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="font-bold text-sm leading-tight">Reportar Novedad / Sugerencia</span>
+                        </div>
+                    </div>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild className="cursor-pointer">
-                    <a href="https://docs.google.com/forms/d/1l-Pi7tMeUa9cfjIcBoZo5sFlkglutOKuxLKYQyM5azU/viewform?edit_requested=true" target="_blank" rel="noopener noreferrer">
-                        <FileBarChart className="mr-2 h-4 w-4" />
-                        <span>Evento Adverso (Formulario)</span>
+                <DropdownMenuSeparator className="my-1 opacity-50" />
+                <DropdownMenuItem asChild className="cursor-pointer rounded-lg focus:bg-violet-50 focus:text-violet-700 transition-colors p-2 mt-1">
+                    <a href="/docs/formato_farmacovigilancia.docx" download className="flex items-center w-full">
+                        <div className="h-10 w-10 rounded-lg bg-violet-100 flex items-center justify-center mr-3 group-hover:bg-violet-200 transition-colors">
+                            <FileText className="h-5 w-5 text-violet-600" />
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="font-bold text-sm leading-tight">Fármacovigilancia</span>
+                            <span className="text-[10px] text-zinc-500">Formato FO-GSF-12</span>
+                        </div>
                     </a>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild className="cursor-pointer">
-                    <a href="/docs/formato_farmacovigilancia.docx" download>
-                        <FileText className="mr-2 h-4 w-4" />
-                        <span>Fármacovigilancia (Documento)</span>
+                <DropdownMenuItem asChild className="cursor-pointer rounded-lg focus:bg-rose-50 focus:text-rose-700 transition-colors p-2 mt-1">
+                    <a href="https://docs.google.com/forms/d/1l-Pi7tMeUa9cfjIcBoZo5sFlkglutOKuxLKYQyM5azU/viewform?edit_requested=true" target="_blank" rel="noopener noreferrer" className="flex items-center w-full">
+                        <div className="h-10 w-10 rounded-lg bg-rose-100 flex items-center justify-center mr-3 group-hover:bg-rose-200 transition-colors">
+                            <FileBarChart className="h-5 w-5 text-rose-600" />
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="font-bold text-sm leading-tight">Evento Adverso</span>
+                            <span className="text-[10px] text-zinc-500">Formato GSP-FT-06</span>
+                        </div>
+                    </a>
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    );
+}
+
+function ShiftRequestsMenu() {
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button 
+                    variant="outline" 
+                    size="icon" 
+                    className="h-10 w-10 rounded-full border border-blue-100 shadow-sm shadow-blue-500/10 hover:-translate-y-0.5 hover:shadow-md hover:shadow-blue-500/20 hover:bg-blue-50 transition-all group bg-white/50 backdrop-blur-sm"
+                    title="Trámites y Solicitudes Operativas"
+                >
+                    <CalendarClock className="h-5 w-5 text-blue-600 group-hover:scale-110 transition-transform" />
+                    <span className="sr-only">Solicitudes Operativas</span>
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-72 p-2 rounded-xl border-zinc-200 shadow-xl backdrop-blur-xl bg-white/90">
+                <DropdownMenuLabel className="px-2 py-1.5 text-xs font-bold uppercase tracking-wider text-zinc-500">Operaciones Manuales</DropdownMenuLabel>
+                <DropdownMenuSeparator className="my-1 opacity-50" />
+                <DropdownMenuItem asChild className="cursor-pointer rounded-lg focus:bg-blue-50 focus:text-blue-700 transition-colors p-2">
+                    <a href="/print-format/cambio" target="_blank" rel="noopener noreferrer" className="flex items-center w-full">
+                        <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center mr-3 group-hover:bg-blue-200 transition-colors">
+                            <CalendarClock className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="font-bold text-sm leading-tight">Cambio de Turno</span>
+                            <span className="text-[10px] text-zinc-500">Formato FO-GTH-43</span>
+                        </div>
+                    </a>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="cursor-pointer rounded-lg focus:bg-emerald-50 focus:text-emerald-700 transition-colors p-2 mt-1">
+                    <a href="/print-format/permiso" target="_blank" rel="noopener noreferrer" className="flex items-center w-full">
+                        <div className="h-10 w-10 rounded-lg bg-emerald-100 flex items-center justify-center mr-3 group-hover:bg-emerald-200 transition-colors">
+                            <LogOutIcon className="h-5 w-5 text-emerald-600" />
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="font-bold text-sm leading-tight">Solicitud de Permiso</span>
+                            <span className="text-[10px] text-zinc-500">Formato FO-GTH-42</span>
+                        </div>
                     </a>
                 </DropdownMenuItem>
             </DropdownMenuContent>
@@ -302,6 +367,10 @@ export default function AppHeader() {
                   <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsHelpOpen(true)} title="Ayuda">
                       <LifeBuoy className="h-5 w-5" />
                   </Button>
+                )}
+
+                {(isTechnologist || canChangeOperator || userProfile?.rol === 'administrador') && (
+                    <ShiftRequestsMenu />
                 )}
 
                 {userProfile?.rol === 'administrador' && <AdverseEventReporter onQualityReport={() => setIsQualityDialogOpen(true)} />}

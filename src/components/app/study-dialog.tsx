@@ -483,37 +483,39 @@ export function StudyDialog({ open, onOpenChange, initialData, mode, onCreate }:
                                 </div>
                             </section>
                         </div>
-                        <div className="px-8 pb-4">
-                            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-3 px-1">¿A dónde enviar esta solicitud?</p>
-                            <div className="grid grid-cols-3 rounded-2xl overflow-hidden border-2 border-zinc-100 shadow-sm">
-                                {[
-                                    { id: 'imagenes', label: 'SOLICITUD', icon: <UserPlus className="h-4 w-4" />, color: 'zinc' },
-                                    { id: 'remisiones', label: 'REMISIÓN', icon: <ClipboardList className="h-4 w-4" />, color: 'blue' },
-                                    { id: 'consultas', label: 'CONSULTA', icon: <Stethoscope className="h-4 w-4" />, color: 'emerald' }
-                                ].map((dest) => {
-                                    const isActive = targetModule === dest.id;
-                                    return (
-                                        <button
-                                            key={dest.id}
-                                            type="button"
-                                            onClick={() => setTargetModule(dest.id as TargetModule)}
-                                            className={cn(
-                                                "flex flex-col items-center justify-center gap-1.5 py-4 text-[10px] font-black uppercase tracking-widest transition-all border-r-2 border-zinc-100 last:border-0",
-                                                isActive 
-                                                    ? "bg-zinc-900 text-white shadow-inner" 
-                                                    : "bg-white text-zinc-400 hover:bg-zinc-50 hover:text-zinc-600"
-                                            )}
-                                        >
-                                            <div className={cn("p-2 rounded-xl transition-colors", isActive ? "bg-white/10" : "bg-zinc-100/50")}>
-                                                {dest.icon}
-                                            </div>
-                                            <span>{dest.label}</span>
-                                            {isActive && <Check className="h-3 w-3 mt-0.5 text-yellow-400 animate-in zoom-in-50 duration-300" />}
-                                        </button>
-                                    );
-                                })}
+                        {currentProfile?.rol === 'administrador' && (
+                            <div className="px-8 pb-4">
+                                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-3 px-1">¿A dónde enviar esta solicitud?</p>
+                                <div className="grid grid-cols-3 rounded-2xl overflow-hidden border-2 border-zinc-100 shadow-sm">
+                                    {[
+                                        { id: 'imagenes', label: 'SOLICITUD', icon: <UserPlus className="h-4 w-4" />, color: 'zinc' },
+                                        { id: 'remisiones', label: 'REMISIÓN', icon: <ClipboardList className="h-4 w-4" />, color: 'blue' },
+                                        { id: 'consultas', label: 'CONSULTA', icon: <Stethoscope className="h-4 w-4" />, color: 'emerald' }
+                                    ].map((dest) => {
+                                        const isActive = targetModule === dest.id;
+                                        return (
+                                            <button
+                                                key={dest.id}
+                                                type="button"
+                                                onClick={() => setTargetModule(dest.id as TargetModule)}
+                                                className={cn(
+                                                    "flex flex-col items-center justify-center gap-1.5 py-4 text-[10px] font-black uppercase tracking-widest transition-all border-r-2 border-zinc-100 last:border-0",
+                                                    isActive 
+                                                        ? "bg-zinc-900 text-white shadow-inner" 
+                                                        : "bg-white text-zinc-400 hover:bg-zinc-50 hover:text-zinc-600"
+                                                )}
+                                            >
+                                                <div className={cn("p-2 rounded-xl transition-colors", isActive ? "bg-white/10" : "bg-zinc-100/50")}>
+                                                    {dest.icon}
+                                                </div>
+                                                <span>{dest.label}</span>
+                                                {isActive && <Check className="h-3 w-3 mt-0.5 text-yellow-400 animate-in zoom-in-50 duration-300" />}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                        </div>
+                        )}
                         <DialogFooter className="pt-2 px-8 pb-8">
                             <Button
                                 type="submit"
