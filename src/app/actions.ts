@@ -579,6 +579,16 @@ export async function createStudyAction(
         await runTransaction(db, async (transaction) => {
             const turnCache: Record<string, number> = {};
 
+            // --- ALL READS MUST HAPPEN BEFORE ALL WRITES ---
+            if (isAdmissionist) {
+                const uniqueModalities = Array.from(new Set(studiesToCreate.map(s => (s.modality || 'RX').toUpperCase().trim())));
+                for (const mod of uniqueModalities) {
+                    const counterRef = doc(db, 'turnCounters', `${windowId}_${mod}`);
+                    const counterSnap = await transaction.get(counterRef);
+                    turnCache[mod] = counterSnap.exists() ? counterSnap.data().current : 0;
+                }
+            }
+
             for (const singleStudy of studiesToCreate) {
                 const newStudyRef = doc(collection(db, "studies"));
                 
@@ -587,11 +597,6 @@ export async function createStudyAction(
                 if (isAdmissionist) {
                     const mod = (singleStudy.modality || 'RX').toUpperCase().trim();
                     const counterRef = doc(db, 'turnCounters', `${windowId}_${mod}`);
-                    
-                    if (turnCache[mod] === undefined) {
-                        const counterSnap = await transaction.get(counterRef);
-                        turnCache[mod] = counterSnap.exists() ? counterSnap.data().current : 0;
-                    }
                     
                     turnCache[mod]++;
                     const turnVal = turnCache[mod];
