@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import '@/app/globals.css';
 import { AuthProvider } from '@/context/auth-context';
+import { ContrastProvider } from '@/context/contrast-context';
 import { Toaster } from "@/components/ui/toaster";
 import { Plus_Jakarta_Sans, Space_Grotesk } from 'next/font/google';
 import { ServiceWorkerReset } from '@/components/app/service-worker-reset';
@@ -53,9 +54,11 @@ export default function RootLayout({
       <head />
       <body className={`${plusJakartaSans.variable} ${spaceGrotesk.variable} font-sans antialiased`}>
         <AuthProvider>
-            <ServiceWorkerReset />
-            {children}
-            <Toaster />
+            <ContrastProvider>
+                <ServiceWorkerReset />
+                {children}
+                <Toaster />
+            </ContrastProvider>
         </AuthProvider>
       </body>
     </html>

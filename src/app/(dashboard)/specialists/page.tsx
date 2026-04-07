@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
-import { collection, onSnapshot, query, orderBy, where } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, where, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Specialist, StudyWithCompletedBy } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
@@ -156,7 +156,7 @@ export default function SpecialistsPage() {
       setSpecialists(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Specialist)));
       setLoading(false);
     }, (err) => { if (err.code !== 'permission-denied') console.error(err); setLoading(false); }));
-    unsubs.push(onSnapshot(query(collection(db, "studies"), where('status', '==', 'Pendiente')), (snap) => {
+    unsubs.push(onSnapshot(query(collection(db, "studies"), where('status', '==', 'Pendiente'), limit(100)), (snap) => {
       const data = snap.docs.map(doc => doc.data() as StudyWithCompletedBy);
       setPendingStudies(data.filter(study => {
         const mod = study.studies[0]?.modality;

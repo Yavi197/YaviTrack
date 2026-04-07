@@ -37,80 +37,14 @@ import { db } from "@/lib/firebase";
 import type { InventoryItem, InventoryStockEntry, InventoryConsumption, UserProfile } from "@/lib/types";
 import { AssignOperatorDialog } from "./assign-operator-dialog";
 import { setActiveOperatorAction } from "@/app/actions";
+import { useContrast } from '@/context/contrast-context';
 import { ShiftHandoverDialog } from "./shift-handover-dialog";
 import { QualityReportDialog } from "./quality-report-dialog";
 
 function HeaderContrastIndicator() {
-    const { inventoryItems, inventoryLoading: authInventoryLoading } = useAuth();
+    const { netTotalMl, loading } = useContrast();
     const [isContrastDialogOpen, setIsContrastDialogOpen] = useState(false);
-    const [rawTotalMl, setRawTotalMl] = useState(0);
-    const [offsetMl, setOffsetMl] = useState(0);
-    const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        if (authInventoryLoading) return;
-
-        const contrastItems = inventoryItems.filter(item => item.isContrast);
-        if (contrastItems.length === 0) {
-            setRawTotalMl(0);
-            setLoading(false);
-            return;
-        }
-
-        const contrastItemIds = contrastItems.map(item => item.id);
-        const itemsMap = new Map(contrastItems.map(item => [item.id, item]));
-
-        const entriesQuery = query(
-            collection(db, 'inventoryEntries'),
-            where('itemId', 'in', contrastItemIds)
-        );
-
-        const consumptionsQuery = query(
-            collection(db, 'inventoryConsumptions'),
-            where('itemId', 'in', contrastItemIds)
-        );
-
-        const unsubEntries = onSnapshot(entriesQuery, (entrySnapshot) => {
-            const unsubConsumptions = onSnapshot(consumptionsQuery, (consumptionSnapshot) => {
-                let currentTotalMl = 0;
-                entrySnapshot.forEach(doc => {
-                    const entry = doc.data() as InventoryStockEntry;
-                    const itemDetails = itemsMap.get(entry.itemId);
-                    if (itemDetails) {
-                        currentTotalMl += entry.amountAdded * itemDetails.content;
-                    }
-                });
-
-                consumptionSnapshot.forEach(doc => {
-                    const consumption = doc.data() as InventoryConsumption;
-                    currentTotalMl -= consumption.amountConsumed;
-                });
-                
-                setRawTotalMl(currentTotalMl);
-                setLoading(false);
-            });
-            return () => unsubConsumptions();
-        }, (error) => {
-            if (error.code !== 'permission-denied') {
-                console.error("Error fetching contrast entries for header:", error);
-            }
-            setLoading(false);
-        });
-
-        return () => unsubEntries();
-
-    }, [inventoryItems, authInventoryLoading]);
-
-      useEffect(() => {
-        const metaRef = doc(db, 'inventorySettings', 'contrastStock');
-        const unsubscribe = onSnapshot(metaRef, (snapshot) => {
-          const data = snapshot.data();
-          setOffsetMl(typeof data?.offsetMl === 'number' ? data.offsetMl : 0);
-        });
-        return () => unsubscribe();
-      }, []);
-
-      const netTotalMl = rawTotalMl - offsetMl;
 
     if (loading) {
         return <Skeleton className="h-9 w-24 rounded-full" />;

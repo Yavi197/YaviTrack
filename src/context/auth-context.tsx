@@ -92,6 +92,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
         console.log('[Auth] User logged in:', user.uid, user.email);
         const userDocRef = doc(db, 'users', user.uid);
+        let unsubInventory: (() => void) | null = null;
+
         const unsubscribeProfile = onSnapshot(userDocRef, (doc) => {
           if (doc.exists()) {
             const profileData = { uid: user.uid, ...doc.data() } as UserProfile;
@@ -101,6 +103,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               setSelectedOperator(profileData.operadorActivo);
             } else {
               setSelectedOperator(null);
+            }
+
+            // Only subscribe to inventory for admin
+            if (!unsubInventory) {
+              if (profileData.rol === 'administrador') {
+                const invQuery = query(collection(db, "inventoryItems"), orderBy("name"));
+                unsubInventory = onSnapshot(invQuery, (snapshot) => {
+                    const itemsData: InventoryItem[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as InventoryItem));
+                    setInventoryItems(itemsData);
+                    setInventoryLoading(false);
+                }, (error) => {
+                    if (error.code !== 'permission-denied') console.error("Error fetching inventory items: ", error);
+                    setInventoryLoading(false);
+                });
+              } else {
+                setInventoryItems([]);
+                setInventoryLoading(false);
+              }
             }
           } else {
             console.warn('[Auth] User document does not exist in Firestore:', user.uid);
@@ -119,22 +139,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setSelectedOperator(null);
             setLoading(false);
         });
-        
-        const invQuery = query(collection(db, "inventoryItems"), orderBy("name"));
-        const unsubscribeInventory = onSnapshot(invQuery, (snapshot) => {
-            const itemsData: InventoryItem[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as InventoryItem));
-            setInventoryItems(itemsData);
-            setInventoryLoading(false);
-        }, (error) => {
-            if (error.code !== 'permission-denied') {
-              console.error("Error fetching inventory items: ", error);
-            }
-            setInventoryLoading(false);
-        });
 
         return () => {
           unsubscribeProfile();
-          unsubscribeInventory();
+          if (unsubInventory) unsubInventory();
         };
       } else {
         setUser(null);

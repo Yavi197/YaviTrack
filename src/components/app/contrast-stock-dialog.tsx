@@ -16,6 +16,7 @@ import { Loader2, Beaker, AlertCircle } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter as AlertDialogFooterComponent, AlertDialogHeader, AlertDialogTitle } from '../ui/alert-dialog';
 import { collection, doc, onSnapshot, query, orderBy, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { useContrast } from '@/context/contrast-context';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Progress } from '../ui/progress';
 import { AddSupplyEntryDialog } from './add-supply-entry-dialog';
@@ -30,98 +31,32 @@ interface ContrastStockDialogProps {
 
 export function ContrastStockDialog({ open, onOpenChange }: ContrastStockDialogProps) {
     const { userProfile, inventoryItems, inventoryLoading } = useAuth();
+    const { entries, consumptions, offsetMl, netTotalMl, loading: contrastLoading } = useContrast();
     const [addDialogOpen, setAddDialogOpen] = useState(false);
-    const [entries, setEntries] = useState<InventoryStockEntry[]>([]);
-    const [consumptions, setConsumptions] = useState<InventoryConsumption[]>([]);
-    const [historyLoading, setHistoryLoading] = useState(true);
     const [historyError, setHistoryError] = useState<string | null>(null);
-    const [offsetMl, setOffsetMl] = useState(0);
     const [resetting, setResetting] = useState(false);
     const { toast } = useToast();
 
-    const contrastItems = useMemo(() => {
-        return inventoryItems.filter(item => item.isContrast);
-    }, [inventoryItems]);
+    const contrastItems = useMemo(() => inventoryItems.filter(item => item.isContrast), [inventoryItems]);
 
-    useEffect(() => {
-        if (!open || !userProfile) return;
-
-        if (contrastItems.length === 0) {
-            setHistoryLoading(false);
-            setEntries([]);
-            setConsumptions([]);
-            return;
-        }
-
-        setHistoryLoading(true);
-        setHistoryError(null);
-        const contrastItemIds = contrastItems.map(item => item.id);
-
-        const entriesQuery = query(
-            collection(db, 'inventoryEntries'),
-            where('itemId', 'in', contrastItemIds),
-            orderBy('date', 'desc')
-        );
-
-        const consumptionsQuery = query(
-            collection(db, 'inventoryConsumptions'),
-            where('itemId', 'in', contrastItemIds)
-        );
-
-        const unsubscribeEntries = onSnapshot(entriesQuery, (snapshot) => {
-            const entryData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as InventoryStockEntry));
-            setEntries(entryData);
-            setHistoryLoading(false);
-            setHistoryError(null);
-        }, (error) => {
-            console.error("DEBUG: Contrast Entries Error:", error.code, error.message);
-            if (error.code === 'failed-precondition') {
-                setHistoryError('Falta un índice en la base de datos para cargar el historial. Revisa la consola de Firebase.');
-            } else if (error.code === 'permission-denied') {
-                // Silently ignore or handle permission issues if expected
-            } else {
-                setHistoryError('No se pudo cargar el historial de entradas (Error: ' + error.code + ')');
-            }
-            setHistoryLoading(false);
-        });
-
-        const unsubscribeConsumptions = onSnapshot(consumptionsQuery, (snapshot) => {
-            const consumptionData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as InventoryConsumption));
-            setConsumptions(consumptionData);
-        }, (error) => {
-            console.error("DEBUG: Contrast Consumptions Error:", error.code, error.message);
-            // Non-critical for visual history, but good to know
-        });
-
-        const unsubscribeMeta = onSnapshot(doc(db, 'inventorySettings', 'contrastStock'), (snapshot) => {
-            const data = snapshot.data();
-            setOffsetMl(typeof data?.offsetMl === 'number' ? data.offsetMl : 0);
-        });
-
-        return () => {
-            unsubscribeEntries();
-            unsubscribeConsumptions();
-            unsubscribeMeta();
-        };
-    }, [open, contrastItems, userProfile]);
-
+    // Sort entries by date desc for the history view (context gives unsorted)
+    const sortedEntries = useMemo(() =>
+        [...entries].sort((a, b) => {
+            const da = a.date?.toDate?.()?.getTime() ?? 0;
+            const db2 = b.date?.toDate?.()?.getTime() ?? 0;
+            return db2 - da;
+        }),
+    [entries]);
 
     const totalMl = useMemo(() => {
         const itemsMap = new Map(inventoryItems.map(item => [item.id, item]));
-        
         const totalEntered = entries.reduce((acc, entry) => {
             const itemDetails = itemsMap.get(entry.itemId);
             return acc + (itemDetails ? entry.amountAdded * itemDetails.content : 0);
         }, 0);
-
-        const totalConsumed = consumptions.reduce((acc, consumption) => {
-            return acc + consumption.amountConsumed;
-        }, 0);
-        
+        const totalConsumed = consumptions.reduce((acc, consumption) => acc + consumption.amountConsumed, 0);
         return totalEntered - totalConsumed;
     }, [entries, consumptions, inventoryItems]);
-
-    const netTotalMl = totalMl - offsetMl;
 
     const handleResetCounter = useCallback(async () => {
         if (!userProfile) return;
@@ -248,7 +183,7 @@ export function ContrastStockDialog({ open, onOpenChange }: ContrastStockDialogP
                             
                             <ScrollArea className="h-[180px] rounded-[1.5rem] border-2 border-zinc-50 bg-zinc-50/20 p-1.5">
                                 <div className="space-y-1.5">
-                                    {historyLoading ? (
+                                    {contrastLoading ? (
                                         <div className="flex flex-col items-center justify-center py-10 opacity-30">
                                             <Loader2 className="h-6 w-6 animate-spin mb-2 text-zinc-400" />
                                             <p className="text-[8px] font-black uppercase tracking-[0.2em] text-zinc-400">Sincronizando...</p>
@@ -269,7 +204,7 @@ export function ContrastStockDialog({ open, onOpenChange }: ContrastStockDialogP
                                             <p className="text-[8px] font-black uppercase tracking-[0.2em] text-zinc-400">Sin movimientos</p>
                                         </div>
                                     ) : (
-                                        entries.map((entry) => (
+                                        sortedEntries.map((entry) => (
                                             <div key={entry.id} className="bg-white p-3 rounded-xl border border-zinc-100 shadow-sm transition-all hover:shadow-md group flex justify-between items-center">
                                                 <div className="flex items-center gap-2.5">
                                                     <div className="bg-emerald-50 p-1.5 rounded-lg group-hover:bg-emerald-100 transition-colors">

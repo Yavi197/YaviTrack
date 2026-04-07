@@ -987,7 +987,13 @@ export default function DashboardPage() {
       });
     };
 
-    const unsubscribeUsers = onSnapshot(query(collection(db, "users")), (snapshot) => {
+    // Only load users with roles relevant to imaging duty tracking — avoids downloading every user on every change
+    const usersQuery = query(
+      collection(db, "users"),
+      where("rol", "in", ["tecnologo", "transcriptora", "administrador"]),
+      where("activo", "==", true)
+    );
+    const unsubscribeUsers = onSnapshot(usersQuery, (snapshot) => {
       usersData = snapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() } as UserProfile));
       updateDutyUsers();
     });
