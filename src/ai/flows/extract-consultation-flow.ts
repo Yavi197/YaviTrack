@@ -1,163 +1,20 @@
+
 'use server';
 /**
- * @fileOverview This file defines a Genkit flow to extract structured data about medical consultations from orders.
- * Supports both ADES and eMEDICO order systems with specialized prompts.
- *
- * - extractConsultationData - An async function that takes a medical order and optional orderType, returns structured consultation data.
+ * @fileOverview Refactored consultation extraction to use the same optimized 
+ * Gemini 1.5 Flash workflow as imaging.
  */
 
-import {ai} from '@/ai/genkit';
-import { googleAI } from '@genkit-ai/google-genai';
-import { ExtractOrderInputSchema, OrderDataSchema, type ExtractOrderInput, type ExtractOrderOutput } from '@/lib/schemas/extract-order-schema';
+import { ExtractOrderInput, ExtractOrderOutput } from '@/lib/schemas/extract-order-schema';
+import { extractOrderData } from './extract-order-flow';
 
-type OrderType = 'ADES' | 'EMEDICO';
-
+/**
+ * Directs consultation extraction to the unified optimized flow.
+ * No longer uses Genkit to reduce overhead.
+ */
 export async function extractConsultationData(input: ExtractOrderInput): Promise<ExtractOrderOutput> {
-  const orderType = input.orderType || 'ADES';
-  
-  if (orderType === 'EMEDICO') {
-    return extractConsultationFlowEMedico(input);
-  }
-  return extractConsultationFlowAdes(input);
+  // Use the same core high-speed logic but we set the prompt context
+  // The systemPrompt in extract-order-flow already handles the generic extraction
+  // covering both imaging and consultations.
+  return extractOrderData(input);
 }
-
-// ADES Specialized Prompt
-const promptAdes = ai.definePrompt({
-  name: 'extractConsultationPromptAdes',
-  input: {schema: ExtractOrderInputSchema},
-  output: {schema: OrderDataSchema},
-  model: googleAI.model('gemini-3-flash-preview'),
-  prompt: `Analiza esta ORDEN ADES y extrae la información en JSON.
-
-CAMPOS PRINCIPALES ADES:
-- "Administradora": Nombre de la aseguradora/EPS
-- "Admission No" o "Número de Admisión": Identificador de la orden
-- "Documento" o "Cédula": ID del paciente (ej. 1234567890)
-- "CUPS": Código de servicio (formato 5-6 dígitos, ej. 410000, 430000)
-
-PASOS DE EXTRACCION:
-1. Paciente: fullName (busca "Nombres" o "Paciente"), id (número de documento), idType (CC, TI, etc.), entidad ("Administradora"), birthDate, sex
-2. Médico: name y register (número de colegiado)
-3. Orden: orderDate (formato DD/MM/AAAA), admissionNumber ("Admission No" o similar)
-4. Servicios: TODOS los que aparezcan con sus CUPS códigos
-5. Diagnóstico: code (CIE-10) y description
-6. service: Identify if order is for Urgencias (URG), Hospitalización (HOSP), UCI (UCI) or Consulta Externa (C.EXT).
-7. requiresCreatinine: true SOLO si el estudio menciona explícitamente "CONTRASTADO", "CONTRASTE", "IV" o "CON CONTRASTE". De lo contrario, DEBE ser false.
-
-MUY IMPORTANTE:
-- En ADES, busca "Administradora" NO "Afiliación"
-- El número de orden está en "Admission No", no en "No. OSS"
-- Los códigos son CUPS (5-6 dígitos)
-- Modalidad debe estar en MAYUSCULAS SIN TILDES: RX, TAC, ECO, RMN, MAMO, CONSULTA
-
-Medical Order: {{media url=medicalOrderDataUri}}
-
-Return valid JSON only.
-`,
-});
-
-// eMEDICO Specialized Prompt
-const promptEmedico = ai.definePrompt({
-  name: 'extractConsultationPromptEmedico',
-  input: {schema: ExtractOrderInputSchema},
-  output: {schema: OrderDataSchema},
-  model: googleAI.model('gemini-3-flash-preview'),
-  prompt: `Analiza esta ORDEN eMEDICO y extrae la información en JSON.
-
-CAMPOS PRINCIPALES eMEDICO:
-- "Afiliación" o "Programa": Sistema/programa del paciente (ej. "SOAT", "POS", etc.)
-- "No. OSS" o "Número OSS": Identificador de la orden
-- "Documento" o "ID": Identificación del paciente (ej. 1234567890)
-- "SOAT": Código de tarifa SOAT (formato diferente a CUPS)
-
-PASOS DE EXTRACCION:
-1. Paciente: fullName (busca "Nombres" o "Afiliado"), id (número de documento), idType (CC, TI, etc.), entidad ("Afiliación"/"Programa"), birthDate, sex
-2. Médico: name y register (número profesional)
-3. Orden: orderDate (formato DD/MM/AAAA), admissionNumber ("No. OSS" o similar)
-4. Servicios: TODOS los que aparezcan con sus códigos SOAT
-5. Diagnóstico: code (CIE-10) y description
-6. service: Identify if order is for Urgencias (URG), Hospitalización (HOSP), UCI (UCI) or Consulta Externa (C.EXT).
-7. requiresCreatinine: true SOLO si el estudio menciona explícitamente "CONTRASTADO", "CONTRASTE", "IV" o "CON CONTRASTE". De lo contrario, DEBE ser false.
-
-MUY IMPORTANTE:
-- En eMEDICO, busca "Afiliación" o "Programa", NO "Administradora"
-- El número de orden está en "No. OSS" o "Número OSS", no en "Admission No"
-- Los códigos son SOAT (diferentes a CUPS), mantén el formato original
-- Modalidad debe estar en MAYUSCULAS SIN TILDES: RX, TAC, ECO, RMN, MAMO, CONSULTA
-
-Medical Order: {{media url=medicalOrderDataUri}}
-
-Return valid JSON only.
-`,
-});
-
-const normalizeString = (str: string) => {
-    if (!str) return '';
-    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
-};
-
-const extractConsultationFlowAdes = ai.defineFlow(
-  {
-    name: 'extractConsultationFlowAdes',
-    inputSchema: ExtractOrderInputSchema,
-    outputSchema: OrderDataSchema,
-  },
-  async (input) => {
-    const { output } = await promptAdes(input);
-    if (!output) {
-      throw new Error('El modelo de IA no pudo generar un resultado válido. Verifica que la orden ADES sea clara.');
-    }
-    // Normalize modality and service
-    if (output.studies) {
-      output.studies.forEach(study => {
-        if (study.modality) study.modality = normalizeString(study.modality);
-      });
-    }
-
-    if (output.service) {
-      const s = output.service.toString().toUpperCase();
-      if (s.includes('URG')) output.service = 'URG' as any;
-      else if (s.includes('HOSP')) output.service = 'HOSP' as any;
-      else if (s.includes('UCI')) output.service = 'UCI' as any;
-      else if (s.includes('EXT') || s.includes('CONSULTA')) output.service = 'C.EXT' as any;
-      else output.service = undefined;
-    } else {
-      output.service = undefined;
-    }
-
-    return output;
-  }
-);
-
-const extractConsultationFlowEMedico = ai.defineFlow(
-  {
-    name: 'extractConsultationFlowEmedico',
-    inputSchema: ExtractOrderInputSchema,
-    outputSchema: OrderDataSchema,
-  },
-  async (input) => {
-    const { output } = await promptEmedico(input);
-    if (!output) {
-      throw new Error('El modelo de IA no pudo generar un resultado válido. Verifica que la orden eMEDICO sea clara.');
-    }
-    // Normalize modality and service
-    if (output.studies) {
-      output.studies.forEach(study => {
-        if (study.modality) study.modality = normalizeString(study.modality);
-      });
-    }
-
-    if (output.service) {
-      const s = output.service.toString().toUpperCase();
-      if (s.includes('URG')) output.service = 'URG' as any;
-      else if (s.includes('HOSP')) output.service = 'HOSP' as any;
-      else if (s.includes('UCI')) output.service = 'UCI' as any;
-      else if (s.includes('EXT') || s.includes('CONSULTA')) output.service = 'C.EXT' as any;
-      else output.service = undefined;
-    } else {
-      output.service = undefined;
-    }
-
-    return output;
-  }
-);
