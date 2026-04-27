@@ -1111,10 +1111,10 @@ export default function DashboardPage() {
                 setPendingOrderData(result);
                 setInitialRemissionFile(file); // Keep file for potential RMN remission
 
-                if (currentProfile.rol === 'enfermero' || currentProfile.rol === 'admisionista') {
+                if (currentProfile.rol === 'enfermero') {
                     // Automatic registration
-                    const targetService = currentProfile.rol === 'admisionista' ? 'C.EXT' : (currentProfile.servicioAsignado as GeneralService);
-                    const targetSubService = currentProfile.rol === 'admisionista' ? 'AMB' : (currentProfile.subServicioAsignado as SubServiceArea || (currentProfile.servicioAsignado ? (SubServiceAreas as any)[currentProfile.servicioAsignado][0] : 'AMB'));
+                    const targetService = currentProfile.servicioAsignado as GeneralService;
+                    const targetSubService = currentProfile.subServicioAsignado as SubServiceArea || (currentProfile.servicioAsignado ? (SubServiceAreas as any)[currentProfile.servicioAsignado][0] : 'AMB');
                     await handleCreateStudy(result, { service: targetService, subService: targetSubService });
                 } else {
                     setSelectStudiesOpen(true);
